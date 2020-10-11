@@ -217,16 +217,16 @@ pyenv --version
 # 1.2.19 or higher
 ```
 
-If you are missing any, install them as [described here](../../wiki/Explore-Logic-Bank).
+If you are missing any, install them as [described here](../../wiki/Explore-LogicBank).
 We also recommend an IDE such as PyCharm, VSCode, etc.
 
-### Install Logic-Bank
+### Install LogicBank
 In your IDE or Command Line:
 
 ```
 # optionally fork, and then
-git clone https://github.com/valhuber/Logic-Bank.git
-cd Logic-Bank
+git clone https://github.com/valhuber/LogicBank.git
+cd LogicBank
 virtualenv venv
 # windows: .\venv\Scripts\activate
 source venv/bin/activate
@@ -238,7 +238,7 @@ pip install -r requirements.txt
 ##### Run `basic_web_app`
 
 ```
-cd Logic-Bank
+cd LogicBank
 cd nw/basic_web_app
 # windows set FLASK_APP=app
 export FLASK_APP=app
@@ -290,19 +290,19 @@ these both contain
 
 To explore:
 
-* Click [here](../../wiki/Explore-Logic-Bank)
+* Click [here](../../wiki/Explore-LogicBank)
     for install / operations procedures
     
 * Click [here](../../wiki/Logic-Walkthrough) for a
     short overview of internal logic execution
 
-##### See also the Logic-Bank-Examples project
+##### See also the LogicBank-Examples project
 The `Logic Bank Examples` [here](../../wiki/Sample-Project---Setup)
 contains the same examples, but _not_ the `logic_bank` engine source code.
 It uses the logic engine via `pip install`, as you would for your own projects:
 
 ```
-pip install -i https://test.pypi.org/simple/ logic-bank
+pip install -i https://test.pypi.org/simple/ logicbank
 ```
 > This is **not required here**, and requires the same
 > pre-reqs noted above

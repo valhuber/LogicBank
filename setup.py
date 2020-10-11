@@ -17,13 +17,13 @@ def desc():
 
 
 project_urls = {
-  'Python Rules': 'https://github.com/valhuber/logic-bank/wiki'
+  'Python Rules': 'https://github.com/valhuber/logicbank/wiki'
 }
 
 setup(
-    name="logic-bank",
+    name="logicbank",
     version="0.0.4",
-    url="https://github.com/valhuber/logic-bank",
+    url="https://github.com/valhuber/logicbank",
     license="BSD",
     author="Val Huber",
     author_email="valjhuber@gmail.com",

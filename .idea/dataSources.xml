@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="nw-gold" uuid="da12e0f2-df36-4f5e-b19d-21f1776bb3c4">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/nw/db/database.db</jdbc-url>
+    </data-source>
+    <data-source source="LOCAL" name="nw" uuid="706c7ce7-8c8e-4731-9ced-09c42f2b9e52">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/nw/db/database-gold.db</jdbc-url>
+    </data-source>
+    <data-source source="LOCAL" name="banking" uuid="e70a9d8d-1c8a-40db-9c71-e5f28ff00bcd">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/banking/db/database.db</jdbc-url>
+    </data-source>
+  </component>
+</project>

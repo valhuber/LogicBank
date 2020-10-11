@@ -64,7 +64,7 @@ Depends on:
 
 More information:
 -----------------
-See the `logic-bank github <https://github.com/valhuber/logic-bank/wiki>`_
+See the `logicbank github <https://github.com/valhuber/logicbank/wiki>`_
 for more information, and explore the code.
 
 
