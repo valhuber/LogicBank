@@ -1,0 +1,30 @@
+INSERT INTO `ALERT` VALUES (1,1,1,1000.00,0.00,'tylerm007@gmail.com');
+
+INSERT INTO `CUSTOMER` VALUES (1,'Tyler Bank',0.00,0.00,0.00,'1234 N BEACH ST','Daytona Beach','FL',32174,'5556078094','tyler.bank@acme.com');
+
+INSERT INTO `LINEOFCREDIT` VALUES (1,1,35.00,1000.00,0.00,0.00,0.00,1);
+
+INSERT INTO `CHECKING` VALUES (1,1,0.00,0.00,0.00,0.00,0,1,1000.00,'C');
+
+INSERT INTO `SAVINGS` VALUES (1,2,0.00,0.00,0.00,0.00,0,'S');
+
+INSERT INTO `CHECKINGTRANS` VALUES (100,1,1,'2020-10-01 00:00:00',1000.00,0.00,1000.00,NULL,NULL);
+
+INSERT INTO `SAVINGSTRANS` VALUES (100,1,1,'2020-10-01 00:00:00',500.00,0.00,1000.00,NULL,NULL);
+
+INSERT INTO `ab_permission` VALUES (8,'can_add'),(15,'can_chart'),(7,'can_delete'),(5,'can_download'),(9,'can_edit'),(16,'can_get'),(6,'can_list'),(4,'can_show'),(1,'can_this_form_get'),(2,'can_this_form_post'),(3,'can_userinfo'),(14,'copyrole'),(13,'menu_access'),(10,'resetmypassword'),(11,'resetpasswords'),(12,'userinfoedit');
+
+INSERT INTO `ab_permission_view` VALUES (1,1,5),(3,1,6),(5,1,7),(2,2,5),(4,2,6),(6,2,7),(7,3,9),(8,4,9),(19,4,12),(37,4,23),(45,4,26),(52,4,28),(59,4,30),(66,4,32),(73,4,34),(80,4,36),(87,4,38),(94,4,40),(101,4,42),(108,4,44),(115,4,46),(9,5,9),(20,5,12),(41,5,23),(49,5,26),(56,5,28),(63,5,30),(70,5,32),(77,5,34),(84,5,36),(91,5,38),(98,5,40),(105,5,42),(112,5,44),(119,5,46),(10,6,9),(21,6,12),(29,6,16),(31,6,18),(33,6,20),(40,6,23),(48,6,26),(55,6,28),(62,6,30),(69,6,32),(76,6,34),(83,6,36),(90,6,38),(97,6,40),(104,6,42),(111,6,44),(118,6,46),(11,7,9),(22,7,12),(38,7,23),(46,7,26),(53,7,28),(60,7,30),(67,7,32),(74,7,34),(81,7,36),(88,7,38),(95,7,40),(102,7,42),(109,7,44),(116,7,46),(12,8,9),(23,8,12),(36,8,23),(44,8,26),(51,8,28),(58,8,30),(65,8,32),(72,8,34),(79,8,36),(86,8,38),(93,8,40),(100,8,42),(107,8,44),(114,8,46),(13,9,9),(24,9,12),(39,9,23),(47,9,26),(54,9,28),(61,9,30),(68,9,32),(75,9,34),(82,9,36),(89,9,38),(96,9,40),(103,9,42),(110,9,44),(117,9,46),(14,10,9),(15,11,9),(16,12,9),(17,13,10),(18,13,11),(26,13,13),(28,13,15),(30,13,17),(32,13,19),(34,13,21),(42,13,24),(43,13,25),(50,13,27),(57,13,29),(64,13,31),(71,13,33),(78,13,35),(85,13,37),(92,13,39),(99,13,41),(106,13,43),(113,13,45),(120,13,47),(25,14,12),(27,15,14),(35,16,22);
+
+INSERT INTO `ab_permission_view_role` VALUES (1,1,1),(2,2,1),(3,3,1),(4,4,1),(5,5,1),(6,6,1),(7,7,1),(8,8,1),(9,9,1),(10,10,1),(11,11,1),(12,12,1),(13,13,1),(14,14,1),(15,15,1),(16,16,1),(17,17,1),(18,18,1),(19,19,1),(20,20,1),(21,21,1),(22,22,1),(23,23,1),(24,24,1),(25,25,1),(26,26,1),(27,27,1),(28,28,1),(29,29,1),(30,30,1),(31,31,1),(32,32,1),(33,33,1),(34,34,1),(35,35,1),(36,36,1),(37,37,1),(38,38,1),(39,39,1),(40,40,1),(41,41,1),(42,42,1),(43,43,1),(44,44,1),(45,45,1),(46,46,1),(47,47,1),(48,48,1),(49,49,1),(50,50,1),(51,51,1),(52,52,1),(53,53,1),(54,54,1),(55,55,1),(56,56,1),(57,57,1),(58,58,1),(59,59,1),(60,60,1),(61,61,1),(62,62,1),(63,63,1),(64,64,1),(65,65,1),(66,66,1),(67,67,1),(68,68,1),(69,69,1),(70,70,1),(71,71,1),(72,72,1),(73,73,1),(74,74,1),(75,75,1),(76,76,1),(77,77,1),(78,78,1),(79,79,1),(80,80,1),(81,81,1),(82,82,1),(83,83,1),(84,84,1),(85,85,1),(86,86,1),(87,87,1),(88,88,1),(89,89,1),(90,90,1),(91,91,1),(92,92,1),(93,93,1),(94,94,1),(95,95,1),(96,96,1),(97,97,1),(98,98,1),(99,99,1),(100,100,1),(101,101,1),(102,102,1),(103,103,1),(104,104,1),(105,105,1),(106,106,1),(107,107,1),(108,108,1),(109,109,1),(110,110,1),(111,111,1),(112,112,1),(113,113,1),(114,114,1),(115,115,1),(116,116,1),(117,117,1),(118,118,1),(119,119,1),(120,120,1);
+
+INSERT INTO `ab_role` VALUES (1,'Admin'),(2,'Public');
+
+INSERT INTO `ab_user` VALUES (1,'admin','user','admin','pbkdf2:sha256:150000$788djhRN$1be17959c96e4d635c34647d38131b9ca27914f786efa4d7fa8d4cc5f24f893a',1,'admin@fab.org','2020-09-26 11:29:14',3,0,'2020-09-24 17:14:31','2020-09-24 17:14:31',NULL,NULL);
+
+INSERT INTO `ab_user_role` VALUES (1,1,1);
+
+INSERT INTO `ab_view_menu` VALUES (33,'ALERT List'),(32,'ALERTModelView'),(8,'AuthDBView'),(17,'Base Permissions'),(29,'CHECKING List'),(27,'CHECKINGTRANS List'),(26,'CHECKING_TRANSModelView'),(28,'CHECKINGModelView'),(45,'CUSTOMER List'),(44,'CUSTOMERModelView'),(1,'IndexView'),(37,'LINE_OF_CREDIT List'),(36,'LINE_OF_CREDITModelView'),(13,'List Roles'),(10,'List Users'),(35,'LOC_TRANSACTIONS List'),(34,'LOC_TRANSACTIONSModelView'),(3,'LocaleView'),(25,'Menu'),(22,'MenuApi'),(21,'Permission on Views/Menus'),(16,'PermissionModelView'),(20,'PermissionViewModelView'),(6,'ResetMyPasswordView'),(5,'ResetPasswordView'),(12,'RoleModelView'),(41,'SAVINGS List'),(39,'SAVINGSTRANS List'),(38,'SAVINGS_TRANSModelView'),(40,'SAVINGSModelView'),(11,'Security'),(4,'SecurityApi'),(43,'TRANSFER_FUNDS List'),(42,'TRANSFER_FUNDSModelView'),(15,'User\'s Statistics'),(9,'UserDBModelView'),(7,'UserInfoEditView'),(14,'UserStatsChartView'),(2,'UtilView'),(24,'Valid_Acct_Type List'),(23,'Valid_Acct_TypeModelView'),(31,'valid_credit List'),(30,'valid_creditModelView'),(47,'valid_state List'),(46,'valid_stateModelView'),(18,'ViewMenuModelView'),(19,'Views/Menus');
+
+INSERT INTO `validcredit` VALUES (1,'Excellent',5000.00),(2,'Good',1000.00),(3,'Fair',500.00),(4,'Poor',250.00),(5,'No Credit',0.00);
+INSERT INTO `validstate` VALUES ('AK','Alaska'),('AL','Alabama'),('AR','Arkansas'),('AZ','Arizona'),('CA','California'),('CO','Colorado'),('CT','Connecticut'),('DE','Delaware'),('FL','Florida'),('GA','Georgia'),('HI','Hawaii'),('IA','Iowa'),('ID','Idaho'),('IL','Illinois'),('IN','Indiana'),('KS','Kansas'),('KY','Kentucky'),('LA','Louisiana'),('MA','Massachusetts'),('MD','Maryland'),('ME','Maine'),('MI','Michigan'),('MN','Minnesota'),('MO','Missouri'),('MS','Mississippi'),('MT','Montana'),('NC','North Carolina'),('ND','North Dakota'),('NE','Nebraska'),('NH','New Hampshire'),('NJ','New Jersey'),('NM','New Mexico'),('NV','Nevada'),('NY','NewYork'),('OH','Ohio'),('OK','Oklahoma'),('OR','Oregon'),('PA','Pennsylvania'),('RI','Rhode Island'),('SC','South Carolina'),('SD','South Dakota'),('TN','Tennessee'),('TX','Texas'),('UT','Utah'),('VA','Virginia'),('VT','Vermont'),('WA','Washington'),('WI','Wisconsin'),('WV','West Virginia'),('WY','Wyoming');
