@@ -67,23 +67,6 @@ for modelName in unparsedTables:
         appbuilder.add_api(apiClass)
 
 if use_rules:
-    """
-    rule_bank_setup.setup(db.session, db.engine)
-    declare_logic()
-    rule_bank_setup.validate(db.session, db.engine)  # checks for cycles, etc
-    """
     LogicBank.activate(session=db.session, activator=declare_logic)
-"""
-from sqlalchemy.engine import Engine
-from sqlalchemy import event
-
-#Only include this for SQLLite constraints
-@event.listens_for(Engine, "connect")
-def set_sqlite_pragma(dbapi_connection, connection_record):
-    # Will force sqllite contraint foreign keys
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
-"""
 
 from . import views
