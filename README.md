@@ -296,8 +296,8 @@ To explore:
 * Click [here](../../wiki/Logic-Walkthrough) for a
     short overview of internal logic execution
 
-##### See also the LogicBank-Examples project
-The `Logic Bank Examples` [here](../../wiki/Sample-Project---Setup)
+##### See also the [LogicBankExamples](https://github.com/valhuber/LogicBankExamples) project
+The `Logic Bank Examples` [(setup instructions here)](../../wiki/Sample-Project---Setup)
 contains the same examples, but _not_ the `logic_bank` engine source code.
 It uses the logic engine via `pip install`, as you would for your own projects:
 
