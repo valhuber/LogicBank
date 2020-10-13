@@ -324,5 +324,5 @@ There are many to thank:
 * Tyler Band, for testing and the Banking example
 * Max Tardiveau, for testing
 * Michael Holleran, for collaboration
-* Gloria, for many reviews... and patience
+* Gloria, for many reviews... and golden patience
 
