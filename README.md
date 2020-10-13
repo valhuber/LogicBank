@@ -265,7 +265,13 @@ You can
 Run the `nw/tests` programs under your IDE or the
 command line; start with `add_order` and `upd_order_shipped,`
 and see the [walk-throughs here](../../wiki/home).
- - Note: the **log** depicts logic execution
+
+```
+cd nw/tests
+python add_order.py
+```
+
+> Note: the **log** depicts logic execution
 
 #### What's in the project
 Logic Bank consists of:
