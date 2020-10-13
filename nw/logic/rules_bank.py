@@ -17,6 +17,10 @@ def declare_logic():
     * ship / unship order
     * delete order
     * move order to new customer, etc
+
+    Activate these rules like this
+
+    LogicBank.activate(session=session, activator=declare_logic)
     """
 
     def units_in_stock(row: Product, old_row: Product, logic_row: LogicRow):
