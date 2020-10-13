@@ -318,3 +318,11 @@ Functionally complete, 9/29/2020, tested for 2 databases.
 
 Incubation - ready to explore and provide feedback
 on general value, and features.
+
+#### Acknowledgements
+There are many to thank:
+* Tyler Band, for testing and the Banking example
+* Max Tardiveau, for testing
+* Michael Holleran, for collaboration
+* Gloria, for many reviews... and patience
+
