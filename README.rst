@@ -28,33 +28,17 @@ Example:
 The following 5 rules represent the same logic as 200 lines
 of Python:
 
-.. code-block:: Python
+.. image:: https://github.com/valhuber/LogicBank/raw/main/images/example.png
+    :width: 800px
+    :align: center
 
-    def activate_basic_check_credit_rules():
-        """ Check Credit Requirement:
-            * the balance must not exceed the credit limit,
-            * where the balance is the sum of the unshipped order totals
-            * which is the rollup of OrderDetail Price * Quantities:
-        """
-
-        Rule.constraint(validate=Customer, as_condition=lambda row: row.Balance <= row.CreditLimit,
-                        error_msg="balance ({row.Balance}) exceeds credit ({row.CreditLimit})")
-        Rule.sum(derive=Customer.Balance, as_sum_of=Order.AmountTotal,
-                 where=lambda row: row.ShippedDate is None)  # *not* a sql select sum
-
-        Rule.sum(derive=Order.AmountTotal, as_sum_of=OrderDetail.Amount)
-
-        Rule.formula(derive=OrderDetail.Amount, as_expression=lambda row: row.UnitPrice * row.Quantity)
-        Rule.copy(derive=OrderDetail.UnitPrice, from_parent=Product.UnitPrice)
 
 
 To activate the rules declared above:
 
 .. code-block:: Python
 
-    rule_bank_setup.setup(session, engine)
-    activate_basic_check_credit_rules()
-    rule_bank_setup.validate(session, engine)  # checks for cycles, etc
+    LogicBank.activate(session=session, activator=declare_logic)
 
 Depends on:
 -----------
@@ -64,19 +48,19 @@ Depends on:
 
 More information:
 -----------------
-See the `logicbank github <https://github.com/valhuber/logicbank/wiki>`_
-for more information, and explore the code.
+The github project includes documentation and examples.
 
 
 Acknowledgements
 ----------------
 Many thanks to
 
-- Tyler Band, for early testing
+- Tyler Band, for testing and the Banking sample
+- Max Tardiveau, for testing
 
 
 
 Change Log
 ----------
 
-0.0.1 - Initial Version
+0.0.6 - Initial Version
