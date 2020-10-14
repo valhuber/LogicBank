@@ -308,7 +308,7 @@ contains the same examples, but _not_ the `logic_bank` engine source code.
 It uses the logic engine via `pip install`, as you would for your own projects:
 
 ```
-pip install -i https://test.pypi.org/simple/ logicbank
+pip install logicbank
 ```
 > This is **not required here**, and requires the same
 > pre-reqs noted above
