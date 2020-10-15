@@ -49,16 +49,13 @@ from logic_bank.util import row_prt, prt
 from nw.logic import session  # opens db, activates logic listener <--
 
 
-""" toggle Due Date, to verify no effect on Customer, OrderDetails """
-""" also test join.
-session.query(Customer).join(Invoice).filter(Invoice.amount == 8500).all()
-"""
+""" test class <> table name """
 
 pre_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
 session.expunge(pre_cust)
 
 print("")
-test_order = session.query(models.Order).filter(models.Order.Id == 11011).join(models.Employee).one()
+test_order = session.query(models.OrderClass).filter(models.OrderClass.Id == 11011).join(models.Employee).one()
 if test_order.RequiredDate is None or test_order.RequiredDate == "":
     test_order.RequiredDate = str(datetime.now())
     print(prt("Shipping order - RequiredDate: ['' -> " + test_order.RequiredDate + "]"))

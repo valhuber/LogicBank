@@ -168,6 +168,27 @@ class EmployeeTerritory(Base):
     TerritoryId = Column(ForeignKey('Territory.Id'))
 
 
+class OrderClass(Base):
+    __tablename__ = 'OrderZ'
+
+    Id = Column(Integer, primary_key=True)  #, autoincrement=True)
+    CustomerId = Column(ForeignKey('Customer.Id'))
+    EmployeeId = Column(ForeignKey('Employee.Id'))
+    OrderDate = Column(String(8000))
+    RequiredDate = Column(String(8000))
+    ShippedDate = Column(String(8000))
+    ShipVia = Column(Integer)
+    Freight = Column(DECIMAL(10, 2), nullable=False)
+    ShipName = Column(String(8000))
+    ShipAddress = Column(String(8000))
+    ShipCity = Column(String(8000))
+    ShipRegion = Column(String(8000))
+    ShipPostalCode = Column(String(8000))
+    ShipCountry = Column(String(8000))
+    AmountTotal = Column(DECIMAL(10, 2))
+
+
+
 class Order(Base):
     __tablename__ = 'Order'
 

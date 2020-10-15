@@ -1,6 +1,6 @@
 from logic_bank.exec_row_logic.logic_row import LogicRow
 from logic_bank.logic_bank import Rule
-from nw.db.models import Customer, OrderDetail, Product, Order
+from nw.db.models import Customer, OrderDetail, Product, Order, OrderClass
 
 
 def declare_logic():
@@ -59,6 +59,10 @@ def declare_logic():
 
     Rule.count(derive=Customer.OrderCount, as_count_of=Order)
 
+    Rule.constraint(validate=OrderClass,
+                    as_condition=lambda row: row.Id <= 99999,
+                    error_msg="Test constraint for className <> tableName")
+
 
 class InvokePythonFunctions:  # use functions for more complex rules, type checking, etc (not used)
 
@@ -107,12 +111,3 @@ class DependencyGraphTests:
         Rule.formula(derive="Tbl.ColE",  # or, calling=compute_amount)
                      as_exp="xxx")
 
-
-class UnusedTests:
-    """Not loaded"""
-    def not_loaded(self):
-        Rule.constraint(validate="AbUser",  # table is ab_user
-                        calling=lambda row: row.username != "no_name")
-
-        Rule.count(derive=Customer.OrderCount, as_count_of=Order,
-                   where="ShippedDate not None")

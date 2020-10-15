@@ -1,4 +1,5 @@
 import sqlalchemy
+from sqlalchemy import inspect
 from sqlalchemy.ext.declarative import base
 from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.orm import object_mapper, session, relationships
@@ -59,7 +60,11 @@ class LogicRow:
         self.name = type(self.row).__name__
         self.table_meta = None
         if self.row is not None:
-            self.table_meta = row.metadata.tables[type(self.row).__name__]
+            if type(self.row) in row.metadata.tables:
+                self.table_meta = row.metadata.tables[type(self.row).__name__]
+            else:
+                self.table_meta = inspect(self.row)
+                self.log_engine("Restriction: Class Name must equal Table Name: " + self.name)
         if self.engine is not None:  # e.g, for testing legacy logic (no RuleBank)
             self.inspector = Inspector.from_engine(self.engine)
 
@@ -69,17 +74,20 @@ class LogicRow:
             result += ".."
         result += self.row.__tablename__ + "["
         my_meta = self.table_meta
-        key_cols = my_meta.primary_key.columns.keys()
-        is_first = True
-        for each_key_col in key_cols:
-            if not is_first:
-                result += " | "
-            is_first = False
-            value = getattr(self.row, each_key_col)
-            if isinstance(value, str):
-                result += value
-            else:
-                result += str(value)
+        if not hasattr(my_meta, "primary_key"):
+            result += "not available"
+        else:
+            key_cols = my_meta.primary_key.columns.keys()
+            is_first = True
+            for each_key_col in key_cols:
+                if not is_first:
+                    result += " | "
+                is_first = False
+                value = getattr(self.row, each_key_col)
+                if isinstance(value, str):
+                    result += value
+                else:
+                    result += str(value)
         result += "]: "
         cols = self.row.__table__.columns
         sorted_cols = sorted(cols, key=lambda col: col.name)
