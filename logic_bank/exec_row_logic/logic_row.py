@@ -57,7 +57,7 @@ class LogicRow:
         self.engine = rb._engine
         self.some_base = declarative_base()
 
-        self.name = type(self.row).__name__
+        self.name = type(self.row).__name__  # class name (not table name)
         self.table_meta = None
         if self.row is not None:
             if type(self.row) in row.metadata.tables:
