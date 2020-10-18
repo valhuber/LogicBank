@@ -217,7 +217,7 @@ pyenv --version
 # 1.2.19 or higher
 ```
 
-If you are missing any, install them as [described here](../../wiki/Explore-LogicBank).
+If you are missing any, install them as [described here](../../wiki/Explore-Logic-Bank).
 We also recommend an IDE such as PyCharm, VSCode, etc.
 
 ### Install LogicBank
@@ -258,13 +258,13 @@ You can
 4. Click save
 5. Verify logic enforcement
     * The web app has been [configured](../../wiki/Flask-App-Builder-Integration) to activate the rules
-    * The logic for this update [is interesting](../../wiki/home#example-ship-order---pruning-adjustment-and-cascade) -
+    * The logic for this update [is interesting](../../wiki/Ship-Order) -
     check out the console log
 
 ##### Run the `nw/tests`
 Run the `nw/tests` programs under your IDE or the
 command line; start with `add_order` and `upd_order_shipped,`
-and see the [walk-throughs here](../../wiki/home).
+and see the [walk-throughs here](../../wiki/home#logic-execution-watch-react-chain).
 
 ```
 cd nw/tests
