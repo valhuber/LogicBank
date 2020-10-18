@@ -344,6 +344,7 @@ on general value, and features.
 There are many to thank:
 * Tyler Band, for testing and the Banking example
 * Max Tardiveau, for testing
+* Nishanth Shyamsundar, for PC testing
 * Michael Holleran, for collaboration
 * Mike Bayer, for suggestions on leveraging Python typing
 * Gloria, for many reviews... and golden patience
