@@ -60,7 +60,7 @@ class LogicRow:
         self.name = type(self.row).__name__  # class name (not table name)
         self.table_meta = None
         if self.row is not None:
-            if type(self.row) in row.metadata.tables:
+            if type(self.row).__name__ in row.metadata.tables:
                 self.table_meta = row.metadata.tables[type(self.row).__name__]
             else:
                 self.table_meta = inspect(self.row)
@@ -76,7 +76,7 @@ class LogicRow:
         my_meta = self.table_meta
         if not hasattr(my_meta, "primary_key"):
             result += "not available"
-        else:
+        else:   # my_meta.primary_key.columns.keys()
             key_cols = my_meta.primary_key.columns.keys()
             is_first = True
             for each_key_col in key_cols:

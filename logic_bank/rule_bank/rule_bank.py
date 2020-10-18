@@ -34,12 +34,12 @@ class RuleBank(metaclass=Singleton):  # FIXME design review singleton
     """
     Attributes:
 
-    _tables Dict[mapped_class_name: str, List[TableRules]]
+    orm_objects Dict[mapped_class_name: str, List[TableRules]]
 
     _metadata, _base, _engine from sqlalchemy
     """
 
-    _tables = {}  # type: Dict[str, TableRules]
+    orm_objects = {}  # type: Dict[str, TableRules]
     """ Dict[mapped_class: str, List[TablesRules]] -- rules for a table """
     _metadata = None
     _base = None
@@ -51,17 +51,17 @@ class RuleBank(metaclass=Singleton):  # FIXME design review singleton
         self._metadata = None
 
     def deposit_rule(self, a_rule: 'AbstractRule'):
-        if a_rule.table not in self._tables:
-            self._tables[a_rule.table] = TableRules()
-        table_rules = self._tables[a_rule.table]
+        if a_rule.table not in self.orm_objects:
+            self.orm_objects[a_rule.table] = TableRules()
+        table_rules = self.orm_objects[a_rule.table]
         table_rules.rules.append(a_rule)
         engine_logger.debug(prt(str(a_rule)))
 
     def __str__(self):
         result = f"AbstractRule Bank[{str(hex(id(self)))}] (loaded {self._at})"
-        for each_key in self._tables:
+        for each_key in self.orm_objects:
             result += f"\nMapped Class[{each_key}] rules:"
-            table_rules = self._tables[each_key]
+            table_rules = self.orm_objects[each_key]
             for each_rule in table_rules.rules:
                 result += f'\n  {str(each_rule)}'
         return result

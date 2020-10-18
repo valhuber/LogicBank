@@ -20,7 +20,7 @@ def setup(a_session: session, an_engine: Engine):
     event.listen(a_session, "before_commit", before_commit)
 
 
-    rules_bank._tables = {}
+    rules_bank.orm_objects = {}
     rules_bank._at = datetime.now()
 
     rules_bank._engine = an_engine
@@ -83,7 +83,7 @@ def validate(a_session: session, engine: Engine):
     list_rules = "\n\nValidate Rule Bank"
     rules_bank = RuleBank()
 
-    for each_key in rules_bank._tables:
+    for each_key in rules_bank.orm_objects:
         validate_formula_dependencies(class_name=each_key)
     list_rules += rules_bank.__str__()
     print(list_rules)

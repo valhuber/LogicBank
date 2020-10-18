@@ -85,7 +85,7 @@ class AbstractRule(object):
                 each_parent_role_name = each_foreign_key.key
                 if parent_role_name == each_parent_role_name:  # eg, OrderHeader
                     rule_bank = RuleBank()
-                    if each_parent_class_name not in rule_bank._tables:
+                    if each_parent_class_name not in rule_bank.orm_objects:
                         self._tables[rule_bank] = TableRules()
                     table_rules = self._tables[rule_bank]
                     if table_rules.referring_children is None:

@@ -39,8 +39,8 @@ def copy_rules(logic_row: LogicRow) -> CopyRulesForTable:
     """
     rule_bank = RuleBank()
     role_rules_list = {}  # dict of RoleRules
-    if logic_row.name in rule_bank._tables:
-        for each_rule in rule_bank._tables[logic_row.name].rules:
+    if logic_row.name in rule_bank.orm_objects:
+        for each_rule in rule_bank.orm_objects[logic_row.name].rules:
             if isinstance(each_rule, Copy):
                 role_name = each_rule._from_parent_role
                 if role_name not in role_rules_list:
@@ -84,8 +84,8 @@ def aggregate_rules(child_logic_row: LogicRow) -> dict:
                 child_role_name = child_mapper.class_.__name__  # default TODO design review
             parent_role_name = each_relationship.key   # eg, Customer TODO design review
             parent_class_name = each_relationship.entity.class_.__name__
-            if parent_class_name in rule_bank._tables:
-                parent_rules = rule_bank._tables[parent_class_name].rules
+            if parent_class_name in rule_bank.orm_objects:
+                parent_rules = rule_bank.orm_objects[parent_class_name].rules
                 for each_parent_rule in parent_rules:  # (..  bal = sum(OrderList.amount) )
                     if isinstance(each_parent_rule, (Sum, Count)):
                         if each_parent_rule._child_role_name == child_role_name:
@@ -102,8 +102,8 @@ def rules_of_class(logic_row: LogicRow, a_class: (Formula, Constraint, EarlyRowE
     rule_bank = RuleBank()
     rules_list = []
     role_rules_list = {}  # dict of RoleRules
-    if logic_row.name in rule_bank._tables:
-        for each_rule in rule_bank._tables[logic_row.name].rules:
+    if logic_row.name in rule_bank.orm_objects:
+        for each_rule in rule_bank.orm_objects[logic_row.name].rules:
             if isinstance(each_rule, a_class):
                 rules_list.append(each_rule)
     return rules_list
@@ -115,7 +115,7 @@ def get_formula_rules(class_name: str) -> list:
     rule_bank = RuleBank()
     rules_list = []
     role_rules_list = {}  # dict of RoleRules
-    for each_rule in rule_bank._tables[class_name].rules:
+    for each_rule in rule_bank.orm_objects[class_name].rules:
         if isinstance(each_rule, Formula):
             rules_list.append(each_rule)
     return rules_list
@@ -127,8 +127,8 @@ def generic_rules_of_class(a_class: (Formula, Constraint, EarlyRowEvent)) -> lis
     rule_bank = RuleBank()
     rules_list = []
     role_rules_list = {}  # dict of RoleRules
-    if "*" in rule_bank._tables:
-        for each_rule in rule_bank._tables["*"].rules:
+    if "*" in rule_bank.orm_objects:
+        for each_rule in rule_bank.orm_objects["*"].rules:
             if isinstance(each_rule, a_class):
                 rules_list.append(each_rule)
     return rules_list
@@ -150,12 +150,12 @@ def get_referring_children(parent_logic_row: LogicRow) -> dict:
     referring_children is <parent_role_name>, parent_attribute_list()
     """
     rule_bank = RuleBank()
-    if parent_logic_row.name not in rule_bank._tables:
+    if parent_logic_row.name not in rule_bank.orm_objects:
        return {}
     else:
         # sigh, best to have built this in rule_bank_setup, but unable to get mapper
         # FIXME design is this threadsafe?
-        table_rules = rule_bank._tables[parent_logic_row.name]
+        table_rules = rule_bank.orm_objects[parent_logic_row.name]
         result = table_rules.referring_children
         table_rules.referring_children = {}
         parent_mapper = object_mapper(parent_logic_row.row)
@@ -166,10 +166,10 @@ def get_referring_children(parent_logic_row: LogicRow) -> dict:
                 table_rules.referring_children[parent_role_name] = []
                 child_role_name = each_parent_relationship.key
                 child_class_name = get_child_class_name(each_parent_relationship)  # eg, OrderDetail
-                if child_class_name not in rule_bank._tables:
+                if child_class_name not in rule_bank.orm_objects:
                     pass  # eg, banking - ALERT is child of customer, has no rules, that's ok
                 else:
-                    child_table_rules = rule_bank._tables[child_class_name].rules
+                    child_table_rules = rule_bank.orm_objects[child_class_name].rules
                     search_for_rew_parent = "row." + parent_role_name
                     for each_rule in child_table_rules:
                         if isinstance(each_rule, (Formula, Constraint)):  # eg, OrderDetail.ShippedDate
