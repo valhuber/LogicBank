@@ -248,6 +248,7 @@ In your IDE or Command Line:
 # optionally fork, and then
 git clone https://github.com/valhuber/LogicBank.git
 cd LogicBank
+# windows: python -m venv venv
 virtualenv venv
 # windows: .\venv\Scripts\activate
 source venv/bin/activate
