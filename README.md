@@ -204,11 +204,18 @@ the engine will reorganize execution order and database access, automatically
 
 
 ## Installation
-### Verify Pre-reqs: Python 3.8, virtualenv, pip3
-Ensure you have these pre-reqs
+First, follow the instructions to verify / install Python, then install Logic Bank.
+
+### Python Installation
+
+The first section below verifies whether your Python environment is current.
+The following section explains how to install a current Python environment.
+
+#### Verify Pre-reqs: Python 3.8, virtualenv, pip3
+Ensure you have these pre-reqs:
 ```
 python --version
-# requires 3.8 or higher
+# requires 3.8 or higher (Relies on `from __future__ import annotations`, so requires Python 3.8)
 
 pip --version
 # version 19.2.3 or higher... you might be using pip3
@@ -216,12 +223,12 @@ pip --version
 pyenv --version
 # 1.2.19 or higher
 ```
-### Install Python
+#### Install Python (if required)
 If you are missing any, install them as described here.  Skip this step if your pre-reqs are fine.
 
 To install Python:
 
-* Python3.8 (Relies on `from __future__ import annotations`, so requires Python 3.8)
+* Python3.8 
 
    * Run the windows installer
    * On mac/Unix, consider [using homebrew](https://brew.sh/), as described
