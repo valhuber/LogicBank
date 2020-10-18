@@ -80,7 +80,7 @@ which implements the *check credit* requirement.
 This illustrates the advantages of a _declarative_ approach
 relative to a legacy _procedural_ approach:
 
-* **Conciseness:** these 5 rules replace [**these 200 lines of legacy code**](../../wiki/by-code).
+* **Conciseness:** these 5 rules replace [**these 200 lines of legacy code**](nw/logic/legacy).
 They are essentially an executable specification: _far_ simpler to understand,
 even for business users.
 
@@ -154,7 +154,7 @@ and the transaction is rolled back)
 All of the dependency management to see which attribute have changed,
 logic ordering, the SQL commands to read and adjust rows, and the chaining
 are fully automated by the engine, based solely on the rules above.
-See the [detail walk-through here](../../wiki#example-add-order---multi-table-adjustment-chaining).
+See the [detail walk-through here](../../wiki#logic-execution-watch-react-chain).
 
 **Reuse over Use Cases is automatic,** so the same rules
 automate deleting and updating orders.
@@ -162,7 +162,7 @@ This is how 5 rules represent the same logic as 200 lines of code.
 
 To see more on how __watch__, __react__ and __chain__ 
 logic automates and optimizes multi-table transactions,
-[click here](../../wiki/Rules-Engines#multi-table-logic-execution).
+[click here](../../wiki/Rules-Engines#scalability-automatic-pruning-and-optimization).
 
 
 ## An Agile Perspective
@@ -172,7 +172,7 @@ Here's how rules can help.
 
 #### Working Software _Now_
 The examples above illustrate how just a few rules can replace 
-[pages of code](../../wiki/by-code).
+[pages of code](nw/logic/legacy).
 
 #### Collaboration: Running Screens - Automatic Basic Web App
 
@@ -290,7 +290,7 @@ these both contain
     the manual `legacy` code for contrast to rules)
     
 * The `nw` sample illustrates comparisons of Business logic, both
-[by code](../../wiki/by-code) and by rules (shown above).
+[by code](nw/logic/legacy) and by rules (shown above).
 
 * The `logic_bank` engine source code
 
