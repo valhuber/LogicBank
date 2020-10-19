@@ -245,7 +245,7 @@ Issues?  [Try here](https://github.com/valhuber/fab-quick-start/wiki/Mac-Python-
 In your IDE or Command Line:
 
 ```
-# optionally fork, and then
+# optionally fork, and then (WARNING - remove hyphens if you download the zip)
 git clone https://github.com/valhuber/LogicBank.git
 cd LogicBank
 # windows: python -m venv venv
