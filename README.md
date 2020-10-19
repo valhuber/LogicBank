@@ -254,6 +254,7 @@ virtualenv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
+> **Warning -** if you just download the zip, *be sure* to remove the hyphen from the name.
 
 #### Verify and Run
 
