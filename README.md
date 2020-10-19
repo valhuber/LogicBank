@@ -250,7 +250,7 @@ git clone https://github.com/valhuber/LogicBank.git
 cd LogicBank
 # windows: python -m venv venv
 virtualenv venv
-# windows: .\venv\Scripts\activate
+# For windows: .\venv\Scripts\activate
 source venv/bin/activate
 pip install -r requirements.txt
 ```
