@@ -10,12 +10,13 @@ on relationships...
 
 """
 
+from logic_bank import logic_bank  # import this first - import ordering
+
 import sqlalchemy_utils
 from sqlalchemy import Boolean, Column, DECIMAL, DateTime, Float, ForeignKey, Integer, LargeBinary, String, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.testing import db
-import logic_bank.rule_bank.rule_bank_withdraw  # FIXME design prevents circular imports (why?)
 
 Base = declarative_base()
 metadata = Base.metadata

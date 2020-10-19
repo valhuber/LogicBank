@@ -30,12 +30,12 @@ run_environment_info += "At: " + str(datetime.now()) + "\n\n"
 
 print("\n" + run_environment_info + "\n\n")
 
-import banking.db.models as models  # must follow required_path fix
-from banking.logic import session  # opens db, activates logic listener <--
-from logic_bank.exec_row_logic.logic_row import LogicRow
-
 from banking.tests import setup_db  # careful - this must follow fix-path, above
 setup_db()
+
+import banking.db.models as models  # must follow required_path fix
+from logic_bank.exec_row_logic.logic_row import LogicRow
+from banking.logic import session  # opens db, activates logic listener <--
 
 pre_cust = session.query(models.CUSTOMER).filter(models.CUSTOMER.CustNum == 1).one()
 session.expunge(pre_cust)

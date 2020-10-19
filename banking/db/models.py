@@ -4,6 +4,9 @@ from sqlalchemy.dialects.mysql import INTEGER, MEDIUMINT, SMALLINT
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
+from logic_bank import logic_bank  # import this first - import ordering
+
+
 Base = declarative_base()
 metadata = Base.metadata
 
