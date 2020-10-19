@@ -204,11 +204,18 @@ the engine will reorganize execution order and database access, automatically
 
 
 ## Installation
-### Verify Pre-reqs: Python 3.8, virtualenv, pip3
-Ensure you have these pre-reqs
+First, follow the instructions to verify / install Python, then install Logic Bank.
+
+### Python Installation
+
+The first section below verifies whether your Python environment is current.
+The following section explains how to install a current Python environment.
+
+#### Verify Pre-reqs: Python 3.8, virtualenv, pip3
+Ensure you have these pre-reqs:
 ```
 python --version
-# requires 3.8 or higher
+# requires 3.8 or higher (Relies on `from __future__ import annotations`, so requires Python 3.8)
 
 pip --version
 # version 19.2.3 or higher... you might be using pip3
@@ -216,9 +223,23 @@ pip --version
 pyenv --version
 # 1.2.19 or higher
 ```
+#### Install Python (if required)
+If you are missing any, install them as described here.  Skip this step if your pre-reqs are fine.
 
-If you are missing any, install them as [described here](../../wiki/Explore-Logic-Bank).
-We also recommend an IDE such as PyCharm, VSCode, etc.
+To install Python:
+
+* Python3.8 
+
+   * Run the windows installer
+   * On mac/Unix, consider [using homebrew](https://brew.sh/), as described
+[here](https://opensource.com/article/19/5/python-3-default-mac#what-to-do)
+   
+* virtualenv - see [here](https://www.google.com/url?q=https%3A%2F%2Fpackaging.python.org%2Fguides%2Finstalling-using-pip-and-virtual-environments%2F%23creating-a-virtual-environment&sa=D&sntz=1&usg=AFQjCNEu-ZbYfqRMjNQ0D0DqU1mhFpDYmw)  (e.g.,  `pip install virtualenv`)
+
+* An IDE - optional - any will do (I've used [PyCharm](https://www.jetbrains.com/pycharm/download) and [VSCode](https://code.visualstudio.com), install notes [here](https://github.com/valhuber/fab-quick-start/wiki/IDE-Setup)), though different install / generate / run instructions apply for running programs
+
+Issues?  [Try here](https://github.com/valhuber/fab-quick-start/wiki/Mac-Python-Install-Issues).
+
 
 ### Install LogicBank
 In your IDE or Command Line:
@@ -227,6 +248,7 @@ In your IDE or Command Line:
 # optionally fork, and then
 git clone https://github.com/valhuber/LogicBank.git
 cd LogicBank
+# windows: python -m venv venv
 virtualenv venv
 # windows: .\venv\Scripts\activate
 source venv/bin/activate
@@ -323,6 +345,7 @@ on general value, and features.
 There are many to thank:
 * Tyler Band, for testing and the Banking example
 * Max Tardiveau, for testing
+* Nishanth Shyamsundar, for PC testing
 * Michael Holleran, for collaboration
 * Mike Bayer, for suggestions on leveraging Python typing
 * Gloria, for many reviews... and golden patience
