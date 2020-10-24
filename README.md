@@ -34,7 +34,7 @@ Logic Bank is fully integrated with Python:
 
  1. **Declare** logic as rules and Python (see example above).
  
-  - **Activate** your logic:
+  - Activate your logic (```declare_logic``` is the function shown above)
   ```
     LogicBank.activate(session=session, activator=declare_logic)
  ```
