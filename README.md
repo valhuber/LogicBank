@@ -35,11 +35,12 @@ the 5 rules below express the same logic as 200 lines of code [**(see them here)
 Logic Bank is fully integrated with Python:
 * **Declare** rules in Python as shown above
 * **Extend** rules with Python (rule on line 45 invokes the Python function on line 26)
-* **Manage** use your IDE (PyCharm, VSCode etc for code completion, debugging, etc) and source control
+* **Manage** logic using your existing IDE (PyCharm, VSCode etc for code completion, debugging, etc),
+and source control tools and procedures
 
 ### Technology Evaluation
 40X is a large number - do these results hold in practice?
-See [here](wiki#technology-evaluation) for
+See [here](../../wiki#technology-evaluation) for
 additional background, and real world experience.
 
 
@@ -103,8 +104,8 @@ automate _deleting_ and _updating_ orders.
 This is how 5 rules represent the same logic as 200 lines of code.
 
 Check out more examples:
-* [**Ship Order**](wiki/Ship-Order) illustrates *cascade*, another form of multi-table logic
-* [**Banking**](wiki/Sample-Project---Banking) is a complex transaction using the command pattern
+* [**Ship Order**](../../wiki/Ship-Order) illustrates *cascade*, another form of multi-table logic
+* [**Banking**](../../wiki/Sample-Project---Banking) is a complex transaction using the command pattern
 
 #### Scalability: Automatic Prune / Optimize logic
 Scalability requires more than clustering - SQLs must be pruned
