@@ -60,7 +60,7 @@ Let's see how logic operates.
 
 #### Logic Execution: Add Order - Watch, React, Chain
 
-<f#\igure><img src="images/check-credit.png" width="500"></figure>
+<figure><img src="images/check-credit.png" width="500"></figure>
 
 
 The `add_order` example illustrates how
