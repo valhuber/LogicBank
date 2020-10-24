@@ -23,7 +23,7 @@ And your code is the "how".  Suddenly, a simple cocktail napkin specification ex
 
 <figure><img src="images/overview/rules-vs-code.png" width="800"></figure>
 
-What we need to do is make the cocktail napkin spec _executable_.
+Logic Bank was designed to make the cocktail napkin spec _executable_.
 
 ## What - Declare Spreadsheet-like Rules - 40X More Concise
 Logic Bank introduces rules that are 40X more concise than legacy code -
