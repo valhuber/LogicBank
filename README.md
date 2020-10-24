@@ -86,13 +86,12 @@ check the Credit Limit as each OrderDetail is inserted:
     
 5.  And the Credit Limit constraint (line 34) is checked (exceptions are raised if constraints are violated, and the transaction is rolled back)
     
-All of the dependency management to see which attribute have changed,
+All of the dependency management to see which attributes have changed,
 logic ordering, the SQL commands to read and adjust rows, and the chaining
 are fully automated by the engine, based solely on the rules above.
-See the [detail walk-through here](../../wiki#logic-execution-watch-react-chain).
 
-**Reuse over Use Cases is automatic,** so the same rules
-automate deleting and updating orders.
+**Reuse over Use Cases is automatic,** so rules designed for _add_ also
+automate _deleting_ and _updating_ orders.
 This is how 5 rules represent the same logic as 200 lines of code.
 
 Check out more examples:
@@ -102,10 +101,11 @@ Check out more examples:
 #### Scalability: Automatic Prune / Optimize logic
 Scability requires more than clustering - SQLs must be pruned
 and optimized.  For example, the balance rule:
-* is pruned if a non-referenced column is altered (e.g., Shipping Address)
-* is optimized into a 1-row _adjustment_ update instead of an
-expensive SQL aggregate
-To see more on how __watch__, __react__ and __chain__ 
+* is **pruned** if a non-referenced column is altered (e.g., Shipping Address)
+* is **optimized** into a 1-row _adjustment_ update instead of an
+expensive SQL aggregate.
+
+For more on how
 logic automates and optimizes multi-table transactions,
 [click here](../../wiki#scalability-automatic-pruning-and-optimization).
 
