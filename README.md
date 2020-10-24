@@ -37,6 +37,9 @@ Logic Bank is fully integrated with Python:
 * **Extend** rules with Python (rule on line 45 invokes the Python function on line 26)
 * **Manage** use your IDE (PyCharm, VSCode etc for code completion, debugging, etc) and source control
 
+40X is a large number; see [here](wiki#technology-evaluation) for
+some background for technology evaluation.
+
 ## Architecture - handle SQLAlchemy ```before_flush``` Events
 <figure><img src="images/architecture.png" width="800"></figure>
 
