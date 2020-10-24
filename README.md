@@ -33,6 +33,11 @@ Logic Bank is fully integrated with Python:
 
 
  1. **Declare** logic as rules and Python (see example above).
+ 
+  - **Activate** your logic:
+  ```
+    LogicBank.activate(session=session, activator=declare_logic)
+ ```
 
  2. Your application makes calls on `SQLAlchemy` for inserts, updates and deletes.
 
