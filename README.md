@@ -131,7 +131,6 @@ _their_ interpretation of working software.
 The [fab-quick-start](https://github.com/valhuber/fab-quick-start/wiki)
 project enables you to build a basic web app in minutes.
 
-
 <figure><img src="images/fab.png" width="800"></figure>
 
 This project has already generated such an app, which you can run like this
