@@ -12,16 +12,17 @@ using standard functions and event handlers
 ## Why
 
 If you 've coded backend database logic - multi-table derivations and constraints - you know how much work it is, and how tedious.  It's typically nearly half the effort for a database project.  It's also incredibly repetitive - you often get the feeling you're doing the same thing over and over.
+
 You're right.  It's because backend logic follows patterns of "what" is supposed to happen.  And your code is the "how".  Suddenly, a simple cocktail napkin specification explodes into a massive amount of legacy code:
 
-<figure><img src="images/rules-vs-code.png" width="800"></figure>
+<figure><img src="images/overview/rules-vs-code.png" width="800"></figure>
 
 Learn how Logic Bank introduces rules that are 40X more concise than legacy code.  That's because rules are all about "what", spreadsheet-like expressions that automate the tedious "how".
 
 ## What
 Logic Bank is fully integrated with Python.  It's used to state your rules, and provide extensibility and manageability.  With Logic Bank, your cocktail napkin specification becomes executable, like this:
 
-<figure><img src="images/cocktail-logic-bank.png" width="800"></figure>
+<figure><img src="images/overview/cocktail-logic-bank.png" width="800"></figure>
 
 Logic Bank is described in this article, and is open source on git.
 
