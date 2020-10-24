@@ -27,7 +27,8 @@ Logic Bank was designed to make the cocktail napkin spec _executable_.
 
 ## What - Declare Spreadsheet-like Rules - 40X More Concise
 Logic Bank introduces rules that are 40X more concise than legacy code -
-the 5 rules below express the same logic as 200 lines of code [**(see them here)**](nw/logic/legacy).  That's because rules are all about "what", spreadsheet-like expressions that automate the tedious "how":
+the 5 rules below express the same logic as 200 lines of code [**(see them here)**](nw/logic/legacy).  That's because rules are all about "what"
+-- spreadsheet-like expressions that automate the tedious "how":
 
 <figure><img src="images/overview/cocktail-logic-bank.png" width="800"></figure>
 
