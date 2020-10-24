@@ -11,14 +11,23 @@ using standard functions and event handlers
 
 ## Why - Simple Cocktail-Napkin Spec Explodes into Massive Legacy Code
 
-If you 've coded backend database logic - multi-table derivations and constraints - you know how much work it is, and how tedious.  It's typically nearly half the effort for a database project.  It's also incredibly repetitive - you often get the feeling you're doing the same thing over and over.
+If you 've coded backend database logic - multi-table derivations and constraints -
+you know how much work it is, and how tedious.  Whether you code it in
+triggers and stored procedures, in ORM events, or UI controllers, it's a lot:
+typically nearly half the effort for a database project.
 
-You're right.  It's because backend logic follows patterns of "what" is supposed to happen.  And your code is the "how".  Suddenly, a simple cocktail napkin specification explodes into a massive amount of legacy code:
+It's also incredibly repetitive - you often get the feeling you're doing the same thing over and over.
+
+You're right.  It's because backend logic follows patterns of "what" is supposed to happen.
+And your code is the "how".  Suddenly, a simple cocktail napkin specification explodes into a massive amount of legacy code:
 
 <figure><img src="images/overview/rules-vs-code.png" width="800"></figure>
 
-## What - Use Logic Bank to declare Spreadsheet-like Rules - 40X More Concise
-Logic Bank introduces rules that are 40X more concise than legacy code - the 5 rules below express the same logig as 200 lines of code [**(see them here)**](nw/logic/legacy).  That's because rules are all about "what", spreadsheet-like expressions that automate the tedious "how":
+What we need to do is make the cocktail napkin spec _executable_.
+
+## What - Declare Spreadsheet-like Rules - 40X More Concise
+Logic Bank introduces rules that are 40X more concise than legacy code -
+the 5 rules below express the same logic as 200 lines of code [**(see them here)**](nw/logic/legacy).  That's because rules are all about "what", spreadsheet-like expressions that automate the tedious "how":
 
 <figure><img src="images/overview/cocktail-logic-bank.png" width="800"></figure>
 
@@ -65,24 +74,18 @@ Let's see how logic operates.
 
 The `add_order` example illustrates how
 __Watch / React / Chain__ operates to
-check the Credit Limit:
+check the Credit Limit as each OrderDetail is inserted:
 
-1. The `OrderDetail.UnitPrice` is referenced from the Product,
-so it is copied
-
-1. OrderDetails are referenced by the Orders' `AmountTotal` sum rule,
-so `AmountTotal` is adjusted
-
-    * Multi-table logic is **scalable** - this rule executes as a 1-row
-    *adjustment* update, not an expensive `select sum`
-
-1. The `AmountTotal` is referenced by the Customers' `Balance`,
-so it is adjusted
-
-1. And the Credit Limit constraint is checked 
-(exceptions are raised if constraints are violated,
-and the transaction is rolled back)
-
+1.  The `OrderDetail.UnitPrice` (copy, line 43) references Product, so inserts cause it to be copied
+    
+2.  `Amount` (formula, line 42) watches `UnitPrice`, so its new value recomputes `Amount`
+    
+3.  `AmountTotal` (sum, line 40) watches `Amount`, so `AmountTotal` is adjusted (more on adjustment, below)
+    
+4.  `Balance` (sum, line 37) watches `AmountTotal`, so it is adjusted
+    
+5.  And the Credit Limit constraint (line 34) is checked (exceptions are raised if constraints are violated, and the transaction is rolled back)
+    
 All of the dependency management to see which attribute have changed,
 logic ordering, the SQL commands to read and adjust rows, and the chaining
 are fully automated by the engine, based solely on the rules above.
@@ -92,10 +95,19 @@ See the [detail walk-through here](../../wiki#logic-execution-watch-react-chain)
 automate deleting and updating orders.
 This is how 5 rules represent the same logic as 200 lines of code.
 
+Check out more examples:
+* [**Ship Order**](wiki/Ship-Order) illustrates *cascade*, another form of multi-table logic
+* [**Banking**](wiki/Sample-Project---Banking) is a complex transaction using the command pattern
+
 #### Scalability: Automatic Prune / Optimize logic
+Scability requires more than clustering - SQLs must be pruned
+and optimized.  For example, the balance rule:
+* is pruned if a non-referenced column is altered (e.g., Shipping Address)
+* is optimized into a 1-row _adjustment_ update instead of an
+expensive SQL aggregate
 To see more on how __watch__, __react__ and __chain__ 
 logic automates and optimizes multi-table transactions,
-[click here](../../wiki/Rules-Engines#scalability-automatic-pruning-and-optimization).
+[click here](../../wiki#scalability-automatic-pruning-and-optimization).
 
 
 ## An Agile Perspective
