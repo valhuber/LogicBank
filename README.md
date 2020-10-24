@@ -18,7 +18,7 @@ You're right.  It's because backend logic follows patterns of "what" is supposed
 <figure><img src="images/overview/rules-vs-code.png" width="800"></figure>
 
 ## What - Use Logic Bank to declare Spreadsheet-like Rules - 40X More Concise
-Logic Bank introduces rules that are 40X more concise than legacy code ([see it here]().  That's because rules are all about "what", spreadsheet-like expressions that automate the tedious "how":
+Logic Bank introduces rules that are 40X more concise than legacy code [**(see it here)**]((nw/logic/legacy).  That's because rules are all about "what", spreadsheet-like expressions that automate the tedious "how":
 
 <figure><img src="images/overview/cocktail-logic-bank.png" width="800"></figure>
 
