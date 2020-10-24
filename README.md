@@ -34,8 +34,7 @@ Logic Bank is fully integrated with Python:
 
  1. **Declare** logic as rules and Python (see example above).
  
-    - Activate your logic (```declare_logic``` is the function shown above):
- ``` LogicBank.activate(session=session, activator=declare_logic) ```
+    - Activate: ``` LogicBank.activate(session=session, activator=declare_logic) ``` (```declare_logic``` is the function shown above)
 
  2. Your application makes calls on `SQLAlchemy` for inserts, updates and deletes.
 
@@ -56,25 +55,6 @@ providing automation for _multi-table logic_.
 
 Logic does not apply to updates outside SQLAlchemy,
 nor to SQLAlchemy batch updates or unmapped sql updates.
-
-
-#### Activate Rules
-To test our rules, we use
-[`nw/tests/add_order.py`](nw/tests/add_order.py).
-It activates the rules using this import:
-```python
-from nw.logic import session  # opens db, activates logic listener <--
-```
- 
-This executes [`nw/logic/__init__.py`](nw/logic/__init__.py),
-which activates the logic engine:
-```python
-by_rules = True  # True => use rules, False => use legacy hand code (for comparison)
-if by_rules:
-    LogicBank.activate(session=session, activator=declare_logic)
-else:
-    # ... conventional after_flush listeners (to see rules/code contrast)
-```
 
 Let's see how logic operates.
 
