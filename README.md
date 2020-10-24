@@ -31,7 +31,7 @@ Logic Bank is fully integrated with Python:
 <figure><img src="images/architecture.png" width="800"></figure>
 
 
- 1. **Declare** logic as rules and Python (see example below).
+ 1. **Declare** logic as rules and Python (see example above).
 
  2. Your application makes calls on `SQLAlchemy` for inserts, updates and deletes.
 
