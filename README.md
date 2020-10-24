@@ -1,12 +1,12 @@
 Use Logic Bank to govern SQLAlchemy
 update transaction logic - multi-table derivations, constraints,
-and actions such as sending mail or messages. Logic consists of:
+and actions such as sending mail or messages. Logic consists of both:
 
 * **Rules - 40X** more concise
 using a spreadsheet-like paradigm, and
 
 * **Python - control and extensibility,**
-using standard functions and event handlers
+using standard tools and techniques
 
 
 ## Why - Simple Cocktail-Napkin Spec Explodes into Massive Legacy Code
@@ -33,17 +33,20 @@ the 5 rules below express the same logic as 200 lines of code [**(see them here)
 
 ### Standard Python - Extensible, Manageable
 Logic Bank is fully integrated with Python:
-* **Declare** rules as shown above
+* **Declare** rules in Python as shown above
 * **Extend** rules with Python (rule on line 45 invokes the Python function on line 26)
 * **Manage** use your IDE (PyCharm, VSCode etc for code completion, debugging, etc) and source control
 
 ## Architecture - handle SQLAlchemy ```before_flush``` Events
 <figure><img src="images/architecture.png" width="800"></figure>
 
+Logic Bank operates as shown above:
 
  1. **Declare** logic as rules and Python (see example above).
  
-    - Activate: ``` LogicBank.activate(session=session, activator=declare_logic) ``` (```declare_logic``` is the function shown above)
+    - Activate: ``` LogicBank.activate(session=session, activator=declare_logic) ```
+    
+        > Note: ```declare_logic``` is the function shown above
 
  2. Your application makes calls on `SQLAlchemy` for inserts, updates and deletes.
 
@@ -55,9 +58,8 @@ Logic Bank is fully integrated with Python:
 `Mapped Tables`
 
  4. The logic engine operates much like a spreadsheet:
-    -  **watch** for changes at the attribute level
-    -  **react** by running rules that referenced changed attributes,
-which can
+    - **watch** for changes at the attribute level
+    - **react** by running rules that referenced changed attributes, which can
     - **chain** to still other attributes that refer to
 _those_ changes.  Note these might be in different tables,
 providing automation for _multi-table logic_.
@@ -99,7 +101,7 @@ Check out more examples:
 * [**Banking**](wiki/Sample-Project---Banking) is a complex transaction using the command pattern
 
 #### Scalability: Automatic Prune / Optimize logic
-Scability requires more than clustering - SQLs must be pruned
+Scalability requires more than clustering - SQLs must be pruned
 and optimized.  For example, the balance rule:
 * is **pruned** if a non-referenced column is altered (e.g., Shipping Address)
 * is **optimized** into a 1-row _adjustment_ update instead of an
