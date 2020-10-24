@@ -9,34 +9,20 @@ using a spreadsheet-like paradigm, and
 using standard functions and event handlers
 
 
-Features
---------
+## Why
 
-Logic Bank is:
+If you 've coded backend database logic - multi-table derivations and constraints - you know how much work it is, and how tedious.  It's typically nearly half the effort for a database project.  It's also incredibly repetitive - you often get the feeling you're doing the same thing over and over.
+You're right.  It's because backend logic follows patterns of "what" is supposed to happen.  And your code is the "how".  Suddenly, a simple cocktail napkin specification explodes into a massive amount of legacy code:
 
-- **Extensible:** logic consists of rules (see below), plus standard Python code
+Rules vs. Legacy Code
 
-- **Multi-table:** rules like `sum` automate complex, multi-table transactions
+Learn how Logic Bank introduces rules that are 40X more concise than legacy code.  That's because rules are all about "what", spreadsheet-like expressions that automate the tedious "how".
 
-- **Scalable:** rules are automatically pruned and optimized; for example, sums are processed as *1 row adjustment updates,* rather than expensive SQL aggregate queries
-
-- **Manageable:** develop and debug your rules in IDEs, manage them in SCS systems (such as `git`), using existing procedures
-
-
-Since transaction logic is nearly half of most database systems,
-and rules automate over **95% of the logic 40X more concisely,**
-Logic Bank can return meaningful savings in time and cost. 
-See the [**Logic Bank Overview**](../../wiki/Home) for more
-on the Business Case, and a detailed walk-through.
-
-Skeptical?  You should be.  Choosing an automation
-technology ill-suited to transaction processing has
-serious implications for performance, quality and manageability.
-Unlike familiar rules engines, Logic Bank rules are specifically
-designed to be **scalable and extensible**,
-and have been **proven in practice** - see
-[**Rules Engines**](../../wiki/Rules-Engines).
-
+## What
+Logic Bank is fully integrated with Python.  It's used to state your rules, and provide extensibility and manageability.  With Logic Bank, your cocktail napkin specification becomes executable, like this:
+<figure><img src="images/example.png" width="800"></figure>
+Rules - the Executable Cocktail Napkin
+Logic Bank is described in this article, and is open source on git.
 
 ## Architecture
 <figure><img src="images/architecture.png" width="800"></figure>
@@ -64,47 +50,6 @@ providing automation for _multi-table logic_.
 Logic does not apply to updates outside SQLAlchemy,
 nor to SQLAlchemy batch updates or unmapped sql updates.
 
-
-## Declaring Logic as Spreadsheet-like Rules
-To illustrate, let's use an adaption
-of the Northwind database,
-with a few rollup columns added.
-For those not familiar, this is basically
-Customers, Orders, OrderDetails and Products,
-as shown in the diagrams below.
-
-#### Declare rules using Python
-Once you `pip install` LogicBank, logic is declared as spreadsheet-like rules as shown below
-from  [`nw/logic/rules_bank.py`](nw/logic/rules_bank.py),
-which implements the *check credit* requirement.
-This illustrates the advantages of a _declarative_ approach
-relative to a legacy _procedural_ approach:
-
-* **Conciseness:** these 5 rules replace [**these 200 lines of legacy code**](nw/logic/legacy).
-They are essentially an executable specification: _far_ simpler to understand,
-even for business users.
-
-* **Quality:** rules are *automatically reused* all transactions; these
-rules governs around a dozen transactions (delete OrderDetail,
-change OrderDetail quantity, change OrderDetail Product,
-change *both*, etc).
-
-* **Maintainability:** rule execution is *automatically ordered*
-per system-discovered dependencies.  So for maintenance,
-just change the rules - the system will re-order and re-optimize.
-
-<figure><img src="images/example.png" width="800"></figure>
-
-Note the Python integration:
-
-* Rules are stated in Python, so you get IDE features like type checking,
-code completion, source code management, debugging
-(the diagram shows a breakpoint in a rule), etc
-
-* Rules are extensible - they can call Python code (see `congratulate_sales_rep`)
-
-This representatively complex transaction illustrates
-common logic execution patterns, described below.
 
 #### Activate Rules
 To test our rules, we use
