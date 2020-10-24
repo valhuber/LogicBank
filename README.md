@@ -257,7 +257,7 @@ these both contain
 
     * [Databases](nw/db) sqlite (no install required)
 
-    * [Test folders](nw/tests) than run key transactions - just run the scripts
+    * [Test folders](nw/tests) that run key transactions - just run the scripts
 (note the logs)
 
     * [Flask AppBuilder apps](nw/basic_web_app) (as described above)
