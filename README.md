@@ -9,7 +9,7 @@ using a spreadsheet-like paradigm, and
 using standard functions and event handlers
 
 
-## Why
+## Why - Simple Cocktail-Napkin Spec Explodes into Massive Legacy Code
 
 If you 've coded backend database logic - multi-table derivations and constraints - you know how much work it is, and how tedious.  It's typically nearly half the effort for a database project.  It's also incredibly repetitive - you often get the feeling you're doing the same thing over and over.
 
@@ -17,14 +17,15 @@ You're right.  It's because backend logic follows patterns of "what" is supposed
 
 <figure><img src="images/overview/rules-vs-code.png" width="800"></figure>
 
-Learn how Logic Bank introduces rules that are 40X more concise than legacy code.  That's because rules are all about "what", spreadsheet-like expressions that automate the tedious "how".
-
-## What
-Logic Bank is fully integrated with Python.  It's used to state your rules, and provide extensibility and manageability.  With Logic Bank, your cocktail napkin specification becomes executable, like this:
+## What - Use Logic Bank to declare Spreadsheet-like Rules - 40X More Concise
+Logic Bank introduces rules that are 40X more concise than legacy code.  That's because rules are all about "what", spreadsheet-like expressions that automate the tedious "how":
 
 <figure><img src="images/overview/cocktail-logic-bank.png" width="800"></figure>
 
-Logic Bank is described in this article, and is open source on git.
+Logic Bank is fully integrated with Python:
+* **Declare** rules as shown above
+* **Extend** rules with Python (rule on line xx invokes the Python function on line yy)
+* **Manage** use your IDE (PyCharm, VSCode etc for code completion, debugging, etc) and source control
 
 ## Architecture
 <figure><img src="images/architecture.png" width="800"></figure>
