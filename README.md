@@ -254,7 +254,7 @@ Logic Bank consists of:
 * Two test database systems - `nw` and `banking`;
 these both contain
 
-    * [Databases](nw/db) sqlite - no install required
+    * [Databases](nw/db) sqlite (no install required)
 
     * [Test folders](nw/tests) than run key transactions - just run the scripts
 (note the logs)
