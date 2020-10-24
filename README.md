@@ -58,9 +58,9 @@ nor to SQLAlchemy batch updates or unmapped sql updates.
 
 Let's see how logic operates.
 
-## Logic Execution: Add Order - Watch, React, Chain
+#### Logic Execution: Add Order - Watch, React, Chain
 
-<figure><img src="images/check-credit.png" width="500"></figure>
+<f#\igure><img src="images/check-credit.png" width="500"></figure>
 
 
 The `add_order` example illustrates how
@@ -92,6 +92,7 @@ See the [detail walk-through here](../../wiki#logic-execution-watch-react-chain)
 automate deleting and updating orders.
 This is how 5 rules represent the same logic as 200 lines of code.
 
+#### Scalability: Automatic Prune / Optimize logic
 To see more on how __watch__, __react__ and __chain__ 
 logic automates and optimizes multi-table transactions,
 [click here](../../wiki/Rules-Engines#scalability-automatic-pruning-and-optimization).
