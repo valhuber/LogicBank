@@ -32,7 +32,7 @@ the 5 rules below (lines 34-43) express the same logic as 200 lines of code [**(
 
 <figure><img src="images/overview/cocktail-logic-bank.png" width="800"></figure>
 
-### Standard Python - Extensible, Manageable
+### Standard Python - Declare, Extend, Manage
 Logic Bank is fully integrated with Python:
 * **Declare** rules in Python as shown above
 * **Extend** rules with Python (rule on line 45 invokes the Python function on line 26)
