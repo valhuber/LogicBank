@@ -57,6 +57,7 @@ Many thanks to
 
 - Tyler Band, for testing and the Banking sample
 - Max Tardiveau, for testing
+- Nishanth Shyamsundar, for testing
 
 
 
@@ -64,3 +65,4 @@ Change Log
 ----------
 
 0.0.6 - Initial Version
+0.0.7 - Class Name can differ from Table Name

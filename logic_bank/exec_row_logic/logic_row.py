@@ -2,6 +2,7 @@ import sqlalchemy
 from sqlalchemy import inspect
 from sqlalchemy.ext.declarative import base
 from sqlalchemy.engine.reflection import Inspector
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import object_mapper, session, relationships
 
 import logic_bank
@@ -92,24 +93,36 @@ class LogicRow:
         cols = self.row.__table__.columns
         sorted_cols = sorted(cols, key=lambda col: col.name)
         is_first = True
-        for each_col in sorted_cols:
-            each_col_name = each_col.name
-            if not is_first:
-                result += ", "
-            is_first = False
-            if each_col_name == "Idxx":
-                print("Debug Stop here")
-            value = getattr(self.row, each_col_name)
-            result += each_col_name + ": "
-            old_value = value
-            if self.old_row is not None:
-                old_value = getattr(self.old_row, each_col_name)
-            if value != old_value:
-                result += ' [' + str(old_value) + '-->] '
-            if isinstance(value, str):
-                result += value
+        row_mapper = object_mapper(self.row)
+        if self.row.__tablename__ == "Customerxx":
+            print("Debug Stop here")
+        for each_attr in row_mapper.all_orm_descriptors:
+            is_hybrid = isinstance(each_attr, hybrid_property)
+            each_attr_name = None
+            if hasattr(each_attr, "name"):
+                each_attr_name = each_attr.name
+            elif isinstance(each_attr, hybrid_property):
+                each_attr_name = each_attr.__name__
+                # self.row.paid_order_count = 22
+            if each_attr_name is None:  # parent or child-list
+                pass   # don't print, don't even call (avoid sql)
             else:
-                result += str(value)
+                if not is_first:
+                    result += ", "
+                is_first = False
+                if each_attr_name == "Idxx":
+                    print("Debug Stop here")
+                value = getattr(self.row, each_attr_name)
+                result += each_attr_name + ": "
+                old_value = value
+                if self.old_row is not None:
+                    old_value = getattr(self.old_row, each_attr_name)
+                if value != old_value:
+                    result += ' [' + str(old_value) + '-->] '
+                if isinstance(value, str):
+                    result += value
+                else:
+                    result += str(value)
         result += f'  row@: {str(hex(id(self.row)))}'
         return result  # str(my_dict)
 

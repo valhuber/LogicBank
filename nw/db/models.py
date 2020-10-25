@@ -17,6 +17,7 @@ from sqlalchemy import Boolean, Column, DECIMAL, DateTime, Float, ForeignKey, In
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.testing import db
+from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 
 Base = declarative_base()
 metadata = Base.metadata
@@ -49,7 +50,21 @@ class Customer(Base):
     OrderCount = Column(Integer)
     UnpaidOrderCount = Column(Integer)
 
-    OrderList = relationship("Order",  # FIXME causes basic_web_app Menu > Order List to fail
+    @hybrid_property
+    def paid_order_count(self):
+        if not hasattr(self, "_paid_order_count"):
+            if self.OrderCount is None:
+                self.OrderCount = 0
+            if self.UnpaidOrderCount is None:
+                self.UnpaidOrderCount = 0
+            self._paid_order_count = self.OrderCount - self.UnpaidOrderCount
+        return self._paid_order_count
+
+    @paid_order_count.setter
+    def paid_order_count(self, value):  # @paid_order_count.setter => python stack overflow
+        self._paid_order_count = value
+
+    OrderList = relationship("Order",
                              backref="Customer",
                              cascade="all, delete",
                              passive_deletes=True,  # means database RI will do the deleting
