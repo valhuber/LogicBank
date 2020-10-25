@@ -75,7 +75,7 @@ providing automation for _multi-table logic_.
 Logic does not apply to updates outside SQLAlchemy,
 nor to SQLAlchemy batch updates or unmapped sql updates.
 
-Let's see how logic operates.
+Let's see how logic operates on a typical, multi-table transaction.
 
 #### Logic Execution: Add Order - Watch, React, Chain
 
