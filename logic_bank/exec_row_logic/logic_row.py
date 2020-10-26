@@ -69,6 +69,28 @@ class LogicRow:
         if self.engine is not None:  # e.g, for testing legacy logic (no RuleBank)
             self.inspector = Inspector.from_engine(self.engine)
 
+    def get_attr_name(self, mapper, attr)-> str:
+        """polymorhpism is for wimps - find the name
+            returns None if bad name, or is collection, or is object
+        """
+        attr_name = None
+        if hasattr(attr, "key"):
+            attr_name = attr.key
+        elif isinstance(attr, hybrid_property):
+            attr_name = attr.__name__
+        elif hasattr(attr, "__name__"):
+            attr_name = attr.__name__
+        elif hasattr(attr, "name"):
+            attr_name = attr.name
+        if attr_name == "Customerxx":
+            print("Debug Stop")
+        if hasattr(attr, "impl"):
+            if attr.impl.collection:
+                attr_name = None
+            if isinstance(attr.impl, sqlalchemy.orm.attributes.ScalarObjectAttributeImpl):
+                attr_name = None
+        return attr_name
+
     def __str__(self):
         result = ".."
         for x in range(self.nest_level):
@@ -98,12 +120,7 @@ class LogicRow:
             print("Debug Stop here")
         for each_attr in row_mapper.all_orm_descriptors:
             is_hybrid = isinstance(each_attr, hybrid_property)
-            each_attr_name = None
-            if hasattr(each_attr, "name"):
-                each_attr_name = each_attr.name
-            elif isinstance(each_attr, hybrid_property):
-                each_attr_name = each_attr.__name__
-                # self.row.paid_order_count = 22
+            each_attr_name = self.get_attr_name(mapper=row_mapper, attr=each_attr)
             if each_attr_name is None:  # parent or child-list
                 pass   # don't print, don't even call (avoid sql)
             else:
@@ -154,8 +171,10 @@ class LogicRow:
             result_class = a_row.__class__
             result = result_class()
             row_mapper = object_mapper(a_row)
-            for each_attr in row_mapper.columns:  # note skips parent references
-                setattr(result, each_attr.key, getattr(a_row, each_attr.key))
+            for each_attr in row_mapper.all_orm_descriptors:
+                each_attr_name = self.get_attr_name(mapper=row_mapper, attr=each_attr)
+                if each_attr_name is not None:  # is parent or collection (parent??)
+                    setattr(result, each_attr_name, getattr(a_row, each_attr_name))
         return result
 
     def get_parent_logic_row(self, role_name: str, from_row: base = None) -> 'LogicRow':

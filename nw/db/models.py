@@ -13,8 +13,9 @@ on relationships...
 from logic_bank import logic_bank  # import this first - import ordering
 
 import sqlalchemy_utils
-from sqlalchemy import Boolean, Column, DECIMAL, DateTime, Float, ForeignKey, Integer, LargeBinary, String, UniqueConstraint
-from sqlalchemy.orm import relationship
+from sqlalchemy import Boolean, Column, DECIMAL, DateTime, Float, ForeignKey, Integer, LargeBinary, String, \
+    UniqueConstraint, select, func
+from sqlalchemy.orm import relationship, column_property
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.testing import db
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
@@ -64,6 +65,17 @@ class Customer(Base):
     def paid_order_count(self, value):  # @paid_order_count.setter => python stack overflow
         self._paid_order_count = value
 
+
+    @hybrid_property
+    def total_ordered(self):
+        if not hasattr(self, "_total_ordered"):
+            self._total_ordered = self.total_ordered_sql
+        return self._total_ordered
+
+    @total_ordered.setter
+    def total_ordered(self, value):  # @paid_order_count.setter => python stack overflow
+        self._total_ordered = value
+
     OrderList = relationship("Order",
                              backref="Customer",
                              cascade="all, delete",
@@ -97,15 +109,25 @@ class Employee(Base):
     Extension = Column(String(8000))
     Photo = Column(LargeBinary)
     Notes = Column(String(8000))
-    # ReportsTo = Column(Integer)
     ReportsTo = Column(ForeignKey('Employee.Id'), nullable=False)
     PhotoPath = Column(String(8000))
+    IsCommissioned = Column(Integer)
 
     OrderList = relationship("Order", cascade_backrefs=True, backref="SalesRep")
     # https://stackoverflow.com/questions/2638217/sqlalchemy-mapping-self-referential-relationship-as-one-to-many-declarative-f
     Manager = relationship('Employee', remote_side='Employee.Id',
                                       backref='Manages')  # parent Company
     TerritoryList = relationship("EmployeeTerritory", cascade_backrefs=True, backref="Employee")
+
+    @hybrid_property
+    def order_count(self):
+        if not hasattr(self, "_order_count"):
+            self._order_count = self.order_count_sql
+        return self._order_count
+
+    @order_count.setter
+    def order_count(self, value):
+        self._order_count = value
 
 
 class Product(Base):
@@ -185,6 +207,7 @@ class EmployeeTerritory(Base):
 
 
 class OrderClass(Base):
+    """ Used to test different table vs. class name """
     __tablename__ = 'OrderZ'
 
     Id = Column(Integer, primary_key=True)  #, autoincrement=True)
@@ -202,7 +225,6 @@ class OrderClass(Base):
     ShipPostalCode = Column(String(8000))
     ShipCountry = Column(String(8000))
     AmountTotal = Column(DECIMAL(10, 2))
-
 
 
 class Order(Base):
@@ -229,6 +251,18 @@ class Order(Base):
                                    cascade="all, delete",
                                    passive_deletes=True,  # means database RI will do the deleting
                                    cascade_backrefs=True)
+
+#  https://docs.sqlalchemy.org/en/13/orm/mapped_sql_expr.html
+
+
+Customer.total_ordered_sql = column_property(
+    select([func.sum(Order.AmountTotal)]). \
+    where(Order.CustomerId == Customer.Id))
+
+Employee.order_count_sql = column_property(
+    select([func.count(Order.Id)]). \
+    where(Order.Id == Order.EmployeeId))
+
 
 class OrderDetail(Base):
     __tablename__ = 'OrderDetail'

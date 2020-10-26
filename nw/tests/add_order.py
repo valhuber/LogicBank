@@ -49,7 +49,11 @@ cls = sqlalchemy_utils.functions.get_class_by_table(models.Base, "Product", data
 pre_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
 session.expunge(pre_cust)
 
-# First, try one to fail
+
+"""
+    Test 1 - should fail due to credit limit exceeded
+"""
+
 bad_order = models.Order(AmountTotal=0, CustomerId="ALFKI", ShipCity="Richmond",
                          EmployeeId=6, Freight=1)
 session.add(bad_order)
@@ -73,7 +77,41 @@ except:
 if not did_fail_as_expected:
     raise Exception("huge order expected to fail, but succeeded")
 else:
-    print("\n" + prt("huge order failed credit check as expected.  Now trying valid order, should succeed..."))
+    print("\n" + prt("huge order failed credit check as expected.  Now trying non-commissioned order, should also fail..."))
+
+"""
+    Test 2 - should fail due to not-commissioned
+"""
+
+bad_order = models.Order(AmountTotal=0, CustomerId="ALFKI", ShipCity="Richmond",
+                         EmployeeId=2, Freight=1)
+session.add(bad_order)
+
+# OrderDetails - https://docs.sqlalchemy.org/en/13/orm/backref.html
+bad_item1 = models.OrderDetail(ProductId=1, Amount=0,
+                               Quantity=1, UnitPrice=18,
+                               Discount=0)
+bad_order.OrderDetailList.append(bad_item1)
+bad_item2 = models.OrderDetail(ProductId=2, Amount=0,
+                               Quantity=2, UnitPrice=18,
+                               Discount=0)
+bad_order.OrderDetailList.append(bad_item2)
+did_fail_as_expected = False
+try:
+    session.commit()
+except:
+    session.rollback()
+    did_fail_as_expected = True
+
+if not did_fail_as_expected:
+    raise Exception("order for non-commissioned expected to fail, but succeeded")
+else:
+    print("\n" + prt("non-commissioned order failed constraint as expected.  Now trying valid order, should succeed..."))
+
+
+"""
+    Test 3 - should succeed
+"""
 
 new_order = models.Order(AmountTotal=0, CustomerId="ALFKI", ShipCity="Richmond",
                          EmployeeId=6, Freight=1)

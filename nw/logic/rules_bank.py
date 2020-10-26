@@ -1,6 +1,6 @@
 from logic_bank.exec_row_logic.logic_row import LogicRow
 from logic_bank.logic_bank import Rule
-from nw.db.models import Customer, OrderDetail, Product, Order, OrderClass
+from nw.db.models import Customer, OrderDetail, Product, Order, OrderClass, Employee
 
 
 def declare_logic():
@@ -62,6 +62,12 @@ def declare_logic():
     Rule.constraint(validate=OrderClass,
                     as_condition=lambda row: row.Id <= 99999,
                     error_msg="Test constraint for className <> tableName")
+
+    Rule.constraint(validate=Employee,
+                    as_condition=lambda row: row.IsCommissioned == 1 or row.order_count == 0,
+                    error_msg="{row.LastName} is not commissioned - cannot have orders")
+
+    Rule.count(derive=Employee.order_count, as_count_of=Order)
 
 
 class InvokePythonFunctions:  # use functions for more complex rules, type checking, etc (not used)

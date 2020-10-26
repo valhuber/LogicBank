@@ -40,6 +40,8 @@ class Constraint(AbstractRule):
         text = self._as_condition
         if self._function is not None:
             text = inspect.getsource(self._function)
+        if not isinstance(text, str):
+            text = inspect.getsource(text)  # lambda
         return text
 
     def execute(self, logic_row: LogicRow):
