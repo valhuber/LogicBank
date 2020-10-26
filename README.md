@@ -40,7 +40,7 @@ Logic Bank is fully integrated with Python:
 and source control tools and procedures
 
 ### Technology Evaluation
-40X is a large number - do these results hold in practice?
+40X is... _large_ - do these results hold in practice?
 See [here](../../wiki#technology-evaluation) for
 additional background, and real world experience.
 
