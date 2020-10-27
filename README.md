@@ -291,7 +291,7 @@ There are many to thank:
 
 #### Explore Sample Transactions
 
-Check out more examples on the [**wiki**](../../wiki):
+Check out more examples on the [**wiki**](../../wiki) - note the **navigation bar** on the right.  Key samples:
 * [**Ship Order**](../../wiki/Ship-Order) illustrates *cascade*, another form of multi-table logic
 * [**Banking**](../../wiki/Sample-Project---Banking) is a complex transaction using the command pattern
 
