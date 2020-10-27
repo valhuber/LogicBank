@@ -112,6 +112,7 @@ class Employee(Base):
     ReportsTo = Column(ForeignKey('Employee.Id'), nullable=False)
     PhotoPath = Column(String(8000))
     IsCommissioned = Column(Integer)
+    Salary = Column(DECIMAL(10, 2))
 
     OrderList = relationship("Order", cascade_backrefs=True, backref="SalesRep")
     # https://stackoverflow.com/questions/2638217/sqlalchemy-mapping-self-referential-relationship-as-one-to-many-declarative-f

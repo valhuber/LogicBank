@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from logic_bank.exec_row_logic.logic_row import LogicRow
 from logic_bank.logic_bank import Rule
 from nw.db.models import Customer, OrderDetail, Product, Order, OrderClass, Employee
@@ -28,7 +30,7 @@ def declare_logic():
         return result
 
     def congratulate_sales_rep(row: Order, old_row: Order, logic_row: LogicRow):
-        if logic_row.ins_upd_dlt == "ins" or True:  # logic engine fills parents for insert
+        if logic_row.ins_upd_dlt == "ins":  # logic engine fills parents for insert
             sales_rep = row.SalesRep  # type : Employee
             if sales_rep is None:
                 logic_row.log("no salesrep for this order")
@@ -68,6 +70,14 @@ def declare_logic():
                     error_msg="{row.LastName} is not commissioned - cannot have orders")
 
     Rule.count(derive=Employee.order_count, as_count_of=Order)
+
+    def raise_over_20_percent(row: Employee, old_row: Employee, logic_row: LogicRow):
+        if logic_row.ins_upd_dlt == "upd" and row.Salary != old_row.Salary:
+            return row.Salary >= Decimal('1.20') * old_row.Salary
+
+    Rule.constraint(validate=Employee,
+                    calling=raise_over_20_percent,
+                    error_msg="{row.LastName} needs a more meaningful raise")
 
 
 class InvokePythonFunctions:  # use functions for more complex rules, type checking, etc (not used)

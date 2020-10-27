@@ -132,7 +132,8 @@ class LogicRow:
                 value = getattr(self.row, each_attr_name)
                 result += each_attr_name + ": "
                 old_value = value
-                if self.old_row is not None:
+                if self.old_row is not None and \
+                        hasattr(self.old_row, each_attr_name):
                     old_value = getattr(self.old_row, each_attr_name)
                 if value != old_value:
                     result += ' [' + str(old_value) + '-->] '
