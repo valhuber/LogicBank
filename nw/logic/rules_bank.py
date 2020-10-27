@@ -74,6 +74,8 @@ def declare_logic():
     def raise_over_20_percent(row: Employee, old_row: Employee, logic_row: LogicRow):
         if logic_row.ins_upd_dlt == "upd" and row.Salary != old_row.Salary:
             return row.Salary >= Decimal('1.20') * old_row.Salary
+        else:
+            return True
 
     Rule.constraint(validate=Employee,
                     calling=raise_over_20_percent,

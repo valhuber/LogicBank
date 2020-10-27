@@ -65,5 +65,9 @@ Change Log
 ----------
 
 0.0.6 - Initial Version
+
 0.0.7 - Class Name can differ from Table Name
+
 0.0.8 - Much-reduced pip-install dependencies
+
+0.0.9 - Hybrid attribute support, old_row example
