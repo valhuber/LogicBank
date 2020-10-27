@@ -289,7 +289,7 @@ There are many to thank:
 
 ## Next Steps
 
-#### Explore Sample Transactions
+### Explore Sample Transactions
 
 Check out more examples on the [**wiki**](../../wiki) - note the **navigation bar** on the right.  Key samples:
 * [**Ship Order**](../../wiki/Ship-Order) illustrates *cascade*, another form of multi-table logic
