@@ -271,24 +271,6 @@ these both contain
 
 * The `logic_bank` engine source code
 
-To explore:
-
-* Click [here](../../wiki/Explore-LogicBank)
-    for install / operations procedures
-    
-* Click [here](../../wiki/Logic-Walkthrough) for a
-    short overview of internal logic execution
-
-##### See also the [LogicBankExamples](https://github.com/valhuber/LogicBankExamples) project
-The `Logic Bank Examples` [(setup instructions here)](../../wiki/Sample-Project---Setup)
-contains the same examples, but _not_ the `logic_bank` engine source code.
-It uses the logic engine via `pip install`, as you would for your own projects:
-
-```
-pip install logicbank
-```
-> This is **not required here**, and requires the same
-> pre-reqs noted above
 
 #### Status: Running, Under Development
 Functionally complete, 9/29/2020, tested for 2 databases.
@@ -304,4 +286,41 @@ There are many to thank:
 * Michael Holleran, for collaboration
 * Mike Bayer, for suggestions on leveraging Python typing
 * Gloria, for many reviews... and golden patience
+
+## Next Steps
+
+#### Explore Sample Transactions
+
+Check out more examples on the [**wiki**](../../wiki):
+* [**Ship Order**](../../wiki/Ship-Order) illustrates *cascade*, another form of multi-table logic
+* [**Banking**](../../wiki/Sample-Project---Banking) is a complex transaction using the command pattern
+
+
+A good way to proceed is to
+* Clear the log
+* Run the test
+* Review the log, and the rules that drove the processing
+
+
+#### See also the [LogicBankExamples](https://github.com/valhuber/LogicBankExamples) project
+
+The `Logic Bank Examples` [(setup instructions here)](../../wiki/Sample-Project---Setup)
+contains the same examples, but _not_ the `logic_bank` engine source code.
+It uses the logic engine via `pip install`, as you would for your own projects:
+
+```
+pip install logicbank
+```
+> This is **not required here**, and requires the same
+> pre-reqs noted above
+
+#### Internals
+
+To explore:
+
+* Click [here](../../wiki/Explore-LogicBank)
+    for install / operations procedures
+    
+* Click [here](../../wiki/Logic-Walkthrough) for a
+    short overview of internal logic execution
 
