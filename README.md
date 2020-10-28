@@ -18,7 +18,7 @@ typically nearly half the effort for a database project.
 
 It's also incredibly repetitive - you often get the feeling you're doing the same thing over and over.
 
-You're right.  It's because backend logic follows patterns of "what" is supposed to happen.
+And you're right.  It's because backend logic follows patterns of "what" is supposed to happen.
 And your code is the "how".  Suddenly, a simple cocktail napkin specification explodes into a massive amount of legacy code:
 
 <figure><img src="images/overview/rules-vs-code.png" width="800"></figure>
