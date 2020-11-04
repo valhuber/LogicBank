@@ -52,19 +52,23 @@ app.config.from_object("config")
 db = SQLA(app)
 
 appbuilder = AppBuilder(app, db.session)
-unparsedTables = dict([(name, cls) for name, cls in models.__dict__.items() if isinstance(cls, type)])
 
-for modelName in unparsedTables:
-    className = str(unparsedTables[modelName])
-    if '.models.' in className and not modelName.startswith('Ab'):
-        apiBuildObj = {
-            "resource_name": modelName.lower(),
-            "datamodel": SQLAInterface(unparsedTables[modelName])
-        }
-        apiName = modelName + 'ModelApi'
-        apiClass = type(apiName, (ModelRestApi,), apiBuildObj)
-        print(modelName)
-        appbuilder.add_api(apiClass)
+create_api = False  # experiment (disabled)
+
+if create_api:
+    unparsedTables = dict([(name, cls) for name, cls in models.__dict__.items() if isinstance(cls, type)])
+
+    for modelName in unparsedTables:
+        className = str(unparsedTables[modelName])
+        if '.models.' in className and not modelName.startswith('Ab'):
+            apiBuildObj = {
+                "resource_name": modelName.lower(),
+                "datamodel": SQLAInterface(unparsedTables[modelName])
+            }
+            apiName = modelName + 'ModelApi'
+            apiClass = type(apiName, (ModelRestApi,), apiBuildObj)
+            print(modelName)
+            appbuilder.add_api(apiClass)
 
 if use_rules:
     LogicBank.activate(session=db.session, activator=declare_logic)
