@@ -291,10 +291,8 @@ There are many to thank:
 
 ## Articles
 There a few articles that provide some orientation to Logic Bank:
-* [Automate Business Logic With Logic Bank](https://dzone.com/articles/automate-business-logic-with-logic-bank)
-> General introduction, discussions of extensibility, manageability and scalability
-* [Agile Design Automation With Logic Bank](https://dzone.com/articles/logical-data-indendence)
-> Focuses on automation, design flexibility and agile iterations
+* [Automate Business Logic With Logic Bank](https://dzone.com/articles/automate-business-logic-with-logic-bank) - general introduction, discussions of extensibility, manageability and scalability
+* [Agile Design Automation With Logic Bank](https://dzone.com/articles/logical-data-indendence) - focuses on automation, design flexibility and agile iterations
 
 ## Next Steps
 
