@@ -289,6 +289,13 @@ There are many to thank:
 * Mike Bayer, for suggestions on leveraging Python typing
 * Gloria, for many reviews... and golden patience
 
+## Articles
+There a few articles that provide some orientation to Logic Bank:
+* [Automate Business Logic With Logic Bank](https://dzone.com/articles/automate-business-logic-with-logic-bank)
+> General introduction, discussions of extensibility, manageability and scalability
+* [Agile Design Automation With Logic Bank](https://dzone.com/articles/logical-data-indendence)
+> Focuses on automation, design flexibility and agile iterations
+
 ## Next Steps
 
 ### Explore Sample Transactions
