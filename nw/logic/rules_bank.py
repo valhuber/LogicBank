@@ -1,8 +1,9 @@
 from decimal import Decimal
 
 from logic_bank.exec_row_logic.logic_row import LogicRow
+from logic_bank.extensions.allocate import allocate
 from logic_bank.logic_bank import Rule
-from nw.db.models import Customer, OrderDetail, Product, Order, OrderClass, Employee
+from nw.db.models import Customer, OrderDetail, Product, Order, OrderClass, Employee, Payment, PaymentAllocation
 
 
 def declare_logic():
@@ -80,6 +81,32 @@ def declare_logic():
     Rule.constraint(validate=Employee,
                     calling=raise_over_20_percent,
                     error_msg="{row.LastName} needs a more meaningful raise")
+
+    def allocate_payment(row: Payment, old_row: Payment, logic_row: LogicRow):
+
+        def each_payment_allocation(allocation_logic_row, provider_logic_row):
+            if provider_logic_row.row.AmountUnAllocated is None:
+                provider_logic_row.row.AmountUnAllocated = Decimal(0)
+            amount = min(Decimal(provider_logic_row.row.Amount),
+                         Decimal(allocation_logic_row.row.Order.AmountTotal))
+            provider_logic_row.row.AmountUnAllocated = \
+                provider_logic_row.row.AmountUnAllocated - amount
+            allocation_logic_row.row.AmountAllocated = amount
+            any_left = provider_logic_row.row.AmountUnAllocated > 0
+            return any_left
+
+        # unpaid_orders = row.Customer.OrderList
+        # https://stackoverflow.com/questions/40524749/sqlalchemy-query-filter-on-child-attribute
+        # q = s.query(Parent).filter(Parent.child.has(Child.value > 20))
+        test_cust = row.Customer
+        unpaid_orders = logic_row.session.query(Order).\
+            filter(Order.ShippedDate != None, Order.CustomerId == test_cust.Id).all()
+        allocate(from_provider_row=logic_row,
+                 to_recipients=unpaid_orders,
+                 creating_allocation=PaymentAllocation,
+                 while_calling_allocator=each_payment_allocation)
+
+    Rule.early_row_event(on_class=Payment, calling=allocate_payment)
 
 
 class InvokePythonFunctions:  # use functions for more complex rules, type checking, etc (not used)

@@ -71,3 +71,5 @@ Change Log
 0.0.8 - Much-reduced pip-install dependencies
 
 0.0.9 - Hybrid attribute support, old_row example
+
+0.1.0 - Hybrid attribute support, bug fix

@@ -19,5 +19,11 @@
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/banking/db/database.db</jdbc-url>
     </data-source>
+    <data-source source="LOCAL" name="database-gold.db" uuid="809f3d5d-f1fc-4744-80d7-f40ba2feb1c2">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/payment_allocation/db/database-gold.db</jdbc-url>
+    </data-source>
   </component>
 </project>
