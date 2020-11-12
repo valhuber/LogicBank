@@ -2,6 +2,7 @@
 import os
 import sys
 from datetime import datetime
+from decimal import Decimal
 
 cwd = os.getcwd()   # eg, /Users/val/python/pycharm/logic-bank/payment_allocation/tests
 required_path_python_rules = cwd  # seeking /Users/val/python/pycharm/Logic-Bank
@@ -43,7 +44,7 @@ from logic_bank.exec_row_logic.logic_row import LogicRow
 from logic_bank.util import row_prt, prt
 from payment_allocation.logic import session  # opens db, activates logic listener <--
 
-cls = sqlalchemy_utils.functions.get_class_by_table(models.Base, "Product", data=None)
+cls = sqlalchemy_utils.functions.get_class_by_table(models.Base, "Product", data=None)  # FIXME ??
 
 # Add Order - works
 pre_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
@@ -66,16 +67,15 @@ post_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI")
 
 print("\nadd_payment, update completed\n\n")
 row_prt(new_payment, "\nnew Payment Result")  #
-if new_payment.Amount != 56:
-    print ("==> ERROR - unexpected AmountTotal: " + str(new_payment.Amount) +
-           "... expected 56")
+if new_payment.Amount != Decimal(1000):
+    print ("==> ERROR - unexpected new_payment.Amount: " + str(new_payment.Amount) +
+           "... expected 1000")
 
 logic_row = LogicRow(row=post_cust, old_row=pre_cust, ins_upd_dlt="*", nest_level=0, a_session=session, row_sets=None)
-if post_cust.Balance == pre_cust.Balance + 56:
+if post_cust.Balance == pre_cust.Balance - 1000:
     logic_row.log("Correct adjusted Customer Result")
     assert True
 else:
     logic_row.log("ERROR - incorrect adjusted Customer Result")
-    print("\n--> probable cause: Order customer update not written")
     assert False
 print("\nadd_payment, ran to completion\n\n")

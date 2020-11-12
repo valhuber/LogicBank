@@ -10,7 +10,7 @@ def declare_logic():
 
     Rule.sum(derive=Customer.Balance, as_sum_of=Order.AmountOwed)
 
-    Rule.formula(derive=Order.AmountOwed, as_expression=lambda row: row.AmountTotal * row.AmountPaid)
+    Rule.formula(derive=Order.AmountOwed, as_expression=lambda row: row.AmountTotal - row.AmountPaid)
 
     Rule.sum(derive=Order.AmountPaid, as_sum_of=PaymentAllocation.AmountAllocated)
 

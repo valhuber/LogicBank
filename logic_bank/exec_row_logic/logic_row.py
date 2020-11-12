@@ -234,6 +234,27 @@ class LogicRow:
             raise Exception(f"FIXME invalid role name {parent_role_name}")
         return role_def
 
+    def link(self, to_parent: 'LogicRow'):
+        parent_mapper = object_mapper(to_parent.row)
+        parents_relationships = parent_mapper.relationships
+        parent_role_name = None
+        child = self.row
+        for each_relationship in parents_relationships:  # eg, Payment has child PaymentAllocation
+            if each_relationship.direction == sqlalchemy.orm.interfaces.ONETOMANY:  # PA
+                each_parent_role_name = each_relationship.back_populates  # eg, AllocationList
+                if isinstance(child, each_relationship.entity.class_):
+                    if parent_role_name is not None:
+                        raise Exception("TODO - disambiguate relationship from Provider: <" +
+                                        to_parent.name +
+                                        "> to Allocation: " + str(type(child)))
+                    parent_role_name = parent_mapper.class_.__name__  # default TODO design review
+        if parent_role_name is None:
+            raise Exception("Missing relationship from Provider: <" +
+                            to_parent.name +
+                            "> to Allocation: " + str(type(child)))
+        setattr(child, parent_role_name, to_parent.row)
+        return True
+
     def get_child_role(self, parent_role_name) -> str:
         """ given parent_role_name, return child_role_name """
         parent_mapper = object_mapper(self.row)  # , eg, Order cascades ShippedDate => OrderDetailList
