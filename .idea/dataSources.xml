@@ -19,13 +19,13 @@
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/banking/db/database.db</jdbc-url>
     </data-source>
-    <data-source source="LOCAL" name="allocate-gold.db" uuid="809f3d5d-f1fc-4744-80d7-f40ba2feb1c2">
+    <data-source source="LOCAL" name="allocate-gold" uuid="809f3d5d-f1fc-4744-80d7-f40ba2feb1c2">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/payment_allocation/db/database-gold.db</jdbc-url>
     </data-source>
-    <data-source source="LOCAL" name="allocate.db" uuid="2b708287-f649-4cf6-a541-78d8af3f57de">
+    <data-source source="LOCAL" name="allocate" uuid="2b708287-f649-4cf6-a541-78d8af3f57de">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>

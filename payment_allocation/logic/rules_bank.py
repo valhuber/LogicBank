@@ -19,7 +19,7 @@ def declare_logic():
             if provider_logic_row.row.AmountUnAllocated is None:
                 provider_logic_row.row.AmountUnAllocated = provider_logic_row.row.Amount
             amount = min(Decimal(provider_logic_row.row.AmountUnAllocated),
-                         Decimal(allocation_logic_row.row.Order.AmountTotal))
+                         Decimal(allocation_logic_row.row.Order.AmountOwed))
             provider_logic_row.row.AmountUnAllocated = \
                 provider_logic_row.row.AmountUnAllocated - amount
             allocation_logic_row.row.AmountAllocated = amount
@@ -30,8 +30,18 @@ def declare_logic():
         # https://stackoverflow.com/questions/40524749/sqlalchemy-query-filter-on-child-attribute
         # q = s.query(Parent).filter(Parent.child.has(Child.value > 20))
         test_cust = row.Customer
-        unpaid_orders = logic_row.session.query(Order).\
-            filter(Order.AmountOwed > 0, Order.CustomerId == test_cust.Id).all()
+        unpaid_orders = logic_row.session.query(Order)\
+            .filter(Order.AmountOwed > 0, Order.CustomerId == test_cust.Id)\
+            .order_by(Order.OrderDate).all()
+        """
+            (10653 owes nothing)
+            orderId OrderDate   AmountTotal AmountPaid  AmountOwed  ==> Allocated
+            10692   2013-10-03  878         0           100         100
+            10702   2013-10-03  330         0           330         330
+            10835   2014-01-15  851         0           851         570
+            10952   2014-03-16  491.20      0           491.20      *
+            11011   2014-04-09  960         0           960         *
+        """
         allocate(from_provider_row=logic_row,
                  to_recipients=unpaid_orders,
                  creating_allocation=PaymentAllocation,
