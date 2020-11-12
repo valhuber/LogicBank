@@ -53,7 +53,7 @@ class Payment(Base):
     Amount = Column(DECIMAL(10, 2))
     AmountUnAllocated = Column(DECIMAL(10, 2), default=0)
     CustomerId = Column(ForeignKey('Customer.Id'))
-    CreatedOn = Column(DateTime)
+    CreatedOn = Column(String(80))
 
     AllocationList = relationship("PaymentAllocation",
                                    backref="Payment",
