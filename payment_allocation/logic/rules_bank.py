@@ -3,7 +3,7 @@ from decimal import Decimal
 from logic_bank.exec_row_logic.logic_row import LogicRow
 from logic_bank.extensions.allocate import allocate
 from logic_bank.logic_bank import Rule
-from nw.db.models import Customer, Order, Payment, PaymentAllocation
+from payment_allocation.db.models import Customer, Order, Payment, PaymentAllocation
 
 
 def declare_logic():
@@ -31,7 +31,7 @@ def declare_logic():
         # q = s.query(Parent).filter(Parent.child.has(Child.value > 20))
         test_cust = row.Customer
         unpaid_orders = logic_row.session.query(Order).\
-            filter(Order.ShippedDate != None, Order.CustomerId == test_cust.Id).all()
+            filter(Order.AmountOwed > 0, Order.CustomerId == test_cust.Id).all()
         allocate(from_provider_row=logic_row,
                  to_recipients=unpaid_orders,
                  creating_allocation=PaymentAllocation,

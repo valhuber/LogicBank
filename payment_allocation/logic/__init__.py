@@ -4,9 +4,7 @@ import sqlalchemy
 from sqlalchemy.orm import session
 
 from logic_bank.logic_bank import LogicBank
-from nw.logic.rules_bank import declare_logic
-
-import nw.logic.legacy.setup as legacy_setup
+from payment_allocation.logic.rules_bank import declare_logic
 
 from logic_bank.util import prt
 
@@ -42,21 +40,17 @@ if do_engine_logging:
 basedir = os.path.abspath(os.path.dirname(__file__))
 basedir = os.path.dirname(basedir)
 
-nw_loc = os.path.join(basedir, "db/database.db")
+db_loc = os.path.join(basedir, "db/database.db")
 
-conn_string = "sqlite:///" + nw_loc
+conn_string = "sqlite:///" + db_loc
 engine = sqlalchemy.create_engine(conn_string, echo=False)  # sqlalchemy sqls...
 
 session_maker = sqlalchemy.orm.sessionmaker()
 session_maker.configure(bind=engine)
 session = session_maker()
 
-by_rules = True  # True => use rules, False => use legacy hand code (for comparison)
 rule_list = None
 db = None
-if by_rules:
-    LogicBank.activate(session=session, activator=declare_logic)
-else:
-    legacy_setup.setup(session)  # test asserts fail due to counts (else ok)
+LogicBank.activate(session=session, activator=declare_logic)
 
 print("\n" + prt("END - connected, session created, listeners registered\n"))

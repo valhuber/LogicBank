@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>DATABASE</ID>
+  <OriginalElement>809f3d5d-f1fc-4744-80d7-f40ba2feb1c2.SCHEMA:main</OriginalElement>
+  <nodes>
+    <node x="109.5" y="0.0">809f3d5d-f1fc-4744-80d7-f40ba2feb1c2.TABLE:main.Customer</node>
+    <node x="123.0" y="386.0">809f3d5d-f1fc-4744-80d7-f40ba2feb1c2.TABLE:main.PaymentAllocation</node>
+    <node x="0.0" y="171.0">809f3d5d-f1fc-4744-80d7-f40ba2feb1c2.TABLE:main.Order</node>
+    <node x="231.0" y="182.0">809f3d5d-f1fc-4744-80d7-f40ba2feb1c2.TABLE:main.Payment</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="809f3d5d-f1fc-4744-80d7-f40ba2feb1c2.TABLE:main.Order" target="809f3d5d-f1fc-4744-80d7-f40ba2feb1c2.TABLE:main.Customer">
+      <point x="0.0" y="-82.5" />
+      <point x="105.5" y="146.0" />
+      <point x="166.25" y="146.0" />
+      <point x="-56.75" y="60.5" />
+    </edge>
+    <edge source="809f3d5d-f1fc-4744-80d7-f40ba2feb1c2.TABLE:main.PaymentAllocation" target="809f3d5d-f1fc-4744-80d7-f40ba2feb1c2.TABLE:main.Payment">
+      <point x="50.0" y="-60.5" />
+      <point x="273.0" y="361.0" />
+      <point x="340.5" y="361.0" />
+      <point x="0.0" y="71.5" />
+    </edge>
+    <edge source="809f3d5d-f1fc-4744-80d7-f40ba2feb1c2.TABLE:main.Payment" target="809f3d5d-f1fc-4744-80d7-f40ba2feb1c2.TABLE:main.Customer">
+      <point x="0.0" y="-71.5" />
+      <point x="340.5" y="146.0" />
+      <point x="279.75" y="146.0" />
+      <point x="56.75" y="60.5" />
+    </edge>
+    <edge source="809f3d5d-f1fc-4744-80d7-f40ba2feb1c2.TABLE:main.PaymentAllocation" target="809f3d5d-f1fc-4744-80d7-f40ba2feb1c2.TABLE:main.Order">
+      <point x="-50.0" y="-60.5" />
+      <point x="173.0" y="361.0" />
+      <point x="105.5" y="361.0" />
+      <point x="0.0" y="82.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="0.7685009487666035" x="225.0" y="253.5" />
+  <SelectedNodes>
+    <node>809f3d5d-f1fc-4744-80d7-f40ba2feb1c2.TABLE:main.Customer</node>
+  </SelectedNodes>
+  <Categories>
+    <Category>Key columns</Category>
+    <Category>Columns</Category>
+    <Category>Virtual foreign keys</Category>
+  </Categories>
+</Diagram>
+

@@ -3,10 +3,10 @@ import os
 import sys
 from datetime import datetime
 
-cwd = os.getcwd()   # eg, /Users/val/python/pycharm/logic-bank/nw/tests
+cwd = os.getcwd()   # eg, /Users/val/python/pycharm/logic-bank/payment_allocation/tests
 required_path_python_rules = cwd  # seeking /Users/val/python/pycharm/Logic-Bank
-required_path_python_rules = required_path_python_rules.replace("/nw/tests", "")
-required_path_python_rules = required_path_python_rules.replace("\\nw\\tests", "")
+required_path_python_rules = required_path_python_rules.replace("/payment_allocation/tests", "")
+required_path_python_rules = required_path_python_rules.replace("\\payment_allocation\\tests", "")
 required_path_python_rules = required_path_python_rules.replace("\\\\", "\\")  # you cannot be serious
 
 sys_path = ""
@@ -33,15 +33,15 @@ run_environment_info += "At: " + str(datetime.now()) + "\n\n"
 
 print("\n" + run_environment_info + "\n\n")
 
-from nw.tests import setup_db  # careful - this must follow fix-path, above
+from payment_allocation.tests import setup_db  # careful - this must follow fix-path, above
 setup_db()
 
 import sqlalchemy_utils
 
-import nw.db.models as models
+import payment_allocation.db.models as models
 from logic_bank.exec_row_logic.logic_row import LogicRow
 from logic_bank.util import row_prt, prt
-from nw.logic import session  # opens db, activates logic listener <--
+from payment_allocation.logic import session  # opens db, activates logic listener <--
 
 cls = sqlalchemy_utils.functions.get_class_by_table(models.Base, "Product", data=None)
 
