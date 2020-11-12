@@ -56,7 +56,7 @@ session.expunge(pre_cust)
 
 cust_alfki = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
 
-new_payment = models.Payment(Amount=100)
+new_payment = models.Payment(Amount=1000)
 cust_alfki.PaymentList.append(new_payment)
 
 session.add(new_payment)

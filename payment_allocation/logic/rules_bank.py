@@ -17,8 +17,8 @@ def declare_logic():
     def allocate_payment(row: Payment, old_row: Payment, logic_row: LogicRow):
         def each_payment_allocation(allocation_logic_row, provider_logic_row):
             if provider_logic_row.row.AmountUnAllocated is None:
-                provider_logic_row.row.AmountUnAllocated = Decimal(0)
-            amount = min(Decimal(provider_logic_row.row.Amount),
+                provider_logic_row.row.AmountUnAllocated = provider_logic_row.row.Amount
+            amount = min(Decimal(provider_logic_row.row.AmountUnAllocated),
                          Decimal(allocation_logic_row.row.Order.AmountTotal))
             provider_logic_row.row.AmountUnAllocated = \
                 provider_logic_row.row.AmountUnAllocated - amount
