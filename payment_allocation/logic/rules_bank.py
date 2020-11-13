@@ -28,17 +28,7 @@ def declare_logic():
     Rule.early_row_event(on_class=Payment, calling=allocate_payment)
 
     """
-    failed getting unpaid orders like this
+    minor issue to research - failed getting unpaid orders like this
         https://stackoverflow.com/questions/40524749/sqlalchemy-query-filter-on-child-attribute
-        q = s.query(Parent).filter(Parent.child.has(Child.value > 20))
-    
-    sample data:
-
-        (10653 owes nothing)
-        orderId OrderDate   AmountTotal AmountPaid  AmountOwed  ==> Allocated
-        10692   2013-10-03  878         0           100         100
-        10702   2013-10-03  330         0           330         330
-        10835   2014-01-15  851         0           851         570
-        10952   2014-03-16  491.20      0           491.20      *
-        11011   2014-04-09  960         0           960         *
+        q = s.query(Parent).filter(Parent.child.has(Child.value > 20))    
     """
