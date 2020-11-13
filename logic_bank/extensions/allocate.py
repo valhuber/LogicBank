@@ -59,7 +59,7 @@ class Allocate():
     def while_calling_allocator_default(self, allocation_logic_row, provider_logic_row) -> bool:
         """
         Called for each created allocation,
-        to compute allocation.amount_allocated and reduce provider.AmountUnAllocated
+        to compute Allocation.AmountAllocated and reduce Provider.AmountUnAllocated
 
         This uses default names; to use your names, copy this code and alter as as required
 
