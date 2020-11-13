@@ -46,15 +46,17 @@ class Allocate():
                                                 row_sets=None)
             new_allocation_logic_row.link(to_parent=each_recipient_logic_row)
             if self.while_calling_allocator is not None:
-                allocator = self.while_calling_allocator(new_allocation_logic_row, self.from_provider_row)
+                allocator = self.while_calling_allocator(new_allocation_logic_row,
+                                                         self.from_provider_row)
             else:
-                allocator = self.each_allocation(new_allocation_logic_row, self.from_provider_row)
+                allocator = self.while_calling_allocator_default(new_allocation_logic_row,
+                                                                 self.from_provider_row)
             new_allocation_logic_row.insert(reason="Allocate " + self.from_provider_row.name)
             if not allocator:
                 break
         return self
 
-    def each_allocation(self, allocation_logic_row, provider_logic_row) -> bool:
+    def while_calling_allocator_default(self, allocation_logic_row, provider_logic_row) -> bool:
         """
         Called for each created allocation,
         to compute allocation.amount_allocated and reduce provider.AmountUnAllocated
