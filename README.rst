@@ -73,3 +73,6 @@ Change Log
 0.0.9 - Hybrid attribute support, old_row example
 
 0.1.0 - Hybrid attribute support, bug fix
+
+0.1.1 - `Allocation <https://github.com/valhuber/LogicBank/wiki/Sample-Project---Allocation>`_ example -
+allocate a payment to a set of outstanding orders

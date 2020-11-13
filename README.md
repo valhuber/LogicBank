@@ -255,8 +255,8 @@ python add_order.py
 #### What's in the project
 Logic Bank consists of:
 
-* Two test database systems - `nw` and `banking`;
-these both contain
+* Three test database systems - `nw,`  `banking` and `payment_allocation`;
+these contain
 
     * [Databases](nw/db) sqlite (no install required)
 
