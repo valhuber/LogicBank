@@ -51,28 +51,30 @@ class Allocate():
             else:
                 allocator = self.while_calling_allocator_default(new_allocation_logic_row,
                                                                  self.from_provider_row)
-            new_allocation_logic_row.insert(reason="Allocate " + self.from_provider_row.name)
             if not allocator:
                 break
         return self
 
     def while_calling_allocator_default(self, allocation_logic_row, provider_logic_row) -> bool:
         """
-        Called for each created allocation,
-        to compute Allocation.AmountAllocated and reduce Provider.AmountUnAllocated
+        Called for each created allocation, to
+        compute Allocation.AmountAllocated (by running rules), and
+        reduce Provider.AmountUnAllocated
 
-        This uses default names; to use your names, copy this code and alter as as required
+        This uses default names:
+        provider.Amount
+        provider.AmountUnallocated
+        allocation.AmountAllocated
+
+        To use your names, copy this code and alter as as required
 
         :param allocation_logic_row: allocation row being created
         :param provider_logic_row: provider
         :return: provider has AmountUnAllocated remaining
         """
-        if provider_logic_row.row.AmountUnAllocated is None:
-            provider_logic_row.row.AmountUnAllocated = provider_logic_row.row.Amount
-        amount = min(Decimal(provider_logic_row.row.AmountUnAllocated),
-                     Decimal(allocation_logic_row.row.Order.AmountOwed))
+        allocation_logic_row.insert(reason="Allocate " + provider_logic_row.name)
+
         provider_logic_row.row.AmountUnAllocated = \
-            provider_logic_row.row.AmountUnAllocated - amount
-        allocation_logic_row.row.AmountAllocated = amount
-        any_left = provider_logic_row.row.AmountUnAllocated > 0
-        return any_left
+            provider_logic_row.row.AmountUnAllocated - allocation_logic_row.row.AmountAllocated
+
+        return provider_logic_row.row.AmountUnAllocated > 0  #  terminate allocation loop if none left
