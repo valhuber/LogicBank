@@ -76,3 +76,5 @@ Change Log
 
 0.1.1 - `Allocation <https://github.com/valhuber/LogicBank/wiki/Sample-Project---Allocation>`_ example -
 allocate a payment to a set of outstanding orders
+
+0.2.0 - Minor design refactoring of allocation
