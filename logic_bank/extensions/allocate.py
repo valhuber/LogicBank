@@ -32,6 +32,7 @@ class Allocate():
 
         :return:
         """
+        self.from_provider_row.log("Allocate " + self.from_provider_row.name)
         for each_recipient in self.to_recipients:
             new_allocation = self.creating_allocation()
             new_allocation_logic_row = LogicRow(row=new_allocation, old_row=new_allocation,
