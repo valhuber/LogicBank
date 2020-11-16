@@ -1,7 +1,6 @@
 from decimal import Decimal
 
 from logic_bank.exec_row_logic.logic_row import LogicRow
-from logic_bank.extensions.allocate import allocate
 from logic_bank.logic_bank import Rule
 from nw.db.models import Customer, OrderDetail, Product, Order, OrderClass, Employee
 
