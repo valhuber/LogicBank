@@ -185,10 +185,12 @@ To install Python:
 * Python3.8 
 
    * Run the windows installer
+      * Be sure to specify "add Python to Path"
    * On mac/Unix, consider [using homebrew](https://brew.sh/), as described
 [here](https://opensource.com/article/19/5/python-3-default-mac#what-to-do)
    
 * virtualenv - see [here](https://www.google.com/url?q=https%3A%2F%2Fpackaging.python.org%2Fguides%2Finstalling-using-pip-and-virtual-environments%2F%23creating-a-virtual-environment&sa=D&sntz=1&usg=AFQjCNEu-ZbYfqRMjNQ0D0DqU1mhFpDYmw)  (e.g.,  `pip install virtualenv`)
+   * on PC, see [these instructions](https://pypi.org/project/pyenv-win/)
 
 * An IDE - optional - any will do (I've used [PyCharm](https://www.jetbrains.com/pycharm/download) and [VSCode](https://code.visualstudio.com), install notes [here](https://github.com/valhuber/fab-quick-start/wiki/IDE-Setup)), though different install / generate / run instructions apply for running programs.
 
