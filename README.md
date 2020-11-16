@@ -302,7 +302,7 @@ There a few articles that provide some orientation to Logic Bank:
 
 Check out more examples on the [**wiki**](../../wiki) - note the **navigation bar** on the right.  Key samples:
 * [**Ship Order**](../../wiki/Ship-Order) illustrates *cascade*, another form of multi-table logic
-* [**Allocation**](../../wiki/Ship-Order) illustrates *extensibility*,
+* [**Allocation**](../../wiki/Sample-Project---Allocation) illustrates *extensibility*,
 providing a reusable pattern for a *provider* to allocate
 to a set of *recipients*
 * [**Banking**](../../wiki/Sample-Project---Banking) is a complex transaction using the command pattern
