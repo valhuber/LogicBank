@@ -50,6 +50,15 @@ session.commit()
 
 verify_cust = session.query(models.Customer).filter(models.Customer.Id == "$$New Cust").one()
 
+print("\nadd_cust, verified: " + str(verify_cust) + "\n\n")
+
+from sqlalchemy.sql import func
+qry = session.query(models.Order.CustomerId, func.sum(models.Order.AmountTotal))\
+    .filter(models.Order.CustomerId == "ALFKI", models.Order.ShippedDate == None)
+qry = qry.group_by(models.Order.CustomerId)
+for _res in qry.all():
+    print(_res)
+
 print("\nadd_cust, completed: " + str(verify_cust) + "\n\n")
 
 assert True
