@@ -151,6 +151,18 @@ if post_cust.OrderCount == pre_cust.OrderCount + 1 and\
     pass
 else:
     logic_row.log("Error - unexpected OrderCounts")
+
+
+from sqlalchemy.sql import func
+qry = session.query(models.Order.CustomerId,
+                    func.sum(models.Order.AmountTotal).label('sql_balance'))\
+    .filter(models.Order.CustomerId == "ALFKI", models.Order.ShippedDate == None)
+qry = qry.group_by(models.Order.CustomerId).one()
+if qry.sql_balance == post_cust.Balance:
+    logic_row.log("Derived balance matches sql `select sum' result")
+else:
+    logic_row.log("ERROR - computed balance does not match sql result")
+
 print("\nadd_order, ran to completion\n\n")
 
 
