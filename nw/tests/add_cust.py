@@ -1,7 +1,3 @@
-import os
-import sys
-from datetime import datetime
-
 import logic_bank_utils.util as logic_bank_utils
 
 (did_fix_path, sys_env_info) = \
