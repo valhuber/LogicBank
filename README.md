@@ -252,7 +252,10 @@ cd nw/tests
 python add_order.py
 ```
 
-> Note: the **log** depicts logic execution
+> Note: the console **log** depicts logic execution
+>
+> Log lines are long - consider copying them to a text
+> editor to view with / without word wrap
 
 #### What's in the project
 Logic Bank consists of:
