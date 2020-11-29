@@ -132,10 +132,11 @@ def prt(a_msg: str) -> str:
     return result
 
 
-def row_prt(obj: object, a_msg: str = ""):
-    """ returns string of msg + row """
+def row_prt(obj: object, a_msg: str = "") -> str:
+    """ prints and returns string of msg + row """
     msg = row_to_string(obj)
     print(a_msg + ", " + msg)
+    return a_msg + ", " + msg
 
 
 def get_child_class_name(relationship):

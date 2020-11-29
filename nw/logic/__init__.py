@@ -15,7 +15,10 @@ from logic_bank.util import prt
 2 - Register listeners (either hand-coded ones above, or the logic-engine listeners).
 """
 
-print("\n" + prt("BEGIN - setup logging, connect to db, register listeners"))
+print("\n")
+print("*********************")
+print(prt("BEGIN - setup logging, connect to db, register listeners"))
+print("*********************")
 
 # Initialize Logging
 import logging
@@ -57,6 +60,9 @@ db = None
 if by_rules:
     LogicBank.activate(session=session, activator=declare_logic)
 else:
-    legacy_setup.setup(session)  # test asserts fail due to counts (else ok)
+    legacy_setup.setup(session)  # ignore test asserts that fail due to (unimplemenmted) counts (else ok)
 
-print("\n" + prt("END - connected, session created, listeners registered\n"))
+print("\n")
+print("*********************")
+print(prt("END - connected, session created, listeners registered"))
+print("*********************")

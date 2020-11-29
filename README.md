@@ -249,7 +249,10 @@ and see the [walk-throughs here](../../wiki/home#logic-execution-watch-react-cha
 
 ```
 cd nw/tests
-python add_order.py
+python -m unittest test_add_order.py
+python test_add_order.py
+
+python -m unittest discover -p "test*.py"  # run all tests
 ```
 
 > Note: the console **log** depicts logic execution

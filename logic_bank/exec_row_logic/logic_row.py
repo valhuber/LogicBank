@@ -144,13 +144,14 @@ class LogicRow:
         result += f'  row@: {str(hex(id(self.row)))}'
         return result  # str(my_dict)
 
-    def log(self, msg: str):
+    def log(self, msg: str) -> str:
         """
         prints to logic_logger: row/old_row, indented, inserting msg
         """
         output = str(self)
         output = output.replace("]:", "] {" + msg + "}", 1)
         logic_bank.logic_logger.debug(output)  # more on this later
+        return output
 
     def log_engine(self, msg: str):
         """
