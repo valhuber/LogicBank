@@ -14,7 +14,7 @@ This readme contains:
     * [Why](#why---simple-cocktail-napkin-spec-explodes-into-massive-legacy-code) - problems addressed
     * [What](#what---declare-spreadsheet-like-rules---40x-more-concise) - usage overview
     * [How](#architecture---handle-sqlalchemy-before_flush-events) - architecture, components
-    * [Execution Overview](#logic-execution-add-order---watch-react-chain) - execution overview, scalability
+    * [Logic Execution](#logic-execution-add-order---watch-react-chain) - sample transaction execution, reuse and scalability
     * [Instant Web App](#an-agile-perspective) - built with [Flask App Builder Quickstart](https://github.com/valhuber/fab-quick-start/wiki)
 1. [Install Instructions](#installation) - of Python and Logic Bank, with verify and run instructions
 1. [Project Information](#project-information)
@@ -278,6 +278,7 @@ python -m unittest discover -p "test*.py"  # run all tests
 There a few articles that provide some orientation to Logic Bank:
 * [Automate Business Logic With Logic Bank](https://dzone.com/articles/automate-business-logic-with-logic-bank) - general introduction, discussions of extensibility, manageability and scalability
 * [Agile Design Automation With Logic Bank](https://dzone.com/articles/logical-data-indendence) - focuses on automation, design flexibility and agile iterations
+* [Declarative](https://dzone.com/articles/agile-design-automation-how-are-rules-different-fr) - exploring _multi-statement_ declarative technology
 
 ## Next Steps
 
