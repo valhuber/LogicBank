@@ -349,7 +349,7 @@ on general value, and features.
 
 To explore:
 
-* Click [here](../../wiki/Explore-LogicBank)
+* Click [here](../../wiki/Explore-Logic-Bank)
     for install / operations procedures
     
 * Click [here](../../wiki/Logic-Walkthrough) for a
