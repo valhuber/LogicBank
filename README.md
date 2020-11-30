@@ -10,8 +10,8 @@ using standard tools and techniques
 
 This readme contains:
 
-1. [Background](#background)
-1. [Install Instructions](#installation)
+1. [Background](#background)k - problems addressed, usage overview, architecture,  execution overview
+1. [Install Instructions](#installation) - of Python and Logic Bank, with verify and run instructions
 1. [Project Information](#project-information)
 
 
