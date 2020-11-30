@@ -8,6 +8,14 @@ using a spreadsheet-like paradigm, and
 * **Python - control and extensibility,**
 using standard tools and techniques
 
+This readme contains:
+
+1. [Background](#background)
+1. [Install Instructions](#installation)
+1. [Project Information](#project-information)
+
+
+# Background
 
 ## Why - Simple Cocktail-Napkin Spec Explodes into Massive Legacy Code
 
@@ -157,7 +165,7 @@ and get the same result
 the engine will reorganize execution order and database access, automatically
 
 
-## Installation
+# Installation
 First, follow the instructions to verify / install Python, then install Logic Bank.
 
 ### Python Installation
@@ -259,43 +267,7 @@ python -m unittest discover -p "test*.py"  # run all tests
 >
 > Log lines are long - consider copying them to a text
 > editor to view with / without word wrap
-
-#### What's in the project
-Logic Bank consists of:
-
-* Three test database systems - `nw,`  `banking` and `payment_allocation`;
-these contain
-
-    * [Databases](nw/db) sqlite (no install required)
-
-    * [Test folders](nw/tests) that run key transactions - just run the scripts
-(note the logs)
-
-    * [Flask AppBuilder apps](nw/basic_web_app) (as described above)
-    
-    * [Logic](nw/logic) - models and rules (and for `nw`,
-    the manual `legacy` code for contrast to rules)
-    
-* The `nw` sample illustrates comparisons of Business logic, both
-[by code](nw/logic/legacy) and by rules (shown above).
-
-* The `logic_bank` engine source code
-
-
-#### Status: Running, Under Development
-Functionally complete, 9/29/2020, tested for 2 databases.
-
-Incubation - ready to explore and provide feedback
-on general value, and features.
-
-#### Acknowledgements
-There are many to thank:
-* Tyler Band, for testing and the Banking example
-* Max Tardiveau, for testing
-* Nishanth Shyamsundar, for PC testing
-* Michael Holleran, for collaboration
-* Mike Bayer, for suggestions on leveraging Python typing
-* Gloria, for many reviews... and golden patience
+>
 
 ## Articles
 There a few articles that provide some orientation to Logic Bank:
@@ -332,6 +304,38 @@ pip install logicbank
 > This is **not required here**, and requires the same
 > pre-reqs noted above
 
+
+
+# Project Information
+
+#### What's in the project
+Logic Bank consists of:
+
+* Three test database systems - `nw,`  `banking` and `payment_allocation`;
+these contain
+
+    * [Databases](nw/db) sqlite (no install required)
+
+    * [Test folders](nw/tests) that run key transactions - just run the scripts
+(note the logs)
+
+    * [Flask AppBuilder apps](nw/basic_web_app) (as described above)
+    
+    * [Logic](nw/logic) - models and rules (and for `nw`,
+    the manual `legacy` code for contrast to rules)
+    
+* The `nw` sample illustrates comparisons of Business logic, both
+[by code](nw/logic/legacy) and by rules (shown above).
+
+* The `logic_bank` engine source code
+
+
+#### Status: Running, Under Development
+Functionally complete, 9/29/2020, tested for 2 databases.
+
+Incubation - ready to explore and provide feedback
+on general value, and features.
+
 #### Internals
 
 To explore:
@@ -342,3 +346,11 @@ To explore:
 * Click [here](../../wiki/Logic-Walkthrough) for a
     short overview of internal logic execution
 
+#### Acknowledgements
+There are many to thank:
+* Tyler Band, for testing and the Banking example
+* Max Tardiveau, for testing
+* Nishanth Shyamsundar, for PC testing
+* Michael Holleran, for collaboration
+* Mike Bayer, for suggestions on leveraging Python typing
+* Gloria, for many reviews... and golden patience
