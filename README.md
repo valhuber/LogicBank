@@ -362,4 +362,5 @@ There are many to thank:
 * Nishanth Shyamsundar, for PC testing
 * Michael Holleran, for collaboration
 * Mike Bayer, for suggestions on leveraging Python typing
+* Achim Götz, for reporting an issue in FAB Quick Start use of Logic Base
 * Gloria, for many reviews... and golden patience
