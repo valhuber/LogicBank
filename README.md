@@ -136,7 +136,7 @@ logic automates and optimizes multi-table transactions,
 ## An Agile Perspective
 The core tenant of agile is
 
-    Working software, driving collaboration, for *rapid iterations.*
+    Working software, driving collaboration, for rapid iterations
 
 Here's how rules can help.
 
