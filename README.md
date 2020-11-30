@@ -295,13 +295,13 @@ A good way to proceed is to
 * Review the log, and the rules that drove the processing
 
 
-#### Articles
+### Articles
 There a few articles that provide some orientation to Logic Bank:
 * [Automate Business Logic With Logic Bank](https://dzone.com/articles/automate-business-logic-with-logic-bank) - general introduction, discussions of extensibility, manageability and scalability
 * [Agile Design Automation With Logic Bank](https://dzone.com/articles/logical-data-indendence) - focuses on automation, design flexibility and agile iterations
 * [Declarative](https://dzone.com/articles/agile-design-automation-how-are-rules-different-fr) - exploring _multi-statement_ declarative technology
 
-#### See also the [LogicBankExamples](https://github.com/valhuber/LogicBankExamples) project
+### See also the [LogicBankExamples](https://github.com/valhuber/LogicBankExamples) project
 
 The `Logic Bank Examples` [(setup instructions here)](../../wiki/Sample-Project---Setup)
 contains the same examples, but _not_ the `logic_bank` engine source code.
