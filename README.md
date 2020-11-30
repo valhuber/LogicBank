@@ -134,8 +134,10 @@ logic automates and optimizes multi-table transactions,
 
 
 ## An Agile Perspective
-The core tenant of agile is _working software,_
-driving _collaboration,_ for _rapid iterations._
+The core tenant of agile is
+
+    Working software, driving collaboration, for *rapid iterations.*
+
 Here's how rules can help.
 
 #### Working Software _Now_
@@ -259,11 +261,12 @@ You can
 Run the `nw/tests` programs under your IDE or the
 command line; start with `add_order` and `upd_order_shipped,`
 and see the [walk-throughs here](../../wiki/home#logic-execution-watch-react-chain).
+The tests use ```unittest``` - you can run them as follows:
 
 ```
 cd nw/tests
 python -m unittest test_add_order.py
-python test_add_order.py
+python test_add_order.py  # or, run it like this
 
 python -m unittest discover -p "test*.py"  # run all tests
 ```
