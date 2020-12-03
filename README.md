@@ -8,6 +8,9 @@ using a spreadsheet-like paradigm, and
 * **Python - control and extensibility,**
 using standard tools and techniques
 
+> The example described below is a _typical_ example of multi-table logic.
+> You may find it helpful to begin with [this Tutorial, using a basic example](https://github.com/valhuber/LogicBankTutorial).
+
 This readme contains:
 
 1. [Background](#background)
@@ -21,10 +24,6 @@ This readme contains:
 
 
 # Background
-
-The example shown below is a _typical_ example of multi-table logic.
-
-> You may find it helpful to begin with [this Tutorial, using a basic example](https://github.com/valhuber/LogicBankTutorial).
 
 ## Why - Simple Cocktail-Napkin Spec Explodes into Massive Legacy Code
 
