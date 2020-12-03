@@ -22,9 +22,13 @@ This readme contains:
 
 # Background
 
+The example shown below is a _typical_ example of multi-table logic.
+
+> You may find it helpful to begin with [this tutorial using a basic example](https://github.com/valhuber/LogicBankTutorial).
+
 ## Why - Simple Cocktail-Napkin Spec Explodes into Massive Legacy Code
 
-If you 've coded backend database logic - multi-table derivations and constraints -
+If you've coded backend database logic - multi-table derivations and constraints -
 you know how much work it is, and how tedious.  Whether you code it in
 triggers and stored procedures, in ORM events, or UI controllers, it's a lot:
 typically nearly half the effort for a database project.
