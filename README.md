@@ -285,7 +285,7 @@ python -m unittest discover -p "test*.py"  # run all tests
 
 ### Explore Sample Transactions
 
-Check out more examples on the [**wiki**](../../wiki/Examples) - note the **navigation bar** on the right.  Key samples:
+Check out the [**Examples**](../../wiki/Examples) - note the **navigation bar** on the right.  Key samples:
 * [**Ship Order**](../../wiki/Ship-Order) illustrates *cascade*, another form of multi-table logic
 * [**Allocation**](../../wiki/Sample-Project---Allocation) illustrates *extensibility*,
 providing a reusable pattern for a *provider* to allocate
