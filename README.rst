@@ -79,4 +79,4 @@ allocate a payment to a set of outstanding orders
 
 0.2.0 - Minor design refactoring of allocation
 
-0.2.1 - Include logic_bank.extensions, constraint exceptions as RuntimeExceptions
+0.3.0 - Include logic_bank.extensions (allocation), constraint exceptions raised as ConstraintExceptions

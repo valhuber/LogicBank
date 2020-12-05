@@ -7,6 +7,7 @@ import logic_bank.exec_row_logic.logic_row as LogicRow
 
 from logic_bank.rule_bank.rule_bank import RuleBank
 from logic_bank.rule_type.abstractrule import AbstractRule
+from logic_bank.util import ConstraintException
 
 
 class Constraint(AbstractRule):
@@ -23,9 +24,9 @@ class Constraint(AbstractRule):
         self._as_condition = as_condition
         self._calling = calling
         if calling is None and as_condition is None:
-            raise Exception(f'Constraint {str} requires calling or as_expression')
+            raise ConstraintException(f'Constraint {str} requires calling or as_expression')
         if calling is not None and as_condition is not None:
-            raise Exception(f'Constraint {str} either calling or as_expression')
+            raise ConstraintException(f'Constraint {str} either calling or as_expression')
         if calling is not None:
             self._function = calling
         elif isinstance(as_condition, str):
@@ -50,6 +51,7 @@ class Constraint(AbstractRule):
             value = self._function(row=logic_row.row, old_row=logic_row.old_row, logic_row=logic_row)
         else:
             value = self._as_condition(row=logic_row.row)
+
         if value:
             pass
         elif not value:
@@ -57,7 +59,7 @@ class Constraint(AbstractRule):
             msg = eval(f'f"""{self._error_msg}"""')
             from sqlalchemy import exc
             # exception = exc.DBAPIError(msg, None, None)  # 'statement', 'params', and 'orig'
-            raise Exception(msg)
+            raise ConstraintException(msg)
         else:
-            raise Exception(f'Constraint did not return boolean: {str(self)}')
+            raise RuntimeError(f'Constraint did not return boolean: {str(self)}')
         logic_row.log_engine(f'Constraint END {str(self)} on {str(logic_row)}')

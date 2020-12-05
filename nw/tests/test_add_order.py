@@ -20,7 +20,8 @@ else:
     from nw.logic import session, engine  # opens db, activates rules <--
 
     from logic_bank.exec_row_logic.logic_row import LogicRow  # must follow import of models
-    from logic_bank.util import prt, row_prt
+    from logic_bank.util import prt, row_prt, ConstraintException
+
     print("\n" + sys_env_info + "\n\n")
 
 
@@ -58,9 +59,12 @@ class Test(unittest.TestCase):
         did_fail_as_expected = False
         try:
             session.commit()
-        except:
+        except ConstraintException as ce:
+            print("Expected constraint: " + str(ce))
             session.rollback()
             did_fail_as_expected = True
+        except:
+            self.fail("Unexpected Exception Type")
 
         if not did_fail_as_expected:
             self.fail("huge order expected to fail, but succeeded")
@@ -87,9 +91,11 @@ class Test(unittest.TestCase):
         did_fail_as_expected = False
         try:
             session.commit()
-        except:
+        except ConstraintException:
             session.rollback()
             did_fail_as_expected = True
+        except:
+            print("Unexpected Exception Type")
 
         if not did_fail_as_expected:
             self.fail("order for non-commissioned expected to fail, but succeeded")

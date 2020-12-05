@@ -19,7 +19,6 @@ from payment_allocation.logic import session  # opens db, activates logic listen
 
 cls = sqlalchemy_utils.functions.get_class_by_table(models.Base, "Product", data=None)  # FIXME ??
 
-# Add Order - works
 pre_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
 session.expunge(pre_cust)
 

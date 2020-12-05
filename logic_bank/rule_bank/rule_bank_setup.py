@@ -19,7 +19,6 @@ def setup(a_session: session, an_engine: Engine):
     event.listen(a_session, "before_flush", before_flush)
     event.listen(a_session, "before_commit", before_commit)
 
-
     rules_bank.orm_objects = {}
     rules_bank._at = datetime.now()
 

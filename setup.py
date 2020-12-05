@@ -22,7 +22,7 @@ project_urls = {
 
 setup(
     name="logicbank",
-    version="0.2.0",
+    version="0.3.0",
     url="https://github.com/valhuber/logicbank",
     license="BSD",
     author="Val Huber",
@@ -35,7 +35,7 @@ setup(
     long_description=desc(),
     long_description_content_type="text/x-rst",
     # packages=find_packages(include=['logic_bank']),
-    packages=['logic_bank', 'logic_bank.exec_row_logic', 'logic_bank.exec_trans_logic', 'logic_bank.rule_bank', 'logic_bank.rule_type'],
+    packages=['logic_bank', 'logic_bank.exec_row_logic', 'logic_bank.exec_trans_logic', 'logic_bank.rule_bank', 'logic_bank.rule_type', 'logic_bank.extensions'],
     package_data={"": ["LICENSE"]},
     include_package_data=True,
     zip_safe=False,

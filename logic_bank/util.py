@@ -7,6 +7,21 @@ from sqlalchemy.orm import attributes, object_mapper
 
 from sqlalchemy.ext.declarative import base
 
+
+class ConstraintException(SystemError):
+    """
+    enables clients to identify "any logic constraint"
+
+    Constraint failures raise ConstraintException, e.g.:
+        try:
+            session.commit()
+        except ConstraintException as ce:
+            print("Constraint raised: " + str(ce))
+
+    """
+    pass
+
+
 class ObjectView(object):
     """
     Makes a dict look like a row, enabling old_row.attr

@@ -80,6 +80,14 @@ class Rule:
         Example
           Rule.constraint(validate=Customer, as_condition=lambda row: row.Balance <= row.CreditLimit,
                           error_msg="balance ({row.Balance}) exceeds credit ({row.CreditLimit})")
+
+
+        Conbstraint failures raise ConstraintException, e.g.:
+            try:
+                session.commit()
+            except ConstraintException as ce:
+                print("Constraint raised: " + str(ce))
+
         """
         return Constraint(validate=validate, calling=calling, as_condition=as_condition, error_msg=error_msg)  # --> load_logic
 
