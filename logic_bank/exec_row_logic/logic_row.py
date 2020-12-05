@@ -55,7 +55,7 @@ class LogicRow:
         rb = RuleBank()
         self.rb = rb
         self.session = rb._session
-        self.engine = rb._engine
+        # solar self.engine = rb._engine
         self.some_base = declarative_base()
 
         self.name = type(self.row).__name__  # class name (not table name)
@@ -66,8 +66,10 @@ class LogicRow:
             else:
                 self.table_meta = inspect(self.row)
                 self.log_engine("Restriction: Class Name must equal Table Name: " + self.name)
+        """ solar
         if self.engine is not None:  # e.g, for testing legacy logic (no RuleBank)
             self.inspector = Inspector.from_engine(self.engine)
+        """
 
     def get_attr_name(self, mapper, attr)-> str:
         """polymorhpism is for wimps - find the name

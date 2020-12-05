@@ -22,11 +22,12 @@ def setup(a_session: session, an_engine: Engine):
     rules_bank.orm_objects = {}
     rules_bank._at = datetime.now()
 
+    """ solar
     rules_bank._engine = an_engine
     rules_bank._metadata = MetaData(bind=an_engine, reflect=True)
     from sqlalchemy.ext.declarative import declarative_base
     rules_bank._base = declarative_base()
-
+    """
     return
 
 
