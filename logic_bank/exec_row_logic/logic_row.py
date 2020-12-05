@@ -55,7 +55,7 @@ class LogicRow:
         rb = RuleBank()
         self.rb = rb
         self.session = rb._session
-        # solar self.engine = rb._engine
+        # solar no engine self.engine = rb._engine
         self.some_base = declarative_base()
 
         self.name = type(self.row).__name__  # class name (not table name)
@@ -66,7 +66,7 @@ class LogicRow:
             else:
                 self.table_meta = inspect(self.row)
                 self.log_engine("Restriction: Class Name must equal Table Name: " + self.name)
-        """ solar
+        """ solar no engine
         if self.engine is not None:  # e.g, for testing legacy logic (no RuleBank)
             self.inspector = Inspector.from_engine(self.engine)
         """
