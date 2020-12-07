@@ -9,7 +9,7 @@ from logic_bank.rule_bank import rule_bank_withdraw
 from sqlalchemy.orm import session
 
 
-def setup(a_session: session, an_engine: Engine):
+def setup(a_session: session):  # solar , an_engine: Engine):
     """
     Initialize the RuleBank
 
@@ -35,7 +35,7 @@ def set_referring_children(rule, dependency: list):
     pass
 
 
-def validate_formula_dependencies(class_name: str):
+def compute_formula_execution_order_for_class(class_name: str):
     """
     compute formula._exec_order per formula._dependencies
     """
@@ -75,16 +75,16 @@ def validate_formula_dependencies(class_name: str):
             raise Exception("Mapped Class[" + class_name + "] blocked by circular dependencies:" + cycles)
 
 
-def validate(a_session: session, engine: Engine):
+def compute_formula_execution_order() -> bool:  # solar, a_session: sessionengine: Engine):
     """
-    Determine formula execution order based on "row.xx" references,
+    Determine formula execution order based on "row.xx" references (dependencies),
     (or raise exception if cycles detected).
     """
     list_rules = "\n\nValidate Rule Bank"
     rules_bank = RuleBank()
 
     for each_key in rules_bank.orm_objects:
-        validate_formula_dependencies(class_name=each_key)
+        compute_formula_execution_order_for_class(class_name=each_key)
     list_rules += rules_bank.__str__()
     print(list_rules)
     return True

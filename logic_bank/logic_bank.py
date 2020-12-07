@@ -4,7 +4,7 @@ from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.orm import session
 
 from logic_bank.rule_bank import rule_bank_withdraw  # reduce circular imports
-from logic_bank.rule_bank.rule_bank_setup import setup, validate
+from logic_bank.rule_bank.rule_bank_setup import setup, compute_formula_execution_order
 from logic_bank.rule_type.constraint import Constraint
 from logic_bank.rule_type.copy import Copy
 from logic_bank.rule_type.count import Count
@@ -31,10 +31,10 @@ class LogicBank:
         :param activator: function that declares rules (e.g., Rule.sum...)
         :return:
         """
-        engine = session.bind.engine
-        setup(session, engine)
+        # solar engine = session.bind.engine
+        setup(session)  # solar , engine)
         activator()
-        validate(session, engine)
+        compute_formula_execution_order()   # solar session, engine)
 
 
 class Rule:

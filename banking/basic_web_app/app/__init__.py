@@ -50,6 +50,6 @@ appbuilder = AppBuilder(app, db.session)
 if use_rules:
     rule_bank_setup.setup(db.session, db.engine)
     activate_basic_rules()
-    rule_bank_setup.validate(db.session, db.engine)  # checks for cycles, etc
+    rule_bank_setup.compute_formula_execution_order(db.session, db.engine)  # checks for cycles, etc
 
 from . import views
