@@ -15,13 +15,11 @@ else:
     print("Started from unittest: " + __name__)
     import nw.tests as tests  # careful - this must follow add_python_path, above
 
-    tests.copy_gold_over_db()
-
     import nw.db.models as models
-    from nw.logic import session, engine  # opens db, activates rules <--
 
     from logic_bank.exec_row_logic.logic_row import LogicRow  # must follow import of models
-    from logic_bank.util import prt, row_prt
+    from logic_bank.util import prt, row_prt, ConstraintException
+
     print("\n" + sys_env_info + "\n\n")
 
 
@@ -29,10 +27,14 @@ class Test(unittest.TestCase):
 
     def setUp(self):  # banner
         self.started_at = str(datetime.now())
-        tests.setUp(file=__file__)
+        self.session = None
+        self.engine = None
+
+        tests.setUp(test=self, file=__file__)
+        pass
 
     def tearDown(self):
-        tests.tearDown(file=__file__, started_at=self.started_at, engine=engine, session=session)
+        tests.tearDown(file=__file__, started_at=self.started_at, test=self)
 
     def test_run(self):
 
@@ -41,15 +43,15 @@ class Test(unittest.TestCase):
             should fail due to credit limit exceeded (catch exception to verify)
         """
 
-        bad_employee_raise = session.query(models.Employee).filter(models.Employee.Id == 1).one()
+        bad_employee_raise = self.session.query(models.Employee).filter(models.Employee.Id == 1).one()
         bad_employee_raise.Salary = bad_employee_raise.Salary * Decimal('1.1')
 
         did_fail_as_expected = False
 
         try:
-            session.commit()
+            self.session.commit()
         except:
-            session.rollback()
+            self.session.rollback()
             did_fail_as_expected = True
 
         if not did_fail_as_expected:

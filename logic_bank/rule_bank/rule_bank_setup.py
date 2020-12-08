@@ -11,11 +11,13 @@ from sqlalchemy.orm import session
 
 def setup(a_session: session):  # solar , an_engine: Engine):
     """
-    Initialize the RuleBank
+    Create the RuleBank
+
+    Register before_flush listeners
 
     """
     rules_bank = RuleBank()
-    rules_bank._session = a_session
+    # rules_bank._session = a_session  """ solar no rb.session... """
     event.listen(a_session, "before_flush", before_flush)
     event.listen(a_session, "before_commit", before_commit)
 

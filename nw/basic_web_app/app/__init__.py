@@ -1,6 +1,4 @@
 import logging
-import os
-import sys
 
 from flask import Flask
 from flask_appbuilder import AppBuilder, SQLA
@@ -10,35 +8,15 @@ from flask_appbuilder.api import ModelRestApi
 use_rules = True
 
 if use_rules:
-    cwd = os.getcwd()  # eg, /Users/val/python/pycharm/logic-bank/basic_web_app
-    required_path_python_rules = cwd  # seeking /Users/val/python/pycharm/logic-bank
-    required_path_python_rules = required_path_python_rules.replace("/nw/basic_web_app", "")
-    required_path_python_rules = required_path_python_rules.replace("\\nw\\basic_web_app", "")
-    required_path_python_rules = required_path_python_rules.replace("\\\\", "\\")  # you cannot be serious
-
-    sys_path = ""
-    required_path_present = False
-    for each_node in sys.path:
-        sys_path += each_node + "\n"
-        if each_node == required_path_python_rules:
-            required_path_present = True
-    print("\n sys.path...\n" + sys_path)
-    if not required_path_present:
-        print("basic_web_app/app/__init__.py fixing path (so can run from terminal) with: " +
-              required_path_python_rules)
-        sys.path.append(required_path_python_rules)
-        print("sys_path: " + str(sys.path))
-    else:
-        pass
-        print("NOT Fixing path (default PyCharm, set in VSC Launch Config): " +
-              required_path_python_rules)
+    import logic_bank_utils.util as logic_bank_utils
+    (did_fix_path, sys_env_info) = \
+        logic_bank_utils.add_python_path(project_dir="LogicBank", my_file=__file__)
 
     import nw.db.models as models  # FIXME design prevents circular imports
 
-    from logic_bank.rule_bank import rule_bank_setup
-    from nw.logic import declare_logic
+    from nw.logic.rules_bank import declare_logic
 
-    from logic_bank.logic_bank import LogicBank
+    from logic_bank.logic_bank import LogicBank  # activate rules (calls declare_logic)
 
 """
  Logging configuration

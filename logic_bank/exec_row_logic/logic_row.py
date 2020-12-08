@@ -54,8 +54,8 @@ class LogicRow:
 
         rb = RuleBank()
         self.rb = rb
-        self.session = rb._session
-        # solar no engine self.engine = rb._engine
+        self.session = a_session
+        # solar no engine self.session = rb.session; self.engine = rb._engine
         self.some_base = declarative_base()
 
         self.name = type(self.row).__name__  # class name (not table name)

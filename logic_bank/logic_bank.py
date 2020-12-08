@@ -4,7 +4,7 @@ from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.orm import session
 
 from logic_bank.rule_bank import rule_bank_withdraw  # reduce circular imports
-from logic_bank.rule_bank.rule_bank_setup import setup, compute_formula_execution_order
+import logic_bank.rule_bank.rule_bank_setup as rule_bank_setup
 from logic_bank.rule_type.constraint import Constraint
 from logic_bank.rule_type.copy import Copy
 from logic_bank.rule_type.count import Count
@@ -17,24 +17,27 @@ class LogicBank:
     """
     Logic consists of Rules, and Python.
 
-    Activate your logic,
-    providing a function that declares your rules and Python.
+    Activate your logic by calling
+
+        activate(session: session, activator: my_logic)
+
+    where myLogic is a function that declares your rules and Python.
     """
 
     def activate(session: session, activator: callable):
         """
-        load rules - executed on commit
+        load rules - later executed on commit
 
         raises exception if cycles detected
 
         :param session: SQLAlchemy session
         :param activator: function that declares rules (e.g., Rule.sum...)
-        :return:
         """
+
         # solar engine = session.bind.engine
-        setup(session)  # solar , engine)
+        rule_bank_setup.setup(session)  # solar , engine)
         activator()
-        compute_formula_execution_order()   # solar session, engine)
+        rule_bank_setup.compute_formula_execution_order()   # solar session, engine)
 
 
 class Rule:
