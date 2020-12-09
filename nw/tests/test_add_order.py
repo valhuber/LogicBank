@@ -33,7 +33,7 @@ class Test(unittest.TestCase):
         pass
 
     def tearDown(self):
-        tests.tearDown(file=__file__, started_at=self.started_at, test=self)
+        tests.tearDown(test=self, file=__file__)
 
     def test_run(self):
         pre_cust = self.session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()

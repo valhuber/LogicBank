@@ -90,7 +90,7 @@ def setUp(test: object, file: str):
     print("\n")
 
 
-def tearDown(file: str, started_at: str, test: object):
+def tearDown(test: object, file: str):
     """
     close session & engine, banner
 
@@ -105,5 +105,5 @@ def tearDown(file: str, started_at: str, test: object):
     print("**********************")
     print("** Test tearDown complete, SQLAlchemy session/engine closed for: " + file)
     print("** Session: " + str(test.session))
-    print("** Started: " + started_at + " Ended: " + str(datetime.now()))
+    print("** Started: " + test.started_at + " Ended: " + str(datetime.now()))
     print("**********************")

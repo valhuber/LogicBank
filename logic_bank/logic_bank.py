@@ -26,6 +26,8 @@ class LogicBank:
 
     def activate(session: session, activator: callable):
         """
+        register SQLAlchemy listeners
+
         load rules - later executed on commit
 
         raises exception if cycles detected
