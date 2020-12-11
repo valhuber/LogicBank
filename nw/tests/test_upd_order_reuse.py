@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 
 (did_fix_path, sys_env_info) = \
-    logic_bank_utils.add_python_path(project_dir="LogicBank", my_file=__file__)
+    logic_bank_utils.add_python_path(project_dir="LogicBank*", my_file=__file__)
 
 if  __name__ == '__main__':
     print("\nStarted from cmd line - launch unittest and exit\n")

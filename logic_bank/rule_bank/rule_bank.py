@@ -43,13 +43,6 @@ class RuleBank(metaclass=Singleton):  # FIXME design review singleton
     """ Dict[mapped_class: str, List[TablesRules]] -- rules for a table """
     _at = datetime.now()
 
-    """ solar - no engine
-    _metadata = None
-    _base = None
-    _session = None
-    _engine = None
-    """
-
     def __init__(self):
         self._metadata = None
 

@@ -9,7 +9,7 @@ from logic_bank.rule_bank import rule_bank_withdraw
 from sqlalchemy.orm import session
 
 
-def setup(a_session: session):  # solar , an_engine: Engine):
+def setup(a_session: session):
     """
     Create the RuleBank
 
@@ -17,19 +17,11 @@ def setup(a_session: session):  # solar , an_engine: Engine):
 
     """
     rules_bank = RuleBank()
-    # rules_bank._session = a_session  """ solar no rb.session... """
     event.listen(a_session, "before_flush", before_flush)
     event.listen(a_session, "before_commit", before_commit)
 
     rules_bank.orm_objects = {}
     rules_bank._at = datetime.now()
-
-    """ solar no engine...
-    rules_bank._engine = an_engine
-    rules_bank._metadata = MetaData(bind=an_engine, reflect=True)
-    from sqlalchemy.ext.declarative import declarative_base
-    rules_bank._base = declarative_base()
-    """
     return
 
 
@@ -77,7 +69,7 @@ def compute_formula_execution_order_for_class(class_name: str):
             raise Exception("Mapped Class[" + class_name + "] blocked by circular dependencies:" + cycles)
 
 
-def compute_formula_execution_order() -> bool:  # solar, a_session: sessionengine: Engine):
+def compute_formula_execution_order() -> bool:
     """
     Determine formula execution order based on "row.xx" references (dependencies),
     (or raise exception if cycles detected).

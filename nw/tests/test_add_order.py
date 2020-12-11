@@ -3,7 +3,7 @@ import logic_bank_utils.util as logic_bank_utils
 from datetime import datetime
 
 (did_fix_path, sys_env_info) = \
-    logic_bank_utils.add_python_path(project_dir="LogicBank", my_file=__file__)
+    logic_bank_utils.add_python_path(project_dir="LogicBank*", my_file=__file__)
 
 if  __name__ == '__main__':
     print("\nStarted from cmd line - launch unittest and exit\n")

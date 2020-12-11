@@ -36,10 +36,9 @@ class LogicBank:
         :param activator: function that declares rules (e.g., Rule.sum...)
         """
 
-        # solar engine = session.bind.engine
-        rule_bank_setup.setup(session)  # solar , engine)
+        rule_bank_setup.setup(session)
         activator()
-        rule_bank_setup.compute_formula_execution_order()   # solar session, engine)
+        rule_bank_setup.compute_formula_execution_order()
 
 
 class Rule:
