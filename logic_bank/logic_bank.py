@@ -23,17 +23,17 @@ class LogicBank:
 
     where myLogic is a function that declares your rules and Python.
     """
-
+    @staticmethod
     def activate(session: session, activator: callable):
         """
         register SQLAlchemy listeners
 
-        load rules - later executed on commit
+        create RuleBank, load rules - later executed on commit
 
         raises exception if cycles detected
 
         :param session: SQLAlchemy session
-        :param activator: function that declares rules (e.g., Rule.sum...)
+        :param activator: user function that declares rules (e.g., Rule.sum...)
         """
 
         rule_bank_setup.setup(session)
