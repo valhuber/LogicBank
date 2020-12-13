@@ -100,11 +100,45 @@ class Test(unittest.TestCase):
         if not did_fail_as_expected:
             self.fail("order for non-commissioned expected to fail, but succeeded")
         else:
-            print("\n" + prt("non-commissioned order failed constraint as expected.  Now trying valid order, should succeed..."))
-
+            print("\n" + prt("non-commissioned order failed constraint as expected.  Now trying invalid customer, should fail..."))
 
         """
-            Test 3 - should succeed
+            Test 3 - should fail due to invalid customer
+        """
+
+        bad_order = models.Order(AmountTotal=0, CustomerId="XX INVALID CUSTOMER", ShipCity="Richmond",
+                                 EmployeeId=6, Freight=1)
+        session.add(bad_order)
+
+        # OrderDetails - https://docs.sqlalchemy.org/en/13/orm/backref.html
+        bad_item1 = models.OrderDetail(ProductId=1, Amount=0,
+                                       Quantity=1, UnitPrice=18,
+                                       Discount=0)
+        bad_order.OrderDetailList.append(bad_item1)
+        bad_item2 = models.OrderDetail(ProductId=2, Amount=0,
+                                       Quantity=2, UnitPrice=18,
+                                       Discount=0)
+        bad_order.OrderDetailList.append(bad_item2)
+        did_fail_as_expected = False
+        try:
+            session.commit()
+        except ConstraintException as ce:
+            session.rollback()
+            did_fail_as_expected = True
+            print(str(ce))
+        except:
+            session.rollback()
+            did_fail_as_expected = True
+            e = sys.exc_info()[0]
+            print(e)
+
+        if not did_fail_as_expected:
+            self.fail("order for invalid customer expected to fail, but succeeded")
+        else:
+            print("\n" + prt("invalid customer failed as expected.  Now trying valid order, should succeed..."))
+
+        """
+            Test 4 - should succeed
         """
 
         new_order = models.Order(AmountTotal=0, CustomerId="ALFKI", ShipCity="Richmond",

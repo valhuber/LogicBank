@@ -14,6 +14,7 @@ from logic_bank.rule_bank import rule_bank_withdraw
 from logic_bank.rule_type.constraint import Constraint
 from logic_bank.rule_type.formula import Formula
 from logic_bank.rule_type.row_event import EarlyRowEvent
+from logic_bank.util import ConstraintException
 
 
 class LogicRow:
@@ -431,7 +432,7 @@ class LogicRow:
                     if not does_parent_exist:
                         msg = "Missing Parent: " + parent_role_name
                         self.log(msg)
-                        raise Exception(msg)
+                        raise ConstraintException(msg)
         return self
 
     def adjust_parent_aggregates(self):
