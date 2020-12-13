@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 
 (did_fix_path, sys_env_info) = \
-    logic_bank_utils.add_python_path(project_dir="LogicBank*", my_file=__file__)
+    logic_bank_utils.add_python_path(project_dir="LogicBank", my_file=__file__)
 
 if  __name__ == '__main__':
     print("\nStarted from cmd line - launch unittest and exit\n")
@@ -15,11 +15,13 @@ else:
     print("Started from unittest: " + __name__)
     import nw.tests as tests  # careful - this must follow add_python_path, above
 
+    tests.copy_gold_over_db()
+
     import nw.db.models as models
+    from nw.logic import session, engine  # opens db, activates rules <--
 
     from logic_bank.exec_row_logic.logic_row import LogicRow  # must follow import of models
-    from logic_bank.util import prt, row_prt, ConstraintException
-
+    from logic_bank.util import prt, row_prt
     print("\n" + sys_env_info + "\n\n")
 
 
@@ -27,14 +29,10 @@ class Test(unittest.TestCase):
 
     def setUp(self):  # banner
         self.started_at = str(datetime.now())
-        self.session = None
-        self.engine = None
-
-        tests.setUp(test=self, file=__file__)
-        pass
+        tests.setUp(file=__file__)
 
     def tearDown(self):
-        tests.tearDown(test=self, file=__file__)
+        tests.tearDown(file=__file__, started_at=self.started_at, engine=engine, session=session)
 
     def test_run(self):
         self.toggle_order_shipped()
@@ -50,22 +48,22 @@ class Test(unittest.TestCase):
             also test join
         """
 
-        pre_cust = self.session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
-        self.session.expunge(pre_cust)
+        pre_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
+        session.expunge(pre_cust)
 
         print("")
-        test_order = self.session.query(models.Order).filter(models.Order.Id == 11011).join(models.Employee).one()
+        test_order = session.query(models.Order).filter(models.Order.Id == 11011).join(models.Employee).one()
         if test_order.ShippedDate is None or test_order.ShippedDate == "":
             test_order.ShippedDate = str(datetime.now())
             print(prt("Shipping order - ShippedDate: ['' -> " + test_order.ShippedDate + "]"))
         else:
             test_order.ShippedDate = None
             print(prt("Returning order - ShippedDate: [ -> None]"))
-        self.session.commit()
+        session.commit()
 
         print("")
-        post_cust = self.session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
-        logic_row = LogicRow(row=post_cust, old_row=pre_cust, ins_upd_dlt="*", nest_level=0, a_session=self.session, row_sets=None)
+        post_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
+        logic_row = LogicRow(row=post_cust, old_row=pre_cust, ins_upd_dlt="*", nest_level=0, a_session=session, row_sets=None)
 
         if abs(post_cust.Balance - pre_cust.Balance) == 960:
             logic_row.log("Correct adjusted Customer Result")

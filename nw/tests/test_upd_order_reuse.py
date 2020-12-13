@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 
 (did_fix_path, sys_env_info) = \
-    logic_bank_utils.add_python_path(project_dir="LogicBank*", my_file=__file__)
+    logic_bank_utils.add_python_path(project_dir="LogicBank", my_file=__file__)
 
 if  __name__ == '__main__':
     print("\nStarted from cmd line - launch unittest and exit\n")
@@ -15,11 +15,13 @@ else:
     print("Started from unittest: " + __name__)
     import nw.tests as tests  # careful - this must follow add_python_path, above
 
+    tests.copy_gold_over_db()
+
     import nw.db.models as models
+    from nw.logic import session, engine  # opens db, activates rules <--
 
     from logic_bank.exec_row_logic.logic_row import LogicRow  # must follow import of models
-    from logic_bank.util import prt, row_prt, ConstraintException
-
+    from logic_bank.util import prt, row_prt
     print("\n" + sys_env_info + "\n\n")
 
 
@@ -27,14 +29,10 @@ class Test(unittest.TestCase):
 
     def setUp(self):  # banner
         self.started_at = str(datetime.now())
-        self.session = None
-        self.engine = None
-
-        tests.setUp(test=self, file=__file__)
-        pass
+        tests.setUp(file=__file__)
 
     def tearDown(self):
-        tests.tearDown(test=self, file=__file__)
+        tests.tearDown(file=__file__, started_at=self.started_at, engine=engine, session=session)
 
     def test_run(self):
 
@@ -46,28 +44,28 @@ class Test(unittest.TestCase):
                 b. A different Quantity
         """
 
-        pre_alfki = self.session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
-        pre_anatr = self.session.query(models.Customer).filter(models.Customer.Id == "ANATR").one()
+        pre_alfki = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
+        pre_anatr = session.query(models.Customer).filter(models.Customer.Id == "ANATR").one()
 
         logic_row = LogicRow(row=pre_alfki, old_row=pre_alfki,
-                             ins_upd_dlt="*", nest_level=0, a_session=self.session, row_sets=None)
+                             ins_upd_dlt="*", nest_level=0, a_session=session, row_sets=None)
         logic_row.log("starting")
 
         logic_row = LogicRow(row=pre_anatr, old_row=pre_anatr,
-                             ins_upd_dlt="*", nest_level=0, a_session=self.session, row_sets=None)
+                             ins_upd_dlt="*", nest_level=0, a_session=session, row_sets=None)
         logic_row.log("starting")
 
-        pre_order = self.session.query(models.Order).filter(models.Order.Id == 11011).one()  # type : Order
+        pre_order = session.query(models.Order).filter(models.Order.Id == 11011).one()  # type : Order
         logic_row = LogicRow(row=pre_order, old_row=pre_order,
-                             ins_upd_dlt="*", nest_level=0, a_session=self.session, row_sets=None)
+                             ins_upd_dlt="*", nest_level=0, a_session=session, row_sets=None)
         logic_row.log("starting")
-        self.session.expunge(pre_alfki)
-        self.session.expunge(pre_anatr)
-        self.session.expunge(pre_order)
+        session.expunge(pre_alfki)
+        session.expunge(pre_anatr)
+        session.expunge(pre_order)
 
         print("")
 
-        test_order = self.session.query(models.Order).filter(models.Order.Id == 11011).one()  # type : Order
+        test_order = session.query(models.Order).filter(models.Order.Id == 11011).one()  # type : Order
         test_order_details = test_order.OrderDetailList
         changed_order_detail = None
         for each_order_detail in test_order_details:
@@ -86,21 +84,21 @@ class Test(unittest.TestCase):
         print("\n" + prt("Reparenting *altered* order - new CustomerId: " + test_order.CustomerId))
         print(f'order amount {pre_amount_total} projected to be {post_amount_total}')
 
-        self.session.commit()
+        session.commit()
         print('')
 
         msg = 'Committed... order.amountTotal ' + \
               str(pre_amount_total) + ' -> ' + \
               str(post_amount_total)
         logic_row = LogicRow(row=test_order, old_row=pre_order,
-                             ins_upd_dlt="*", nest_level=0, a_session=self.session, row_sets=None)
+                             ins_upd_dlt="*", nest_level=0, a_session=session, row_sets=None)
         logic_row.log(msg)
         print("\n")
 
 
-        post_alfki = self.session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
+        post_alfki = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
         logic_row = LogicRow(row=post_alfki, old_row=pre_alfki,
-                             ins_upd_dlt="*", nest_level=0, a_session=self.session, row_sets=None)
+                             ins_upd_dlt="*", nest_level=0, a_session=session, row_sets=None)
 
         if post_alfki.Balance == 56:
             logic_row.log("Correct non-adjusted Customer Result")
@@ -109,9 +107,9 @@ class Test(unittest.TestCase):
             msg = "ERROR - incorrect adjusted Customer Result, " + "should be 56"
             self.fail(logic_row.log(msg))
 
-        post_anatr = self.session.query(models.Customer).filter(models.Customer.Id == "ANATR").one()
+        post_anatr = session.query(models.Customer).filter(models.Customer.Id == "ANATR").one()
         logic_row = LogicRow(row=post_anatr, old_row=pre_anatr,
-                             ins_upd_dlt="*", nest_level=0, a_session=self.session, row_sets=None)
+                             ins_upd_dlt="*", nest_level=0, a_session=session, row_sets=None)
 
         if post_anatr.Balance == 557.50:
             logic_row.log("Correct non-adjusted Customer Result")
