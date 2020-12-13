@@ -27,9 +27,6 @@ class Test(unittest.TestCase):
 
     def setUp(self):  # banner
         self.started_at = str(datetime.now())
-        self.session = None
-        self.engine = None
-
         tests.setUp(test=self, file=__file__)
         pass
 
@@ -42,16 +39,17 @@ class Test(unittest.TestCase):
 
             should fail due to credit limit exceeded (catch exception to verify)
         """
+        from nw.db import db_session
 
-        bad_employee_raise = self.session.query(models.Employee).filter(models.Employee.Id == 1).one()
+        bad_employee_raise = db_session.query(models.Employee).filter(models.Employee.Id == 1).one()
         bad_employee_raise.Salary = bad_employee_raise.Salary * Decimal('1.1')
 
         did_fail_as_expected = False
 
         try:
-            self.session.commit()
+            db_session.commit()
         except:
-            self.session.rollback()
+            db_session.rollback()
             did_fail_as_expected = True
 
         if not did_fail_as_expected:

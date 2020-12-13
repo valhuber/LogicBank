@@ -49,6 +49,7 @@ def setup_logging():
         engine_logger.addHandler(handler)
 
 
+# noinspection PyPep8Naming
 def setUp(test: object, file: str):
     """
     SETUP - logging, connect to db, register listeners, activate logic
@@ -68,28 +69,28 @@ def setUp(test: object, file: str):
 
     import nw.logic.legacy.setup as legacy_setup
 
-    import nw.db as open_db
-    test.db = open_db.DB()
-    test.session = test.db.session
-    test.engine = test.db.engine
+    import nw.db as db
+    # db.open_db()
 
     by_rules = True  # True => use rules, False => use legacy hand code (for comparison)
     if by_rules:
-        LogicBank.activate(session=test.session, activator=declare_logic)
+        LogicBank.activate(session=db.db_session, activator=declare_logic)
     else:
-        legacy_setup.setup(test.session)  # ignore test asserts that fail due to (unimplemented) counts (else ok)
+        legacy_setup.setup(db.session)  # ignore test asserts that fail due to (unimplemented) counts (else ok)
 
     print("\n")
     print("**********************")
     print("** END SETUP - logging, database and logic are setup")
     print("** Test execution begins for: " + file)
-    print("** Session: " + str(test.session))
+    print("** Session: " + str(db.db_session))
+    print("** Engine: " + str(id((db.db_session).get_bind())))
     print("** Started: " + str(datetime.now()))
     print("** Following log best viewed without word wrap")
     print("**********************")
     print("\n")
 
 
+# noinspection PyPep8Naming
 def tearDown(test: object, file: str):
     """
     close session & engine, banner
@@ -99,11 +100,16 @@ def tearDown(test: object, file: str):
     :param test: test instance
     :return:
     """
-    test.session.close()
-    test.engine.dispose()
+
+    import nw.db as db
     print("\n")
     print("**********************")
     print("** Test tearDown complete, SQLAlchemy session/engine closed for: " + file)
-    print("** Session: " + str(test.session))
+    print("** Session: " + str(db.db_session))
+    print("** Engine: " + str(id((db.db_session).get_bind())))
     print("** Started: " + test.started_at + " Ended: " + str(datetime.now()))
     print("**********************")
+    test.session = None  # attempting to kill instances of session, engine
+    test.engine = None
+    db.destroy_session_and_engine()
+    pass

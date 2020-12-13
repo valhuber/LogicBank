@@ -27,9 +27,6 @@ class Test(unittest.TestCase):
 
     def setUp(self):  # banner
         self.started_at = str(datetime.now())
-        self.session = None
-        self.engine = None
-
         tests.setUp(test=self, file=__file__)
         pass
 
@@ -49,23 +46,24 @@ class Test(unittest.TestCase):
                 * and Product adjustment
             also test join
         """
+        from nw.db import db_session
 
-        pre_cust = self.session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
-        self.session.expunge(pre_cust)
+        pre_cust = db_session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
+        db_session.expunge(pre_cust)
 
         print("")
-        test_order = self.session.query(models.Order).filter(models.Order.Id == 11011).join(models.Employee).one()
+        test_order = db_session.query(models.Order).filter(models.Order.Id == 11011).join(models.Employee).one()
         if test_order.ShippedDate is None or test_order.ShippedDate == "":
             test_order.ShippedDate = str(datetime.now())
             print(prt("Shipping order - ShippedDate: ['' -> " + test_order.ShippedDate + "]"))
         else:
             test_order.ShippedDate = None
             print(prt("Returning order - ShippedDate: [ -> None]"))
-        self.session.commit()
+        db_session.commit()
 
         print("")
-        post_cust = self.session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
-        logic_row = LogicRow(row=post_cust, old_row=pre_cust, ins_upd_dlt="*", nest_level=0, a_session=self.session, row_sets=None)
+        post_cust = db_session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
+        logic_row = LogicRow(row=post_cust, old_row=pre_cust, ins_upd_dlt="*", nest_level=0, a_session=db_session, row_sets=None)
 
         if abs(post_cust.Balance - pre_cust.Balance) == 960:
             logic_row.log("Correct adjusted Customer Result")

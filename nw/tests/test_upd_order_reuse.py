@@ -27,9 +27,6 @@ class Test(unittest.TestCase):
 
     def setUp(self):  # banner
         self.started_at = str(datetime.now())
-        self.session = None
-        self.engine = None
-
         tests.setUp(test=self, file=__file__)
         pass
 
@@ -45,29 +42,30 @@ class Test(unittest.TestCase):
                 a. A different Product
                 b. A different Quantity
         """
+        from nw.db import db_session
 
-        pre_alfki = self.session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
-        pre_anatr = self.session.query(models.Customer).filter(models.Customer.Id == "ANATR").one()
+        pre_alfki = db_session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
+        pre_anatr = db_session.query(models.Customer).filter(models.Customer.Id == "ANATR").one()
 
         logic_row = LogicRow(row=pre_alfki, old_row=pre_alfki,
-                             ins_upd_dlt="*", nest_level=0, a_session=self.session, row_sets=None)
+                             ins_upd_dlt="*", nest_level=0, a_session=db_session, row_sets=None)
         logic_row.log("starting")
 
         logic_row = LogicRow(row=pre_anatr, old_row=pre_anatr,
-                             ins_upd_dlt="*", nest_level=0, a_session=self.session, row_sets=None)
+                             ins_upd_dlt="*", nest_level=0, a_session=db_session, row_sets=None)
         logic_row.log("starting")
 
-        pre_order = self.session.query(models.Order).filter(models.Order.Id == 11011).one()  # type : Order
+        pre_order = db_session.query(models.Order).filter(models.Order.Id == 11011).one()  # type : Order
         logic_row = LogicRow(row=pre_order, old_row=pre_order,
-                             ins_upd_dlt="*", nest_level=0, a_session=self.session, row_sets=None)
+                             ins_upd_dlt="*", nest_level=0, a_session=db_session, row_sets=None)
         logic_row.log("starting")
-        self.session.expunge(pre_alfki)
-        self.session.expunge(pre_anatr)
-        self.session.expunge(pre_order)
+        db_session.expunge(pre_alfki)
+        db_session.expunge(pre_anatr)
+        db_session.expunge(pre_order)
 
         print("")
 
-        test_order = self.session.query(models.Order).filter(models.Order.Id == 11011).one()  # type : Order
+        test_order = db_session.query(models.Order).filter(models.Order.Id == 11011).one()  # type : Order
         test_order_details = test_order.OrderDetailList
         changed_order_detail = None
         for each_order_detail in test_order_details:
@@ -86,21 +84,21 @@ class Test(unittest.TestCase):
         print("\n" + prt("Reparenting *altered* order - new CustomerId: " + test_order.CustomerId))
         print(f'order amount {pre_amount_total} projected to be {post_amount_total}')
 
-        self.session.commit()
+        db_session.commit()
         print('')
 
         msg = 'Committed... order.amountTotal ' + \
               str(pre_amount_total) + ' -> ' + \
               str(post_amount_total)
         logic_row = LogicRow(row=test_order, old_row=pre_order,
-                             ins_upd_dlt="*", nest_level=0, a_session=self.session, row_sets=None)
+                             ins_upd_dlt="*", nest_level=0, a_session=db_session, row_sets=None)
         logic_row.log(msg)
         print("\n")
 
 
-        post_alfki = self.session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
+        post_alfki = db_session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
         logic_row = LogicRow(row=post_alfki, old_row=pre_alfki,
-                             ins_upd_dlt="*", nest_level=0, a_session=self.session, row_sets=None)
+                             ins_upd_dlt="*", nest_level=0, a_session=db_session, row_sets=None)
 
         if post_alfki.Balance == 56:
             logic_row.log("Correct non-adjusted Customer Result")
@@ -109,9 +107,9 @@ class Test(unittest.TestCase):
             msg = "ERROR - incorrect adjusted Customer Result, " + "should be 56"
             self.fail(logic_row.log(msg))
 
-        post_anatr = self.session.query(models.Customer).filter(models.Customer.Id == "ANATR").one()
+        post_anatr = db_session.query(models.Customer).filter(models.Customer.Id == "ANATR").one()
         logic_row = LogicRow(row=post_anatr, old_row=pre_anatr,
-                             ins_upd_dlt="*", nest_level=0, a_session=self.session, row_sets=None)
+                             ins_upd_dlt="*", nest_level=0, a_session=db_session, row_sets=None)
 
         if post_anatr.Balance == 557.50:
             logic_row.log("Correct non-adjusted Customer Result")

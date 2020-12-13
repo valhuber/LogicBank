@@ -14,6 +14,9 @@ else:
     print("Started from unittest: " + __name__)
     import nw.tests as tests  # careful - this must follow add_python_path, above
 
+    from nw.db import db_engine, db_session
+    # db.open_db()
+
     import nw.db.models as models
 
     from logic_bank.exec_row_logic.logic_row import LogicRow  # must follow import of models
@@ -22,13 +25,10 @@ else:
     print("\n" + sys_env_info + "\n\n")
 
 
-class Test(unittest.TestCase):
+class Test2(unittest.TestCase):
 
     def setUp(self):  # banner
         self.started_at = str(datetime.now())
-        self.session = None
-        self.engine = None
-
         tests.setUp(test=self, file=__file__)
         pass
 
@@ -36,8 +36,9 @@ class Test(unittest.TestCase):
         tests.tearDown(test=self, file=__file__)
 
     def test_run(self):
-        pre_cust = self.session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
-        self.session.expunge(pre_cust)
+        from nw.db import db_session
+        pre_cust = db_session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
+        db_session.expunge(pre_cust)
 
         """
             Test 1 - should fail due to credit limit exceeded
@@ -45,7 +46,7 @@ class Test(unittest.TestCase):
 
         bad_order = models.Order(AmountTotal=0, CustomerId="ALFKI", ShipCity="Richmond",
                                  EmployeeId=6, Freight=1)
-        self.session.add(bad_order)
+        db_session.add(bad_order)
 
         # OrderDetails - https://docs.sqlalchemy.org/en/13/orm/backref.html
         bad_item1 = models.OrderDetail(ProductId=1, Amount=0,
@@ -58,10 +59,10 @@ class Test(unittest.TestCase):
         bad_order.OrderDetailList.append(bad_item2)
         did_fail_as_expected = False
         try:
-            self.session.commit()
+            db_session.commit()
         except ConstraintException as ce:
             print("Expected constraint: " + str(ce))
-            self.session.rollback()
+            db_session.rollback()
             did_fail_as_expected = True
         except:
             self.fail("Unexpected Exception Type")
@@ -77,7 +78,7 @@ class Test(unittest.TestCase):
 
         bad_order = models.Order(AmountTotal=0, CustomerId="ALFKI", ShipCity="Richmond",
                                  EmployeeId=2, Freight=1)
-        self.session.add(bad_order)
+        db_session.add(bad_order)
 
         bad_item1 = models.OrderDetail(ProductId=1, Amount=0,
                                        Quantity=1, UnitPrice=18,
@@ -89,9 +90,9 @@ class Test(unittest.TestCase):
         bad_order.OrderDetailList.append(bad_item2)
         did_fail_as_expected = False
         try:
-            self.session.commit()
+            db_session.commit()
         except ConstraintException:
-            self.session.rollback()
+            db_session.rollback()
             did_fail_as_expected = True
         except:
             print("Unexpected Exception Type")
@@ -108,7 +109,7 @@ class Test(unittest.TestCase):
 
         new_order = models.Order(AmountTotal=0, CustomerId="ALFKI", ShipCity="Richmond",
                                  EmployeeId=6, Freight=1)
-        self.session.add(new_order)
+        db_session.add(new_order)
 
         new_item1 = models.OrderDetail(ProductId=1, Amount=0,
                                        Quantity=1, UnitPrice=18,
@@ -118,9 +119,9 @@ class Test(unittest.TestCase):
                                        Quantity=2, UnitPrice=18,
                                        Discount=0)
         new_order.OrderDetailList.append(new_item2)
-        self.session.commit()
+        db_session.commit()
 
-        post_cust = self.session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
+        post_cust = db_session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
 
         print("\nadd_order, update completed - analyzing results..\n\n")
 
@@ -131,7 +132,7 @@ class Test(unittest.TestCase):
         row_prt(new_item1, "\nnew Order Detail 1 Result")  # 1 Chai  @ $18
         row_prt(new_item2, "\nnew Order Detail 2 Result")  # 2 Chang @ $19 = $38
 
-        logic_row = LogicRow(row=post_cust, old_row=pre_cust, ins_upd_dlt="*", nest_level=0, a_session=self.session, row_sets=None)
+        logic_row = LogicRow(row=post_cust, old_row=pre_cust, ins_upd_dlt="*", nest_level=0, a_session=db_session, row_sets=None)
         if post_cust.Balance == pre_cust.Balance + 56:
             logic_row.log("Correct adjusted Customer Result")
             assert True
@@ -145,7 +146,7 @@ class Test(unittest.TestCase):
             self.fail(logic_row.log("Error - unexpected OrderCounts - did not increase by 1"))
 
         from sqlalchemy.sql import func
-        qry = self.session.query(models.Order.CustomerId,
+        qry = db_session.query(models.Order.CustomerId,
                             func.sum(models.Order.AmountTotal).label('sql_balance'))\
             .filter(models.Order.CustomerId == "ALFKI", models.Order.ShippedDate == None)
         qry = qry.group_by(models.Order.CustomerId).one()

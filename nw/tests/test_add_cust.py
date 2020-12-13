@@ -14,6 +14,9 @@ else:
     print("Started from unittest: " + __name__)
     import nw.tests as tests  # careful - this must follow add_python_path, above
 
+    from nw.db import db_engine, db_session
+    # db.open_db()
+
     import nw.db.models as models
 
     from logic_bank.exec_row_logic.logic_row import LogicRow  # must follow import of models
@@ -22,13 +25,10 @@ else:
     print("\n" + sys_env_info + "\n\n")
 
 
-class Test(unittest.TestCase):
+class Test1(unittest.TestCase):
 
     def setUp(self):  # banner
         self.started_at = str(datetime.now())
-        self.session = None
-        self.engine = None
-
         tests.setUp(test=self, file=__file__)
         pass
 
@@ -36,22 +36,23 @@ class Test(unittest.TestCase):
         tests.tearDown(test=self, file=__file__)
 
     def test_run(self):
+        from nw.db import db_session
         # first delete, so can add
-        delete_cust = self.session.query(models.Customer).filter(models.Customer.Id == "$$New Cust").delete()
+        delete_cust = db_session.query(models.Customer).filter(models.Customer.Id == "$$New Cust").delete()
         print("\nadd_cust, deleting: " + str(delete_cust) + "\n\n")
-        self.session.commit()
+        db_session.commit()
 
         # Add a Customer - works
         new_cust = models.Customer(Id="$$New Cust", Balance=0, CreditLimit=0)
-        self.session.add(new_cust)
-        self.session.commit()
+        db_session.add(new_cust)
+        db_session.commit()
 
-        verify_cust = self.session.query(models.Customer).filter(models.Customer.Id == "$$New Cust").one()
+        verify_cust = db_session.query(models.Customer).filter(models.Customer.Id == "$$New Cust").one()
 
         print("\nadd_cust, verified: " + str(verify_cust) + "\n\n")
 
         from sqlalchemy.sql import func
-        qry = self.session.query(models.Order.CustomerId, func.sum(models.Order.AmountTotal))\
+        qry = db_session.query(models.Order.CustomerId, func.sum(models.Order.AmountTotal))\
             .filter(models.Order.CustomerId == "ALFKI", models.Order.ShippedDate == None)
         qry = qry.group_by(models.Order.CustomerId)
         for _res in qry.all():

@@ -27,9 +27,6 @@ class Test(unittest.TestCase):
 
     def setUp(self):  # banner
         self.started_at = str(datetime.now())
-        self.session = None
-        self.engine = None
-
         tests.setUp(test=self, file=__file__)
         pass
 
@@ -39,23 +36,24 @@ class Test(unittest.TestCase):
     def test_run(self):
 
         """ test class <> table name """
+        from nw.db import db_session
 
-        pre_cust = self.session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
-        self.session.expunge(pre_cust)
+        pre_cust = db_session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
+        db_session.expunge(pre_cust)
 
         print("")
-        test_order = self.session.query(models.OrderClass).filter(models.OrderClass.Id == 11011).join(models.Employee).one()
+        test_order = db_session.query(models.OrderClass).filter(models.OrderClass.Id == 11011).join(models.Employee).one()
         if test_order.RequiredDate is None or test_order.RequiredDate == "":
             test_order.RequiredDate = str(datetime.now())
             print(prt("Shipping order - RequiredDate: ['' -> " + test_order.RequiredDate + "]"))
         else:
             test_order.RequiredDate = None
             print(prt("Returning order - RequiredDate: [ -> None]"))
-        self.session.commit()
+        db_session.commit()
 
         print("")
-        post_cust = self.session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
-        logic_row = LogicRow(row=pre_cust, old_row=post_cust, ins_upd_dlt="*", nest_level=0, a_session=self.session, row_sets=None)
+        post_cust = db_session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
+        logic_row = LogicRow(row=pre_cust, old_row=post_cust, ins_upd_dlt="*", nest_level=0, a_session=db_session, row_sets=None)
 
         # logic_row.row.Balance = 10  # force failure
         if abs(post_cust.Balance - pre_cust.Balance) == 0:
