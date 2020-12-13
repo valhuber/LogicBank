@@ -47,12 +47,12 @@ class Aggregate(Derivation):
                                             get_old_summed_field = get_old_summed_field)
         elif parent_adjustor.child_logic_row.ins_upd_dlt == "dlt":
             self.adjust_from_deleted_child(parent_adjustor,
-                                            get_summed_field = get_summed_field,
-                                            get_old_summed_field = get_old_summed_field)
+                                           get_summed_field = get_summed_field,
+                                           get_old_summed_field = get_old_summed_field)
         elif parent_adjustor.child_logic_row.ins_upd_dlt == "upd":
             self.adjust_from_updated_child(parent_adjustor,
-                                            get_summed_field = get_summed_field,
-                                            get_old_summed_field = get_old_summed_field)
+                                           get_summed_field = get_summed_field,
+                                           get_old_summed_field = get_old_summed_field)
         else:
             raise Exception("Internal error - unexpected ins_upd_dlt value")
 
@@ -71,6 +71,8 @@ class Aggregate(Derivation):
                 parent_adjustor.parent_logic_row = \
                     parent_adjustor.child_logic_row.get_parent_logic_row(role_name=self._parent_role_name)
             curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
+            if curr_value is None:
+                curr_value = 0
             setattr(parent_adjustor.parent_logic_row.row, self._column, curr_value + delta)
             # parent_adjustor.child_logic_row.log(f'adjust_from_inserted/adopted_child adjusts {str(self)}')
 
