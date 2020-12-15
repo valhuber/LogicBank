@@ -6,6 +6,7 @@ from sqlalchemy.orm.attributes import InstrumentedAttribute
 from logic_bank.exec_row_logic.logic_row import LogicRow
 from logic_bank.exec_row_logic.logic_row import ParentRoleAdjuster
 from logic_bank.rule_type.derivation import Derivation
+from logic_bank.util import ConstraintException
 
 
 class Aggregate(Derivation):
@@ -141,7 +142,6 @@ class Aggregate(Derivation):
         """
         Foreign key changed, may require adjust old and new parent
         """
-
         where = self._where_cond(parent_adjustor.child_logic_row.row)
         delta = get_summed_field()
         if where and delta != 0:  # trigger update by setting parent_adjustor.parent_logic_row
@@ -149,6 +149,9 @@ class Aggregate(Derivation):
                 parent_adjustor.parent_logic_row = \
                     parent_adjustor.child_logic_row.get_parent_logic_row(
                         role_name=self._parent_role_name)
+                if parent_adjustor.parent_logic_row.row is None:
+                    msg = "Unable to Adjust Missing Parent: " + self._parent_role_name
+                    raise ConstraintException(msg)
                 curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
                 setattr(parent_adjustor.parent_logic_row.row, self._column, curr_value + delta)
 
@@ -158,8 +161,8 @@ class Aggregate(Derivation):
             if parent_adjustor.previous_parent_logic_row is None:
                 parent_adjustor.previous_parent_logic_row = \
                     parent_adjustor.child_logic_row.get_parent_logic_row(
-            role_name=self._parent_role_name,
-            from_row=parent_adjustor.child_logic_row.old_row)
+                        role_name=self._parent_role_name,
+                        from_row=parent_adjustor.child_logic_row.old_row)
             curr_value = getattr(parent_adjustor.previous_parent_logic_row.row, self._column)
             setattr(parent_adjustor.previous_parent_logic_row.row, self._column, curr_value - delta)
 

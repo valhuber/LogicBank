@@ -9,6 +9,7 @@ from logic_bank.rule_type.constraint import Constraint
 from logic_bank.rule_type.copy import Copy
 from logic_bank.rule_type.count import Count
 from logic_bank.rule_type.formula import Formula
+from logic_bank.rule_type.parent_check import ParentCheck
 from logic_bank.rule_type.row_event import EarlyRowEvent
 from logic_bank.rule_type.sum import Sum
 from logic_bank.util import get_child_class_name
@@ -96,7 +97,7 @@ def aggregate_rules(child_logic_row: LogicRow) -> dict:
     return result_role_rules_list
 
 
-def rules_of_class(logic_row: LogicRow, a_class: (Formula, Constraint, EarlyRowEvent)) -> list:
+def rules_of_class(logic_row: LogicRow, a_rule_class: (Formula, Constraint, EarlyRowEvent, ParentCheck)) -> list:
     """withdraw rules of designated a_class
     """
     rule_bank = RuleBank()
@@ -104,7 +105,7 @@ def rules_of_class(logic_row: LogicRow, a_class: (Formula, Constraint, EarlyRowE
     role_rules_list = {}  # dict of RoleRules
     if logic_row.name in rule_bank.orm_objects:
         for each_rule in rule_bank.orm_objects[logic_row.name].rules:
-            if isinstance(each_rule, a_class):
+            if isinstance(each_rule, a_rule_class):
                 rules_list.append(each_rule)
     return rules_list
 

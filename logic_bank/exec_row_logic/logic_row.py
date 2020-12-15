@@ -13,6 +13,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from logic_bank.rule_bank import rule_bank_withdraw
 from logic_bank.rule_type.constraint import Constraint
 from logic_bank.rule_type.formula import Formula
+from logic_bank.rule_type.parent_check import ParentCheck
 from logic_bank.rule_type.row_event import EarlyRowEvent
 from logic_bank.util import ConstraintException
 
@@ -169,7 +170,7 @@ class LogicRow:
         result = None
         if a_row is not None:
             result_class = a_row.__class__
-            result = result_class()
+            result = result_class()  # TODO - this requires empty CTOR... add factory?
             row_mapper = object_mapper(a_row)
             for each_attr in row_mapper.all_orm_descriptors:
                 each_attr_name = self.get_attr_name(mapper=row_mapper, attr=each_attr)
@@ -206,7 +207,7 @@ class LogicRow:
 
     def early_row_events(self):
         self.log_engine("early_events")
-        early_row_events = rule_bank_withdraw.generic_rules_of_class(EarlyRowEvent)
+        early_row_events = rule_bank_withdraw.generic_rules_of_class(EarlyRowEvent)  # FIXME - review duplication
         for each_row_event in early_row_events:
             each_row_event.execute(self)
         early_row_events = rule_bank_withdraw.rules_of_class(self, EarlyRowEvent)
@@ -404,7 +405,7 @@ class LogicRow:
             each_constraint.execute(self)
 
     def load_parents(self):
-        """ sqlalchemy lazy does not work for inserts... do it here...
+        """ sqlalchemy lazy does not work for inserts... do it here because...
         1. RI would require the sql anyway
         2. Provide a consistent model - your parents are always there for you
             - eg, see add_order event rule - references {sales_rep.Manager.FirstName}
@@ -420,6 +421,9 @@ class LogicRow:
                     return True
             return False
 
+        list_ref_integ_rules = rule_bank_withdraw.rules_of_class(self, ParentCheck)
+        ref_integ_rule = list_ref_integ_rules[0]
+
         child_mapper = object_mapper(self.row)
         my_relationships = child_mapper.relationships
         for each_relationship in my_relationships:  # eg, order has parents cust & emp, child orderdetail
@@ -429,10 +433,13 @@ class LogicRow:
                     # continue
                     self.get_parent_logic_row(parent_role_name)  # sets the accessor
                     does_parent_exist = getattr(self.row, parent_role_name)
-                    if not does_parent_exist:
+                    if not does_parent_exist and ref_integ_rule._enable == True:
                         msg = "Missing Parent: " + parent_role_name
                         self.log(msg)
                         raise ConstraintException(msg)
+                    else:
+                        self.log("Warning: Missing Parent: " + parent_role_name)
+                        pass # if you don't care, I don't care
         return self
 
     def adjust_parent_aggregates(self):
@@ -454,7 +461,7 @@ class LogicRow:
                                                  parent_role_name=each_parent_role)
             for each_aggregate in each_aggr_list:
                 each_aggregate.adjust_parent(parent_adjuster)  # adjusts each_parent iff req'd
-            parent_adjuster.save_altered_parents()
+            parent_adjuster.save_altered_parents()  # iff req'd (altered only)
 
     def user_row_update(self, row: base, ins_upd_dlt: str) -> 'LogicRow':
         result_logic_row = LogicRow(row = row,
@@ -529,7 +536,7 @@ class LogicRow:
 
 class ParentRoleAdjuster:
     """
-    Contains current / previous parent_logic_row
+    Contains child_logic_row and current / previous parent_logic_row
         Set iff parent needs adjustment
     and method to save_altered_parents.
 

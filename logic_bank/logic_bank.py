@@ -9,6 +9,7 @@ from logic_bank.rule_type.constraint import Constraint
 from logic_bank.rule_type.copy import Copy
 from logic_bank.rule_type.count import Count
 from logic_bank.rule_type.formula import Formula
+from logic_bank.rule_type.parent_check import ParentCheck
 from logic_bank.rule_type.row_event import EarlyRowEvent, RowEvent, CommitRowEvent
 from logic_bank.rule_type.sum import Sum
 
@@ -86,14 +87,37 @@ class Rule:
                           error_msg="balance ({row.Balance}) exceeds credit ({row.CreditLimit})")
 
 
-        Conbstraint failures raise ConstraintException, e.g.:
+        Constraint failures raise ConstraintException, e.g.:
             try:
                 session.commit()
             except ConstraintException as ce:
                 print("Constraint raised: " + str(ce))
 
         """
-        return Constraint(validate=validate, calling=calling, as_condition=as_condition, error_msg=error_msg)  # --> load_logic
+        return Constraint(validate=validate, calling=calling, as_condition=as_condition, error_msg=error_msg)
+
+    @staticmethod
+    def parent_check(validate: object,
+                     error_msg: str = "(error_msg not provided)",
+                     enable: bool = True):
+        """
+        Parent Checks ensure that non-null foreign keys are present in parent class
+
+        Example
+           Rule.parent_check(validate=Customer, enable=True, error_msg="Missing Parent")
+
+        Use enable: False to tolerate orphans
+            Not recommended - for existing databases with bad data
+            Behavior is undefined for other rules (sum, count, parent references, etc)
+
+        Parent_check failures raise ConstraintException, e.g.:
+            try:
+                session.commit()
+            except ConstraintException as ce:
+                print("Constraint raised: " + str(ce))
+
+        """
+        return ParentCheck(validate=validate, error_msg=error_msg, enable=enable)
 
     @staticmethod
     def formula(derive: InstrumentedAttribute, calling: Callable = None,

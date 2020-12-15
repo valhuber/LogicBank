@@ -1,15 +1,5 @@
 # coding: utf-8
 
-"""
-WARNING: used in logic, but FAB uses version in basic_web_app/app
-The primary copy is here -- copy changes to basic_web_app/app.
-
-on relationships...
-  * declare them in the parent (not child), eg, for Order:
-  *    OrderDetailList = relationship("OrderDetail", backref="OrderHeader", cascade_backrefs=True)
-
-"""
-
 from logic_bank import logic_bank  # import this first - import ordering
 
 import sqlalchemy_utils
