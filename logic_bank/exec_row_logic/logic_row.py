@@ -404,22 +404,23 @@ class LogicRow:
         for each_constraint in constraint_rules:
             each_constraint.execute(self)
 
-    def load_parents(self):
+    def is_foreign_key_null(self, relationship: sqlalchemy.orm.relationships):
+        child_columns = relationship.local_columns
+        if len(child_columns) == 0:
+            raise Exception("Malformed relationship has no foreign key: " +
+                            str(relationship))
+        for each_child_column in child_columns:
+            each_child_column_name = each_child_column.name
+            if getattr(self.row, each_child_column_name) is None:
+                return True
+        return False
+
+    def load_parents_on_insert(self):
         """ sqlalchemy lazy does not work for inserts... do it here because...
         1. RI would require the sql anyway
         2. Provide a consistent model - your parents are always there for you
             - eg, see add_order event rule - references {sales_rep.Manager.FirstName}
         """
-        def is_foreign_key_null(relationship: sqlalchemy.orm.relationships):
-            child_columns = relationship.local_columns
-            if len(child_columns) == 0:
-                raise Exception("Malformed relationship has no foreign key: " +
-                                str(relationship))
-            for each_child_column in child_columns:
-                each_child_column_name = each_child_column.name
-                if getattr(self.row, each_child_column_name) is None:
-                    return True
-            return False
 
         list_ref_integ_rules = rule_bank_withdraw.rules_of_class(self, ParentCheck)
         ref_integ_rule = list_ref_integ_rules[0]
@@ -429,17 +430,45 @@ class LogicRow:
         for each_relationship in my_relationships:  # eg, order has parents cust & emp, child orderdetail
             if each_relationship.direction == sqlalchemy.orm.interfaces.MANYTOONE:  # cust, emp
                 parent_role_name = each_relationship.key  # eg, OrderList
-                if is_foreign_key_null(each_relationship) is False:
+                if self.is_foreign_key_null(each_relationship) is False:
                     # continue
                     self.get_parent_logic_row(parent_role_name)  # sets the accessor
                     does_parent_exist = getattr(self.row, parent_role_name)
-                    if not does_parent_exist and ref_integ_rule._enable == True:
+                    if does_parent_exist is None and ref_integ_rule._enable == True:
                         msg = "Missing Parent: " + parent_role_name
                         self.log(msg)
                         raise ConstraintException(msg)
                     else:
                         self.log("Warning: Missing Parent: " + parent_role_name)
                         pass # if you don't care, I don't care
+        return self
+
+    def check_parents_on_update(self):
+        """ sqlalchemy lazy does not work for inserts... do it here because...
+        1. RI would require the sql anyway
+        2. Provide a consistent model - your parents are always there for you
+            - eg, see add_order event rule - references {sales_rep.Manager.FirstName}
+        """
+
+        list_ref_integ_rules = rule_bank_withdraw.rules_of_class(self, ParentCheck)
+        ref_integ_rule = list_ref_integ_rules[0]
+        if ref_integ_rule._enable:
+            child_mapper = object_mapper(self.row)
+            my_relationships = child_mapper.relationships
+            for each_relationship in my_relationships:  # eg, order has parents cust & emp, child orderdetail
+                if each_relationship.direction == sqlalchemy.orm.interfaces.MANYTOONE:  # cust, emp
+                    parent_role_name = each_relationship.key  # eg, OrderList
+                    if not self.is_foreign_key_null(each_relationship):
+                        # continue
+                        self.get_parent_logic_row(parent_role_name)  # sets the accessor
+                        does_parent_exist = getattr(self.row, parent_role_name)
+                        if does_parent_exist is None and ref_integ_rule._enable == True:
+                            msg = "Missing Parent: " + parent_role_name
+                            self.log(msg)
+                            raise ConstraintException(msg)
+                        else:
+                            self.log("Warning: Missing Parent: " + parent_role_name)
+                            pass # if you don't care, I don't care
         return self
 
     def adjust_parent_aggregates(self):
@@ -486,6 +515,7 @@ class LogicRow:
             self.reason = reason
             self.log("Update - " + reason)
             self.early_row_events()
+            self.check_parents_on_update()
             self.copy_rules()
             self.formula_rules()
             self.adjust_parent_aggregates()  # parent chaining (sum / count adjustments)
@@ -507,7 +537,7 @@ class LogicRow:
         else:
             self.reason = reason
             self.log("Insert - " + reason)
-            self.load_parents()
+            self.load_parents_on_insert()
             self.early_row_events()
             self.copy_rules()
             self.formula_rules()

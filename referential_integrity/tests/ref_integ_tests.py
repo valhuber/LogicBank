@@ -53,6 +53,46 @@ if ref_integ_rule._enable:
 
 print("\n" + prt("Invalid parent failed as expected.  Now trying update..."))
 
+
+"""
+    Test 2 - update child row with invalid key, verify fails
+"""
+
+child = session.query(models.Child).filter(models.Child.child_key == "c1.1").one()
+child.parent_1 = "Make Me Fail"
+did_fail_as_expected = False
+try:
+    session.commit()
+except ConstraintException as ce:
+    session.rollback()
+    assert ref_integ_rule._enable, "Ref Integ disabled, but raised"
+    did_fail_as_expected = True
+    print("Expected constraint caught: " + str(ce))
+except:
+    session.rollback()
+    did_fail_as_expected = False
+    e = sys.exc_info()[0]
+    print(e)
+
+if ref_integ_rule._enable:
+    assert did_fail_as_expected, "Ref Integ enabled, invalid FK did not raise ConstraintException"
+
+print("\n" + prt("Invalid parent failed as expected.  Now trying null..."))
+
+
+print("\nref_integ_tests, update completed\n\n")
+
+
+"""
+    Test 3 - update child row with null key, verify ok
+"""
+
+child = session.query(models.Child).filter(models.Child.child_key == "c1.1").one()
+child.parent_1 = None
+session.commit()
+
+print("\n" + prt("Null parent succeeded as expected."))
+
 print("\nref_integ_tests, update completed\n\n")
 
 print("\nref_integ_tests, ran to completion\n\n")
