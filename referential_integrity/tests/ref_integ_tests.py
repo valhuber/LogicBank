@@ -95,4 +95,20 @@ print("\n" + prt("Null parent succeeded as expected."))
 
 print("\nref_integ_tests, update completed\n\n")
 
+
+
+"""
+    Test 4 - update child row with valid parent, verify ok
+"""
+
+child = session.query(models.Child).filter(models.Child.child_key == "c1.1").one()
+child.parent_1 = "p2_1"
+child.parent_2 = "p2_2"
+session.commit()
+
+print("\n" + prt("Null parent succeeded as expected."))
+
+print("\nref_integ_tests, update completed\n\n")
+
+
 print("\nref_integ_tests, ran to completion\n\n")

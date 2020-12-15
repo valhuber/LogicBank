@@ -444,10 +444,9 @@ class LogicRow:
         return self
 
     def check_parents_on_update(self):
-        """ sqlalchemy lazy does not work for inserts... do it here because...
-        1. RI would require the sql anyway
-        2. Provide a consistent model - your parents are always there for you
-            - eg, see add_order event rule - references {sales_rep.Manager.FirstName}
+        """ per ParentCheck rule, verify parents exist.
+
+        If disabled, ignore (with warning).
         """
 
         list_ref_integ_rules = rule_bank_withdraw.rules_of_class(self, ParentCheck)
