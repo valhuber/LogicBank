@@ -422,8 +422,10 @@ class LogicRow:
             - eg, see add_order event rule - references {sales_rep.Manager.FirstName}
         """
 
+        ref_integ_enabled = True
         list_ref_integ_rules = rule_bank_withdraw.rules_of_class(self, ParentCheck)
-        ref_integ_rule = list_ref_integ_rules[0]
+        if list_ref_integ_rules:
+            ref_integ_rule = list_ref_integ_rules[0]
 
         child_mapper = object_mapper(self.row)
         my_relationships = child_mapper.relationships
@@ -434,7 +436,7 @@ class LogicRow:
                     # continue
                     self.get_parent_logic_row(parent_role_name)  # sets the accessor
                     does_parent_exist = getattr(self.row, parent_role_name)
-                    if does_parent_exist is None and ref_integ_rule._enable == True:
+                    if does_parent_exist is None and ref_integ_enabled:
                         msg = "Missing Parent: " + parent_role_name
                         self.log(msg)
                         raise ConstraintException(msg)
@@ -450,24 +452,25 @@ class LogicRow:
         """
 
         list_ref_integ_rules = rule_bank_withdraw.rules_of_class(self, ParentCheck)
-        ref_integ_rule = list_ref_integ_rules[0]
-        if ref_integ_rule._enable:
-            child_mapper = object_mapper(self.row)
-            my_relationships = child_mapper.relationships
-            for each_relationship in my_relationships:  # eg, order has parents cust & emp, child orderdetail
-                if each_relationship.direction == sqlalchemy.orm.interfaces.MANYTOONE:  # cust, emp
-                    parent_role_name = each_relationship.key  # eg, OrderList
-                    if not self.is_foreign_key_null(each_relationship):
-                        # continue
-                        self.get_parent_logic_row(parent_role_name)  # sets the accessor
-                        does_parent_exist = getattr(self.row, parent_role_name)
-                        if does_parent_exist is None and ref_integ_rule._enable == True:
-                            msg = "Missing Parent: " + parent_role_name
-                            self.log(msg)
-                            raise ConstraintException(msg)
-                        else:
-                            self.log("Warning: Missing Parent: " + parent_role_name)
-                            pass # if you don't care, I don't care
+        if list_ref_integ_rules:
+            ref_integ_rule = list_ref_integ_rules[0]
+            if ref_integ_rule._enable:
+                child_mapper = object_mapper(self.row)
+                my_relationships = child_mapper.relationships
+                for each_relationship in my_relationships:  # eg, order has parents cust & emp, child orderdetail
+                    if each_relationship.direction == sqlalchemy.orm.interfaces.MANYTOONE:  # cust, emp
+                        parent_role_name = each_relationship.key  # eg, OrderList
+                        if not self.is_foreign_key_null(each_relationship):
+                            # continue
+                            self.get_parent_logic_row(parent_role_name)  # sets the accessor
+                            does_parent_exist = getattr(self.row, parent_role_name)
+                            if does_parent_exist is None and ref_integ_rule._enable == True:
+                                msg = "Missing Parent: " + parent_role_name
+                                self.log(msg)
+                                raise ConstraintException(msg)
+                            else:
+                                self.log("Warning: Missing Parent: " + parent_role_name)
+                                pass # if you don't care, I don't care
         return self
 
     def adjust_parent_aggregates(self):

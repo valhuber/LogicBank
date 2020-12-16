@@ -111,4 +111,19 @@ print("\n" + prt("Null parent succeeded as expected."))
 print("\nref_integ_tests, update completed\n\n")
 
 
+
+"""
+    Test 5 - update parent row, ensure all ok if no parent_check
+"""
+
+parent = session.query(models.Parent).filter(models.Parent.parent_attr_1 == "p1_1",
+                                             models.Parent.parent_attr_2 == "p1_2").one()
+parent.parent_attr_1 = "new"
+parent.parent_attr_1 = "parent"
+session.commit()
+
+print("\n" + prt("Simple parent insert succeeded as expected."))
+
+print("\nref_integ_tests, update completed\n\n")
+
 print("\nref_integ_tests, ran to completion\n\n")
