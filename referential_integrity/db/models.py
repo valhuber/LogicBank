@@ -32,9 +32,25 @@ class Parent(Base):
                              backref="Parent",
                              cascade="all",
                              cascade_backrefs=True)
+    ChildList = relationship("ChildOrphan",
+                             backref="Parent",
+                             cascade="all",
+                             cascade_backrefs=True)
 
 
 class Child(Base):
+    __tablename__ = 'Child'
+
+    child_key = Column(String(16), primary_key=True)
+    parent_1 = Column(String(16))
+    parent_2 = Column(String(16))
+    __table_args__ = (ForeignKeyConstraint([parent_1, parent_2],
+                                           [Parent.parent_attr_1, Parent.parent_attr_2]),
+                      {})
+
+
+
+class ChildOrphan(Base):
     __tablename__ = 'Child'
 
     child_key = Column(String(16), primary_key=True)

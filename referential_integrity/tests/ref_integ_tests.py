@@ -113,7 +113,7 @@ print("\nref_integ_tests, update completed\n\n")
 
 
 """
-    Test 5 - update parent row, ensure succeeds if no parent_check
+    Test 5 - update parent pk, verify cascade update
 """
 
 parent = session.query(models.Parent).filter(models.Parent.parent_attr_1 == "p1_1",
@@ -123,13 +123,17 @@ parent.parent_attr_2 = "parent"
 session.commit()  # hmm.. even with cascade all, children orphaned (!!)
 print(str(parent))
 
-print("\n" + prt("parent pk updated... kids orphaned??"))
+child = session.query(models.Child).filter(models.Child.child_key == "c1.1").one()
+
+assert child.parent_1 == "new", "Cascade Update Failed"
+
+print("\n" + prt("parent pk updated... cascade update worked"))
 
 print("\nref_integ_tests, update completed\n\n")
 
 
 """
-    Test 6 - delete parent row
+    Test 6 - delete parent row - cascade delete
 """
 
 parent = session.query(models.Parent).filter(models.Parent.parent_attr_1 == "p2_1",
@@ -137,9 +141,26 @@ parent = session.query(models.Parent).filter(models.Parent.parent_attr_1 == "p2_
 session.commit()  # even with cascade all, children orphaned (!!!)
 print(str(parent))
 
-print("\n" + prt("Simple parent delete succeeded as expected."))
+child = session.query(models.Child).filter(models.Child.child_key == "c1.1").one()
+
+assert child is None, "Cascade Delete Failed"
+
+print("\n" + prt("Cascade delete succeeded as expected."))
 
 print("\nref_integ_tests, update completed\n\n")
 
+
+
+"""
+    Test 7 - delete parent row - cascade nullify
+"""
+
+child_orphan = session.query(models.ChildOrphan).filter(models.ChildOrphan.child_key == "c1.1").one()
+
+assert child_orphan is not None, "Cascade Nullify Failed"
+
+print("\n" + prt("Cascade nullify succeeded as expected."))
+
+print("\nref_integ_tests, update completed\n\n")
 
 print("\nref_integ_tests, ran to completion\n\n")
