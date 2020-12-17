@@ -404,7 +404,7 @@ class LogicRow:
         for each_constraint in constraint_rules:
             each_constraint.execute(self)
 
-    def is_foreign_key_null(self, relationship: sqlalchemy.orm.relationships):
+    def is_foreign_key_null(self, relationship: sqlalchemy.orm.relationships) -> bool:
         child_columns = relationship.local_columns
         if len(child_columns) == 0:
             raise Exception("Malformed relationship has no foreign key: " +

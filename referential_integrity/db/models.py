@@ -15,6 +15,14 @@ metadata = Base.metadata
 
 
 class Parent(Base):
+    """
+    https://docs.sqlalchemy.org/en/13/orm/cascades.html#unitofwork-cascades
+    The all symbol is a synonym for
+    save-update, merge, refresh-expire, expunge, delete,
+    and using it in conjunction with delete-orphan indicates that
+    the child object should follow along with its parent in all cases,
+    and be deleted once it is no longer associated with that parent.
+    """
     __tablename__ = 'Parent'
 
     parent_attr_1 = Column(String(16), primary_key=True)
@@ -22,8 +30,7 @@ class Parent(Base):
 
     ChildList = relationship("Child",
                              backref="Parent",
-                             cascade="all, delete",
-                             passive_deletes=True,
+                             cascade="all",
                              cascade_backrefs=True)
 
 

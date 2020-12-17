@@ -38,5 +38,12 @@
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/referential_integrity/db/database-gold.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="Ref-Integ" uuid="2c688f25-08a2-4bee-b952-f88e724b421c">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/referential_integrity/db/database.db</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

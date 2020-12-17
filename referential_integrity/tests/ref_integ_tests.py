@@ -28,7 +28,7 @@ list_ref_integ_rules = rule_bank_withdraw.rules_of_class(pre_child_logic_row, Pa
 ref_integ_rule = list_ref_integ_rules[0]
 
 """
-    Test 1 - create child row with invalid key, verify fails
+    Test 1 - insert child row with invalid key, verify fails
 """
 
 new_child = models.Child(parent_1="xx", parent_2="yy", child_key="new child")
@@ -98,7 +98,7 @@ print("\nref_integ_tests, update completed\n\n")
 
 
 """
-    Test 4 - update child row with valid parent, verify ok
+    Test 4 - update child row with new valid parent, verify ok
 """
 
 child = session.query(models.Child).filter(models.Child.child_key == "c1.1").one()
@@ -113,17 +113,33 @@ print("\nref_integ_tests, update completed\n\n")
 
 
 """
-    Test 5 - update parent row, ensure all ok if no parent_check
+    Test 5 - update parent row, ensure succeeds if no parent_check
 """
 
 parent = session.query(models.Parent).filter(models.Parent.parent_attr_1 == "p1_1",
                                              models.Parent.parent_attr_2 == "p1_2").one()
 parent.parent_attr_1 = "new"
-parent.parent_attr_1 = "parent"
-session.commit()
+parent.parent_attr_2 = "parent"
+session.commit()  # hmm.. even with cascade all, children orphaned (!!)
+print(str(parent))
 
-print("\n" + prt("Simple parent insert succeeded as expected."))
+print("\n" + prt("parent pk updated... kids orphaned??"))
 
 print("\nref_integ_tests, update completed\n\n")
+
+
+"""
+    Test 6 - delete parent row
+"""
+
+parent = session.query(models.Parent).filter(models.Parent.parent_attr_1 == "p2_1",
+                                             models.Parent.parent_attr_2 == "p2_2").delete()
+session.commit()  # even with cascade all, children orphaned (!!!)
+print(str(parent))
+
+print("\n" + prt("Simple parent delete succeeded as expected."))
+
+print("\nref_integ_tests, update completed\n\n")
+
 
 print("\nref_integ_tests, ran to completion\n\n")
