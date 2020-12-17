@@ -125,7 +125,7 @@ print(str(parent))
 
 child = session.query(models.Child).filter(models.Child.child_key == "c1.1").one()
 
-assert child.parent_1 == "new", "Cascade Update Failed"
+assert child.parent_1 == "new", "Cascade Update Failed"  # failing, pending Logic Bank RI support
 
 print("\n" + prt("parent pk updated... cascade update worked"))
 
@@ -143,7 +143,7 @@ print(str(parent))
 
 child = session.query(models.Child).filter(models.Child.child_key == "c1.1").one()
 
-assert child is None, "Cascade Delete Failed"
+assert child is None, "Cascade Delete Failed"  # failing, pending Logic Bank RI support
 
 print("\n" + prt("Cascade delete succeeded as expected."))
 
@@ -157,7 +157,7 @@ print("\nref_integ_tests, update completed\n\n")
 
 child_orphan = session.query(models.ChildOrphan).filter(models.ChildOrphan.child_key == "c1.1").one()
 
-assert child_orphan is not None, "Cascade Nullify Failed"
+assert child_orphan is not None, "Cascade Nullify Failed"  # failing, pending Logic Bank RI support
 
 print("\n" + prt("Cascade nullify succeeded as expected."))
 

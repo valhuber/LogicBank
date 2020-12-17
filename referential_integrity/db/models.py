@@ -32,7 +32,7 @@ class Parent(Base):
                              backref="Parent",
                              cascade="all",
                              cascade_backrefs=True)
-    ChildList = relationship("ChildOrphan",
+    ChildOrphanList = relationship("ChildOrphan",
                              backref="Parent",
                              cascade="all",
                              cascade_backrefs=True)
@@ -51,7 +51,7 @@ class Child(Base):
 
 
 class ChildOrphan(Base):
-    __tablename__ = 'Child'
+    __tablename__ = 'ChildOrphan'
 
     child_key = Column(String(16), primary_key=True)
     parent_1 = Column(String(16))
