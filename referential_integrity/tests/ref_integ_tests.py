@@ -96,7 +96,6 @@ print("\n" + prt("Null parent succeeded as expected."))
 print("\nref_integ_tests, update completed\n\n")
 
 
-
 """
     Test 4 - update child row with new valid parent, verify ok
 """
@@ -109,7 +108,6 @@ session.commit()
 print("\n" + prt("Null parent succeeded as expected."))
 
 print("\nref_integ_tests, update completed\n\n")
-
 
 
 """
@@ -148,7 +146,6 @@ assert child is None, "Cascade Delete Failed"  # failing, pending Logic Bank RI 
 print("\n" + prt("Cascade delete succeeded as expected."))
 
 print("\nref_integ_tests, update completed\n\n")
-
 
 
 """
