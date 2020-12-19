@@ -28,14 +28,16 @@ class Parent(Base):
     parent_attr_1 = Column(String(16), primary_key=True)
     parent_attr_2 = Column(String(16), primary_key=True)
 
-    ChildList = relationship("Child",
-                             backref="Parent",
-                             cascade="all",
-                             cascade_backrefs=True)
-    ChildOrphanList = relationship("ChildOrphan",
-                             backref="Parent",
-                             cascade="all",
-                             cascade_backrefs=True)
+    ChildList = relationship("Child"
+                             , backref="Parent"
+                             , cascade="all"
+                             , cascade_backrefs=True
+                             )
+    ChildOrphanList = relationship("ChildOrphan"
+                                   , backref="Parent"
+                                   , cascade="all"
+                                   , cascade_backrefs=True
+                                   )
 
 
 class Child(Base):

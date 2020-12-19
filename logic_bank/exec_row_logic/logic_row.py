@@ -305,7 +305,7 @@ class LogicRow:
 
                     elif refinteg_action == ParentCascadeAction.NULLIFY:
                         for p, c in each_relationship.local_remote_pairs:
-                            setattr(self.each_child_row, c.name, None)
+                            setattr(each_child_row, c.name, None)
                         each_child_logic_row.update(reason="Cascade Nullify - " + each_child_role_name)
 
                     elif refinteg_action == ParentCascadeAction.PREVENT:

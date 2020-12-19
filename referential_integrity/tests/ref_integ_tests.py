@@ -33,7 +33,7 @@ ref_integ_rule = list_ref_integ_rules[0]
 """
     Test 1 - insert child row with invalid key, verify fails
 """
-
+print("\nBegin Test 1 - insert child row with invalid key, verify fails")
 new_child = models.Child(parent_1="xx", parent_2="yy", child_key="new child")
 
 session.add(new_child)
@@ -60,7 +60,7 @@ print("\n" + prt("Invalid parent failed as expected.  Now trying update..."))
 """
     Test 2 - update child row with invalid key, verify fails
 """
-
+print("\nBegin Test 2 - update child row with invalid key, verify fails")
 child = session.query(models.Child).filter(models.Child.child_key == "c1.1").one()
 child.parent_1 = "Make Me Fail"
 did_fail_as_expected = False
@@ -89,6 +89,7 @@ print("\nref_integ_tests, update completed\n\n")
 """
     Test 3 - update child row with null key, verify ok
 """
+print("\nBegin Test 3 - update child row with null key, verify ok")
 
 child = session.query(models.Child).filter(models.Child.child_key == "c1.1").one()
 child.parent_1 = None
@@ -104,6 +105,7 @@ print("\nref_integ_tests, update completed\n\n")
 """
 test4 = True
 if test4:
+    print("\nBegin Test 4 - update child row with new valid parent, verify ok")
     child = session.query(models.Child).filter(models.Child.child_key == "c1.1").one()
     child.parent_1 = "p2_1"
     child.parent_2 = "p2_2"
@@ -116,12 +118,14 @@ if test4:
     print("\n" + prt("Null parent succeeded as expected."))
 
     print("\nref_integ_tests, update completed\n\n")
+else:
+    print("\nSKIPPED Test 4 - update child row with new valid parent, verify ok")
 
 
 """
     Test 5 - update parent pk, verify cascade update
 """
-
+print("\nBegin Test 5 - update parent pk, verify cascade update")
 parent = session.query(models.Parent).filter(models.Parent.parent_attr_1 == "p1_1",
                                              models.Parent.parent_attr_2 == "p1_2").one()
 parent.parent_attr_1 = "new"
@@ -141,7 +145,7 @@ print("\nref_integ_tests, update completed\n\n")
 """
     Test 6 - delete parent row - cascade delete
 """
-
+print("\nBegin Test 6 - delete parent row - cascade delete")
 parent = session.query(models.Parent).filter(models.Parent.parent_attr_1 == "p2_1",
                                              models.Parent.parent_attr_2 == "p2_2").one()
 session.delete(parent)  # TODO - doc mass deletes don't work (query.delete())
@@ -160,6 +164,7 @@ print("\nref_integ_tests, update completed\n\n")
 """
     Test 7 - delete parent row - cascade nullify
 """
+print("\nBegin Test 7 - delete parent row - cascade nullify")
 
 children_orphan = session.query(models.ChildOrphan).filter(models.ChildOrphan.child_key == "c2.1").all()
 
