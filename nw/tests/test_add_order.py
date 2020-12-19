@@ -160,12 +160,12 @@ class Test(unittest.TestCase):
 
         print("\nadd_order, update completed - analyzing results..\n\n")
 
-        row_prt(new_order, "\nnew Order Result")  # $18 + $38 = $56
+        row_prt(new_order, session, "\nnew Order Result")  # $18 + $38 = $56
         if new_order.AmountTotal != 56:
             self.fail(row_prt(new_order, "Unexpected AmountTotal: " + str(new_order.AmountTotal) +
                    "... expected 56"))
-        row_prt(new_item1, "\nnew Order Detail 1 Result")  # 1 Chai  @ $18
-        row_prt(new_item2, "\nnew Order Detail 2 Result")  # 2 Chang @ $19 = $38
+        row_prt(new_item1, session, "\nnew Order Detail 1 Result")  # 1 Chai  @ $18
+        row_prt(new_item2, session, "\nnew Order Detail 2 Result")  # 2 Chang @ $19 = $38
 
         logic_row = LogicRow(row=post_cust, old_row=pre_cust, ins_upd_dlt="*", nest_level=0, a_session=session, row_sets=None)
         if post_cust.Balance == pre_cust.Balance + 56:

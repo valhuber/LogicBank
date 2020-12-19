@@ -20,10 +20,13 @@ from referential_integrity.logic import session  # opens db, activates logic lis
 pre_parent = session.query(models.Parent).filter(models.Parent.parent_attr_1 == "p1_1",
                                                  models.Parent.parent_attr_2 == "p1_2").one()
 pre_parent_logic_row = LogicRow(row=pre_parent, old_row=pre_parent, ins_upd_dlt="*", nest_level=0, a_session=session, row_sets=None)
+children = pre_parent.ChildList
 session.expunge(pre_parent)
+
 pre_child = session.query(models.Child).filter(models.Child.child_key == "c1.1").one()
 pre_child_logic_row = LogicRow(row=pre_child, old_row=pre_child, ins_upd_dlt="*", nest_level=0, a_session=session, row_sets=None)
 session.expunge(pre_child)
+
 list_ref_integ_rules = rule_bank_withdraw.rules_of_class(pre_child_logic_row, ParentCheck)
 ref_integ_rule = list_ref_integ_rules[0]
 
@@ -49,7 +52,7 @@ except:
     print(e)
 
 if ref_integ_rule._enable:
-    assert did_fail_as_expected, "Ref Integ enabled, invalid FK did not raise ConstraintException"
+    assert did_fail_as_expected, "Test 1 failed: Ref Integ enabled, invalid FK did not raise ConstraintException"
 
 print("\n" + prt("Invalid parent failed as expected.  Now trying update..."))
 
@@ -75,7 +78,7 @@ except:
     print(e)
 
 if ref_integ_rule._enable:
-    assert did_fail_as_expected, "Ref Integ enabled, invalid FK did not raise ConstraintException"
+    assert did_fail_as_expected, "Test 2 failed: Ref Integ enabled, invalid FK did not raise ConstraintException"
 
 print("\n" + prt("Invalid parent failed as expected.  Now trying null..."))
 
@@ -99,15 +102,20 @@ print("\nref_integ_tests, update completed\n\n")
 """
     Test 4 - update child row with new valid parent, verify ok
 """
+test4 = True
+if test4:
+    child = session.query(models.Child).filter(models.Child.child_key == "c1.1").one()
+    child.parent_1 = "p2_1"
+    child.parent_2 = "p2_2"
 
-child = session.query(models.Child).filter(models.Child.child_key == "c1.1").one()
-child.parent_1 = "p2_1"
-child.parent_2 = "p2_2"
-session.commit()
+    child.parent_1 = "p1_1"
+    child.parent_2 = "p1_2"
 
-print("\n" + prt("Null parent succeeded as expected."))
+    session.commit()
 
-print("\nref_integ_tests, update completed\n\n")
+    print("\n" + prt("Null parent succeeded as expected."))
+
+    print("\nref_integ_tests, update completed\n\n")
 
 
 """
@@ -135,13 +143,14 @@ print("\nref_integ_tests, update completed\n\n")
 """
 
 parent = session.query(models.Parent).filter(models.Parent.parent_attr_1 == "p2_1",
-                                             models.Parent.parent_attr_2 == "p2_2").delete()
+                                             models.Parent.parent_attr_2 == "p2_2").one()
+session.delete(parent)  # TODO - doc mass deletes don't work (query.delete())
 session.commit()  # even with cascade all, children orphaned (!!!)
 print(str(parent))
 
-child = session.query(models.Child).filter(models.Child.child_key == "c1.1").one()
+children = session.query(models.Child).filter(models.Child.child_key == "c2.1").all()
 
-assert child is None, "Cascade Delete Failed"  # failing, pending Logic Bank RI support
+assert len(children) == 0, "Cascade Delete Failed"  # failing, pending Logic Bank RI support
 
 print("\n" + prt("Cascade delete succeeded as expected."))
 
@@ -152,9 +161,9 @@ print("\nref_integ_tests, update completed\n\n")
     Test 7 - delete parent row - cascade nullify
 """
 
-child_orphan = session.query(models.ChildOrphan).filter(models.ChildOrphan.child_key == "c1.1").one()
+children_orphan = session.query(models.ChildOrphan).filter(models.ChildOrphan.child_key == "c2.1").all()
 
-assert child_orphan is not None, "Cascade Nullify Failed"  # failing, pending Logic Bank RI support
+assert len(children_orphan) > 0, "Cascade Nullify Failed"  # failing, pending Logic Bank RI support
 
 print("\n" + prt("Cascade nullify succeeded as expected."))
 

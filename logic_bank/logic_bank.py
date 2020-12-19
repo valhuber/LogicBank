@@ -9,6 +9,7 @@ from logic_bank.rule_type.constraint import Constraint
 from logic_bank.rule_type.copy import Copy
 from logic_bank.rule_type.count import Count
 from logic_bank.rule_type.formula import Formula
+from logic_bank.rule_type.parent_cascade import ParentCascade, ParentCascadeAction
 from logic_bank.rule_type.parent_check import ParentCheck
 from logic_bank.rule_type.row_event import EarlyRowEvent, RowEvent, CommitRowEvent
 from logic_bank.rule_type.sum import Sum
@@ -118,6 +119,28 @@ class Rule:
 
         """
         return ParentCheck(validate=validate, error_msg=error_msg, enable=enable)
+
+    @staticmethod
+    def parent_cascade(validate: object,
+                       error_msg: str = "(error_msg not provided)",
+                       relationship: str = "*",
+                       action: ParentCascadeAction = ParentCascadeAction.NULLIFY):
+        """
+        Parent Cascade specifies processing for child rows on parent delete
+
+        Example
+           Rule.parent_cascade(validate=Order, relationship="OrderDetailList", action=ParentCascadeAction.DELETE)
+
+        If rule or action not specified, default is ParentCascadeAction.NULLIFY
+
+        Parent_cascade with ParentCascadeAction.NULLIFY can raise ConstraintException, e.g.:
+            try:
+                session.commit()
+            except ConstraintException as ce:
+                print("Constraint raised: " + str(ce))
+
+        """
+        return ParentCascade(validate=validate, error_msg=error_msg, relationship=relationship, action=action)
 
     @staticmethod
     def formula(derive: InstrumentedAttribute, calling: Callable = None,

@@ -3,6 +3,7 @@ from decimal import Decimal
 from logic_bank.exec_row_logic.logic_row import LogicRow
 from logic_bank.logic_bank import Rule
 from nw.db.models import Customer, OrderDetail, Product, Order, OrderClass, Employee
+from logic_bank.rule_type.parent_cascade import ParentCascadeAction
 
 
 def declare_logic():
@@ -70,6 +71,10 @@ def declare_logic():
                     error_msg="{row.LastName} is not commissioned - cannot have orders")
 
     Rule.count(derive=Employee.order_count, as_count_of=Order)
+
+    Rule.parent_cascade(validate=Order, relationship="OrderDetailList", error_msg="N/A", action=ParentCascadeAction.DELETE)
+
+    Rule.parent_cascade(validate=Customer, relationship="OrderList", error_msg="N/A", action=ParentCascadeAction.DELETE)
 
     def raise_over_20_percent(row: Employee, old_row: Employee, logic_row: LogicRow):
         if logic_row.ins_upd_dlt == "upd" and row.Salary != old_row.Salary:

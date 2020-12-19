@@ -43,7 +43,7 @@ def before_flush(a_session: session, a_flush_context, an_instances):
     else:
         for each_instance in a_session.dirty:
             table_name = each_instance.__tablename__
-            old_row = get_old_row(each_instance)
+            old_row = get_old_row(each_instance, a_session)
             logic_row = LogicRow(row=each_instance, old_row=old_row, ins_upd_dlt="upd",
                                  nest_level=0, a_session=a_session, row_sets=row_sets)
             logic_row.update(reason="client")

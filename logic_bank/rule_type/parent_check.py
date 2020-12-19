@@ -22,22 +22,3 @@ class ParentCheck(AbstractRule):
     def get_rule_text(self):
         text = "Parent Check: " + str(self._decl_meta)
         return text
-
-    def execute(self, logic_row: LogicRow):
-        # logic_row.log(f'Constraint BEGIN {str(self)} on {str(logic_row)}')
-        if self._function is not None:
-            value = self._function(row=logic_row.row, old_row=logic_row.old_row, logic_row=logic_row)
-        else:
-            value = self._as_condition(row=logic_row.row)
-
-        if value:
-            pass
-        elif not value:
-            row = logic_row.row
-            msg = eval(f'f"""{self._error_msg}"""')
-            from sqlalchemy import exc
-            # exception = exc.DBAPIError(msg, None, None)  # 'statement', 'params', and 'orig'
-            raise ConstraintException(msg)
-        else:
-            raise RuntimeError(f'Constraint did not return boolean: {str(self)}')
-        logic_row.log_engine(f'Constraint END {str(self)} on {str(logic_row)}')

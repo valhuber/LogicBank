@@ -2,6 +2,7 @@ from __future__ import annotations
 import inspect
 import os
 
+import sqlalchemy
 from sqlalchemy.exc import UnmappedColumnError
 from sqlalchemy.orm import attributes, object_mapper
 
@@ -34,16 +35,30 @@ class ObjectView(object):
         return str(self.__dict__)
 
 
-def get_old_row(obj) -> ObjectView:  # FIXME design verify approach
+def get_old_row(obj, session) -> ObjectView:  # FIXME design verify approach
     """
     obtain old_row (during before_flush) from sqlalchemy row
 
     thanks
         https://docs.sqlalchemy.org/en/13/_modules/examples/versioned_history/history_meta.html
         https://goodcode.io/articles/python-dict-object/
+
+    or https://stackoverflow.com/questions/28871406/how-to-clone-a-sqlalchemy-db-object-with-new-primary-key
+        product_obj = products.all()[0]
+
+        db.session.expunge(product_obj)  # expunge the object from session
+        make_transient(product_obj)  # http://docs.sqlalchemy.org/en/rel_1_1/orm/session_api.html#sqlalchemy.orm.session.make_transient
+
+        product_obj.product_uid = 'something'
+        db.session.add(product_obj)
     """
+    use_transient = False  # failed experiment - disabled, but keeping it around
+    if use_transient:
+        old_row = type(obj)()
+        # session.expunge(old_row) # causes Instance <Order at 0x10aedf490> is not present in this Session
+    else:
+        old_row = {}
     obj_state = attributes.instance_state(obj)
-    old_row = {}
     obj_mapper = object_mapper(obj)
     for each_map in obj_mapper.iterate_to_root():
         # print("each_map: " + str(each_map))  # inheritance tree
@@ -69,15 +84,26 @@ def get_old_row(obj) -> ObjectView:  # FIXME design verify approach
             # todo prefers .AttributeState.history -- how to code??
 
             if d:  # changed, and this is the old value
-                old_row[prop.key] = d[0]
+                if use_transient:
+                    setattr(old_row, prop.key, d[0])
+                else:
+                    old_row[prop.key] = d[0]
                 obj_changed = True
             elif u:  # unchanged
-                old_row[prop.key] = u[0]
-            elif a:  # added (old value null)
-                # if the attribute had no value.
-                old_row[prop.key] = a[0]
+                if use_transient:
+                    setattr(old_row, prop.key, u[0])
+                else:
+                    old_row[prop.key] = u[0]
+            elif a:  # added (old value null) if the attribute had no value.
+                if use_transient:
+                    setattr(old_row, prop.key, a[0])
+                else:
+                    old_row[prop.key] = a[0]
                 obj_changed = True
-    return ObjectView(old_row)
+    if use_transient:
+        return old_row  # expunge me!!
+    else:
+        return ObjectView(old_row)
 
 
 def hydrate_row(a_row: base) -> base:
@@ -98,7 +124,7 @@ def row2dict(row: base) -> dict:
     return d
 
 
-def row_to_string(obj) -> str:
+def row_to_string(obj, session) -> str:
     """
     obj can be ObjectVew, or sqlalchemy row
     """
@@ -108,7 +134,7 @@ def row_to_string(obj) -> str:
         return str(obj)
     elif hasattr(obj, "__table__"):  # sqlalchemy row
         result = obj.__tablename__ + ": "
-        old_row = get_old_row(obj)
+        old_row = get_old_row(obj, session)
         is_first = True
         my_dict = row2dict(obj)
         for each_attr_name in sorted(my_dict.keys()):
@@ -147,9 +173,11 @@ def prt(a_msg: str) -> str:
     return result
 
 
-def row_prt(obj: object, a_msg: str = "") -> str:
-    """ prints and returns string of msg + row """
-    msg = row_to_string(obj)
+def row_prt(obj: object, session: sqlalchemy.orm.session.Session = None, a_msg: str = "") -> str:
+    """ prints and returns string of msg + row
+
+    """
+    msg = row_to_string(obj, session)
     print(a_msg + ", " + msg)
     return a_msg + ", " + msg
 

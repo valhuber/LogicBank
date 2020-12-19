@@ -1,5 +1,6 @@
 from logic_bank.logic_bank import Rule
-from referential_integrity.db.models import Parent, Child
+from logic_bank.rule_type.parent_cascade import ParentCascadeAction
+from referential_integrity.db.models import Parent, Child, ChildOrphan
 
 
 def declare_logic():
@@ -10,3 +11,6 @@ def declare_logic():
                     as_condition=lambda row: row.parent_attr_1 != "hello",
                     error_msg="Ensure other tables ok")
 
+    Rule.parent_cascade(validate=Parent, relationship="ChildList", action=ParentCascadeAction.DELETE)
+
+    Rule.parent_cascade(validate=Parent, relationship="ChildOrphanList", action=ParentCascadeAction.NULLIFY)

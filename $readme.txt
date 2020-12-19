@@ -78,3 +78,6 @@ SELECT Id, EmployeeId FROM "Order"
 WHERE NOT EXISTS (SELECT 1 FROM Employee WHERE Employee.Id = "Order".EmployeeId);
 
 ......Customer[ALFKI] {Update - Adjusting Customer} Id: ALFKI, CompanyName: Alfreds Futterkiste, ContactName: Maria Anders, ContactTitle: Sales Representative, Address: Obere Str. 57, City: Berlin, Region: Western Europe, PostalCode: 12209, Country: Germany, Phone: 030-0074321, Fax: 030-0076545, Balance:  [1016.00-->] 1034.00, CreditLimit: 2000.00, OrderCount: 10, UnpaidOrderCount: 5, PaidOrderCount: 5  row@: 0x10b410430 - 2020-10-21 20:40:19,743 - logic_logger - DEBUG
+
+
+notes regarding LogicRow.get_old_children()

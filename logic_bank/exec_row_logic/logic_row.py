@@ -1,9 +1,9 @@
 import sqlalchemy
-from sqlalchemy import inspect
+from sqlalchemy import inspect, text
 from sqlalchemy.ext.declarative import base
 from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import object_mapper, session, relationships
+from sqlalchemy.orm import object_mapper, session, relationships, RelationshipProperty
 
 import logic_bank
 from logic_bank.rule_bank.rule_bank import RuleBank
@@ -13,6 +13,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from logic_bank.rule_bank import rule_bank_withdraw
 from logic_bank.rule_type.constraint import Constraint
 from logic_bank.rule_type.formula import Formula
+from logic_bank.rule_type.parent_cascade import ParentCascade, ParentCascadeAction
 from logic_bank.rule_type.parent_check import ParentCheck
 from logic_bank.rule_type.row_event import EarlyRowEvent
 from logic_bank.util import ConstraintException
@@ -270,28 +271,104 @@ class LogicRow:
 
     def cascade_delete_children(self):
         """
-        Find child relationships that are cascade delete, and delete the children.
+        per parent_cascade rule(s), nullify (child FKs), delete (children), prevent (if children exist)
+
+        Default is ParentCascadeAction.NULLIFY.
 
         This recursive descent is required to adjust dependent sums/counts.
         """
+        list_parent_cascade_rules = rule_bank_withdraw.rules_of_class(self, ParentCascade)
+        defined_relns = {}
+        for each_parent_cascade_rule in list_parent_cascade_rules:
+            defined_relns[each_parent_cascade_rule._relationship] = each_parent_cascade_rule
+
         parent_mapper = object_mapper(self.row)
         my_relationships = parent_mapper.relationships
         for each_relationship in my_relationships:  # eg, cust has child OrderDetail
             if each_relationship.direction == sqlalchemy.orm.interfaces.ONETOMANY:  # eg, OrderDetail
-                child_role_name = each_relationship.key  # eg, OrderList
-                if each_relationship.cascade.delete:
-                    child_rows = getattr(self.row, child_role_name)
+                each_child_role_name = each_relationship.key  # eg, OrderList
+                refinteg_action = ParentCascadeAction.PREVENT
+                if each_child_role_name in defined_relns:
+                    refinteg_action = defined_relns[each_child_role_name]._action
+                child_rows = getattr(self.row, each_child_role_name)
+                for each_child_row in child_rows:
+                    old_child = self.make_copy(each_child_row)
+                    each_child_logic_row = LogicRow(row=each_child_row,
+                                                    old_row=old_child,
+                                                    ins_upd_dlt="dlt",
+                                                    nest_level=1 + self.nest_level,
+                                                    a_session=self.session,
+                                                    row_sets=self.row_sets)
+
+                    if refinteg_action == ParentCascadeAction.DELETE:  # each_relationship.cascade.delete:
+                        each_child_logic_row.delete(reason="Cascade Delete - " + each_child_role_name)
+
+                    elif refinteg_action == ParentCascadeAction.NULLIFY:
+                        for p, c in each_relationship.local_remote_pairs:
+                            setattr(self.each_child_row, c.name, None)
+                        each_child_logic_row.update(reason="Cascade Nullify - " + each_child_role_name)
+
+                    elif refinteg_action == ParentCascadeAction.PREVENT:
+                        raise ConstraintException("Delete rejected - " + each_child_role_name + " has rows")
+                    else:
+                        raise Exception("Invalid parent_cascade action: " + refinteg_action)
+
+    def is_primary_key_changed(self) -> bool:
+        meta = self.table_meta
+        if hasattr(meta, "primary_key"):
+            pk_columns = meta.primary_key.columns
+        else:
+            pk_columns = meta.mapper.mapped_table.primary_key.columns
+        if len(pk_columns) == 0:
+            raise Exception("No Primary Key: " + self.__str__())
+        for each_pk_column in pk_columns:
+            each_child_column_name = each_pk_column.name
+            if getattr(self.row, each_child_column_name) != getattr(self.old_row, each_child_column_name):
+                return True
+        return False
+
+    def get_old_child_rows(self, relationship: RelationshipProperty):
+        """
+        result = getattr(self.old_row, role_name)  # even with util.use_transient, yields nothing, unsure why
+        """
+
+        child_filter = {}
+        for p, c in relationship.local_remote_pairs:
+            child_filter[c.name] = getattr(self.old_row, p.name)
+        result = self.session.query(relationship.mapper.entity).filter_by(**child_filter).all()
+        return result
+
+    def parent_cascade_pk_change(self):  # ???
+        """
+        cascade pk change (if any) to children, unconditionally.
+
+        Presumption: children ref the same pKey (vs. some other "candidate key")
+        """
+        if self.is_primary_key_changed():
+            list_parent_cascade_rules = rule_bank_withdraw.rules_of_class(self, ParentCascade)
+            defined_relns = {}
+            for each_parent_cascade_rule in list_parent_cascade_rules:
+                defined_relns[each_parent_cascade_rule._relationship] = each_parent_cascade_rule
+            parent_mapper = object_mapper(self.row)
+            my_relationships = parent_mapper.relationships
+            for each_relationship in my_relationships:  # eg, order has parents cust & emp, child orderdetail
+                if each_relationship.direction == sqlalchemy.orm.interfaces.ONETOMANY:  # cust, emp
+                    reason = "Cascading PK change to: " +\
+                             each_relationship.backref + "->" +\
+                             each_relationship.key
+                    child_rows = self.get_old_child_rows(relationship = each_relationship)
                     for each_child_row in child_rows:
                         old_child = self.make_copy(each_child_row)
-                        each_child_logic_row = LogicRow(row=each_child_row,
-                                                        old_row=old_child,
-                                                        ins_upd_dlt="dlt",
+                        each_child_logic_row = LogicRow(row=each_child_row, old_row=old_child, ins_upd_dlt="upd",
                                                         nest_level=1 + self.nest_level,
-                                                        a_session=self.session,
-                                                        row_sets=self.row_sets)
-                        each_child_logic_row.delete(reason="Cascade Delete - " + child_role_name)
+                                                        a_session=self.session, row_sets=self.row_sets)
+                        for p, c in each_relationship.local_remote_pairs:
+                            setattr(each_child_row, c.name, getattr(self.row, p.name))
+                        each_child_logic_row.update(reason=reason)
 
-    def cascade_to_children(self):
+        return self
+
+    def parent_cascade_attribute_changes_to_children(self):
         """
         Child Formulas can reference (my) Parent Attributes, so...
         If the *referenced* Parent Attributes are changed, cascade to child
@@ -462,15 +539,26 @@ class LogicRow:
                         parent_role_name = each_relationship.key  # eg, OrderList
                         if not self.is_foreign_key_null(each_relationship):
                             # continue
-                            self.get_parent_logic_row(parent_role_name)  # sets the accessor
-                            does_parent_exist = getattr(self.row, parent_role_name)
-                            if does_parent_exist is None and ref_integ_rule._enable == True:
-                                msg = "Missing Parent: " + parent_role_name
-                                self.log(msg)
-                                raise ConstraintException(msg)
+                            reason = "Cascading PK change to: " + \
+                                     each_relationship.key + "->" + \
+                                     each_relationship.back_populates
+                            if self.reason == reason:
+                                """
+                                The parent doing the cascade obviously exists,
+                                and note: try to getattr it will fail
+                                (FIXME design review - perhaps SQLAlchemy is not checking cache?)
+                                """
+                                pass
                             else:
-                                self.log("Warning: Missing Parent: " + parent_role_name)
-                                pass # if you don't care, I don't care
+                                self.get_parent_logic_row(parent_role_name)  # sets the accessor
+                                does_parent_exist = getattr(self.row, parent_role_name)
+                                if does_parent_exist is None and ref_integ_rule._enable == True:
+                                    msg = "Missing Parent: " + parent_role_name
+                                    self.log(msg)
+                                    raise ConstraintException(msg)
+                                else:
+                                    self.log("Warning: Missing Parent: " + parent_role_name)
+                                    pass # if you don't care, I don't care
         return self
 
     def adjust_parent_aggregates(self):
@@ -522,7 +610,8 @@ class LogicRow:
             self.formula_rules()
             self.adjust_parent_aggregates()  # parent chaining (sum / count adjustments)
             self.constraints()
-            self.cascade_to_children()  # child chaining (cascade changed parent references)
+            self.parent_cascade_attribute_changes_to_children()  # child chaining (cascade changed parent references)
+            self.parent_cascade_pk_change()  # actions - delete, nullify, prevent
             if self.row_sets is not None:  # eg, for debug as in upd_order_shipped test
                 self.row_sets.remove_submitted(logic_row=self)
 
