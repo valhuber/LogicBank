@@ -35,7 +35,7 @@ class Parent(Base):
                              )
     ChildOrphanList = relationship("ChildOrphan"
                                    , backref="Parent"
-                                   , cascade="all"
+                                   # , cascade="all"  # disable, let LogicBank do cascade delete
                                    , cascade_backrefs=True
                                    )
 

@@ -152,9 +152,9 @@ session.delete(parent)  # TODO - doc mass deletes don't work (query.delete())
 session.commit()  # even with cascade all, children orphaned (!!!)
 print(str(parent))
 
-children = session.query(models.Child).filter(models.Child.child_key == "c2.1").all()
+children = session.query(models.Child).filter(models.Child.child_key == "c2.2").all()
 
-assert len(children) == 0, "Cascade Delete Failed"  # failing, pending Logic Bank RI support
+assert len(children)== 0, "Cascade Delete Failed"  # failing, pending Logic Bank RI support
 
 print("\n" + prt("Cascade delete succeeded as expected."))
 
@@ -166,7 +166,7 @@ print("\nref_integ_tests, update completed\n\n")
 """
 print("\nBegin Test 7 - delete parent row - cascade nullify")
 
-children_orphan = session.query(models.ChildOrphan).filter(models.ChildOrphan.child_key == "c2.1").all()
+children_orphan = session.query(models.ChildOrphan).filter(models.ChildOrphan.child_key == "c2.2").all()
 
 assert len(children_orphan) > 0, "Cascade Nullify Failed"  # failing, pending Logic Bank RI support
 
