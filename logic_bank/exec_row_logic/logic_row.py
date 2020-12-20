@@ -271,47 +271,67 @@ class LogicRow:
 
     def cascade_delete_children(self):
         """
-        per parent_cascade rule(s), nullify (child FKs), delete (children), prevent (if children exist)
-
-        Default is ParentCascadeAction.NULLIFY.
-
         This recursive descent is required to adjust dependent sums/counts.
+        @see nw/tests/test_dlt_order.py
         """
-        list_parent_cascade_rules = rule_bank_withdraw.rules_of_class(self, ParentCascade)
-        defined_relns = {}
-        for each_parent_cascade_rule in list_parent_cascade_rules:
-            defined_relns[each_parent_cascade_rule._relationship] = each_parent_cascade_rule
 
         parent_mapper = object_mapper(self.row)
         my_relationships = parent_mapper.relationships
         for each_relationship in my_relationships:  # eg, cust has child OrderDetail
             if each_relationship.direction == sqlalchemy.orm.interfaces.ONETOMANY:  # eg, OrderDetail
-                each_child_role_name = each_relationship.key  # eg, OrderList
-                refinteg_action = ParentCascadeAction.PREVENT
-                if each_child_role_name in defined_relns:
-                    refinteg_action = defined_relns[each_child_role_name]._action
-                child_rows = getattr(self.row, each_child_role_name)
-                for each_child_row in child_rows:
-                    old_child = self.make_copy(each_child_row)
-                    each_child_logic_row = LogicRow(row=each_child_row,
-                                                    old_row=old_child,
-                                                    ins_upd_dlt="dlt",
-                                                    nest_level=1 + self.nest_level,
-                                                    a_session=self.session,
-                                                    row_sets=self.row_sets)
+                child_role_name = each_relationship.key  # eg, OrderList
+                if each_relationship.cascade.delete:
+                    child_rows = getattr(self.row, child_role_name)
+                    for each_child_row in child_rows:
+                        old_child = self.make_copy(each_child_row)
+                        each_child_logic_row = LogicRow(row=each_child_row,
+                                                        old_row=old_child,
+                                                        ins_upd_dlt="dlt",
+                                                        nest_level=1 + self.nest_level,
+                                                        a_session=self.session,
+                                                        row_sets=self.row_sets)
+                        each_child_logic_row.delete(reason="Cascade Delete to run rules on - " + child_role_name)
+        enforce_cascade = False
+        if enforce_cascade:  # disabled - SQLAlchemy DOES enforce cascade delete/nullify; prevent way less important
+            """
+            per parent_cascade rule(s), nullify (child FKs), delete (children), prevent (if children exist)
 
-                    if refinteg_action == ParentCascadeAction.DELETE:  # each_relationship.cascade.delete:
-                        each_child_logic_row.delete(reason="Cascade Delete - " + each_child_role_name)
+            Default is ParentCascadeAction.NULLIFY.
 
-                    elif refinteg_action == ParentCascadeAction.NULLIFY:
-                        for p, c in each_relationship.local_remote_pairs:
-                            setattr(each_child_row, c.name, None)
-                        each_child_logic_row.update(reason="Cascade Nullify - " + each_child_role_name)
+            This recursive descent is required to adjust dependent sums/counts.
+            """
+            list_parent_cascade_rules = rule_bank_withdraw.rules_of_class(self, ParentCascade)
+            defined_relns = {}
+            for each_parent_cascade_rule in list_parent_cascade_rules:
+                defined_relns[each_parent_cascade_rule._relationship] = each_parent_cascade_rule
+            for each_relationship in my_relationships:  # eg, Order has child OrderDetail
+                if each_relationship.direction == sqlalchemy.orm.interfaces.ONETOMANY:  # eg, OrderDetail
+                    each_child_role_name = each_relationship.key  # eg, OrderDetailList
+                    refinteg_action = ParentCascadeAction.PREVENT
+                    if each_child_role_name in defined_relns:
+                        refinteg_action = defined_relns[each_child_role_name]._action
+                    child_rows = getattr(self.row, each_child_role_name)
+                    for each_child_row in child_rows:
+                        old_child = self.make_copy(each_child_row)
+                        each_child_logic_row = LogicRow(row=each_child_row,
+                                                        old_row=old_child,
+                                                        ins_upd_dlt="dlt",
+                                                        nest_level=1 + self.nest_level,
+                                                        a_session=self.session,
+                                                        row_sets=self.row_sets)
 
-                    elif refinteg_action == ParentCascadeAction.PREVENT:
-                        raise ConstraintException("Delete rejected - " + each_child_role_name + " has rows")
-                    else:
-                        raise Exception("Invalid parent_cascade action: " + refinteg_action)
+                        if refinteg_action == ParentCascadeAction.DELETE:  # each_relationship.cascade.delete:
+                            each_child_logic_row.delete(reason="Cascade Delete - " + each_child_role_name)
+
+                        elif refinteg_action == ParentCascadeAction.NULLIFY:
+                            for p, c in each_relationship.local_remote_pairs:
+                                setattr(each_child_row, c.name, None)
+                            each_child_logic_row.update(reason="Cascade Nullify - " + each_child_role_name)
+
+                        elif refinteg_action == ParentCascadeAction.PREVENT:
+                            raise ConstraintException("Delete rejected - " + each_child_role_name + " has rows")
+                        else:
+                            raise Exception("Invalid parent_cascade action: " + refinteg_action)
 
     def is_primary_key_changed(self) -> bool:
         meta = self.table_meta

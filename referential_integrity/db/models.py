@@ -30,12 +30,12 @@ class Parent(Base):
 
     ChildList = relationship("Child"
                              , backref="Parent"
-                             , cascade="all"
+                             , cascade="delete"  # cascade delete
                              , cascade_backrefs=True
                              )
     ChildOrphanList = relationship("ChildOrphan"
                                    , backref="Parent"
-                                   # , cascade="all"  # disable, let LogicBank do cascade delete
+                                   # cascade nullify
                                    , cascade_backrefs=True
                                    )
 

@@ -41,7 +41,8 @@ class Test(unittest.TestCase):
         self.toggle_order_shipped()
         pre_adjusted_product = session.query(models.Product).filter(models.Product.Id == 58).one()
         session.expunge(pre_adjusted_product)
-        print("\ndlt_order, shipped... now delete")
+
+        print("\nNow delete the Customer")
         delete_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
         session.delete(delete_cust)
         session.commit()
@@ -53,9 +54,9 @@ class Test(unittest.TestCase):
             logic_row.log("Product adjusted properly on delete customer")
         else:
             logic_row.log("Product adjusted improperly on delete customer")
-            assert False
+            assert False, "Product adjusted improperly on delete customer"
 
-        print("\ndlt_order, shipped... deleted - check log")
+        print("\nCustomer deleted - check log")
         self.assertTrue(True)
 
     def toggle_order_shipped(self):
