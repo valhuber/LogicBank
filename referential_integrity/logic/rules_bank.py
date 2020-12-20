@@ -10,7 +10,3 @@ def declare_logic():
     Rule.constraint(validate=Parent,
                     as_condition=lambda row: row.parent_attr_1 != "hello",
                     error_msg="Ensure other tables ok")
-
-    Rule.parent_cascade(validate=Parent, relationship="ChildList", action=ParentCascadeAction.DELETE)
-
-    Rule.parent_cascade(validate=Parent, relationship="ChildOrphanList", action=ParentCascadeAction.NULLIFY)

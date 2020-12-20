@@ -16,7 +16,15 @@ metadata = Base.metadata
 
 class Parent(Base):
     """
-    https://docs.sqlalchemy.org/en/13/orm/cascades.html#unitofwork-cascades
+    https://docs.sqlalchemy.org/en/14/orm/cascades.html
+    The default behavior of cascade is limited to cascades of the so-called
+    save-update and merge settings.
+    The typical “alternative” setting for cascade is to
+    add the delete and delete-orphan options;
+    these settings are appropriate for related objects which only exist
+    as long as they are attached to their parent, and are otherwise deleted.
+
+    #unitofwork-cascades.
     The all symbol is a synonym for
     save-update, merge, refresh-expire, expunge, delete,
     and using it in conjunction with delete-orphan indicates that
@@ -30,14 +38,15 @@ class Parent(Base):
 
     ChildList = relationship("Child"
                              , backref="Parent"
-                             , cascade="delete"  # cascade delete
+                             , cascade="all"  # cascade delete
                              # , passive_deletes=True  use *only* when DBMS does the cascade delete
                              # for LogicBank delete logic
                              , cascade_backrefs=True
                              )
     ChildOrphanList = relationship("ChildOrphan"
                                    , backref="Parent"
-                                   # cascade no cascade option means "nullify"
+                                   , cascade="save-update, merge, refresh-expire, expunge"
+                                   # no delete option means "nullify"
                                    , cascade_backrefs=True
                                    )
 
