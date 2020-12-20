@@ -54,6 +54,8 @@ def before_flush(a_session: session, a_flush_context, an_instances):
                              nest_level=0, a_session=a_session, row_sets=row_sets)
         logic_row.insert(reason="client")
 
+    # if len(a_session.deleted) > 0:
+        # print("deleting")
     for each_instance in a_session.deleted:
         table_name = each_instance.__tablename__
         logic_row = LogicRow(row=each_instance, old_row=None, ins_upd_dlt="dlt",

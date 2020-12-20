@@ -31,11 +31,13 @@ class Parent(Base):
     ChildList = relationship("Child"
                              , backref="Parent"
                              , cascade="delete"  # cascade delete
+                             # , passive_deletes=True  use *only* when DBMS does the cascade delete
+                             # for LogicBank delete logic
                              , cascade_backrefs=True
                              )
     ChildOrphanList = relationship("ChildOrphan"
                                    , backref="Parent"
-                                   # cascade nullify
+                                   # cascade no cascade option means "nullify"
                                    , cascade_backrefs=True
                                    )
 

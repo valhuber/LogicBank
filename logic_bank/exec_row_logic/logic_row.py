@@ -271,7 +271,11 @@ class LogicRow:
 
     def cascade_delete_children(self):
         """
-        This recursive descent is required to adjust dependent sums/counts.
+        This recursive descent is required to adjust dependent sums/counts on passive_deletes; ie,
+
+        when (and only when) the DBMS - and *not* SQLAlchemy - does the deletes.
+
+        (When SQLAlchemy does deletes, these are queued through the normal delete logic.)
         @see nw/tests/test_dlt_order.py
         """
 
@@ -280,7 +284,7 @@ class LogicRow:
         for each_relationship in my_relationships:  # eg, cust has child OrderDetail
             if each_relationship.direction == sqlalchemy.orm.interfaces.ONETOMANY:  # eg, OrderDetail
                 child_role_name = each_relationship.key  # eg, OrderList
-                if each_relationship.cascade.delete:
+                if each_relationship.cascade.delete and each_relationship.passive_deletes:
                     child_rows = getattr(self.row, child_role_name)
                     for each_child_row in child_rows:
                         old_child = self.make_copy(each_child_row)
@@ -291,12 +295,13 @@ class LogicRow:
                                                         a_session=self.session,
                                                         row_sets=self.row_sets)
                         each_child_logic_row.delete(reason="Cascade Delete to run rules on - " + child_role_name)
+                        self.session.delete(each_child_row)  # deletes in beforeFlush are not re-queued
         enforce_cascade = False
         if enforce_cascade:  # disabled - SQLAlchemy DOES enforce cascade delete/nullify; prevent way less important
             """
             per parent_cascade rule(s), nullify (child FKs), delete (children), prevent (if children exist)
 
-            Default is ParentCascadeAction.NULLIFY.
+            Default is ParentCascadeAction.PREVENT.
 
             This recursive descent is required to adjust dependent sums/counts.
             """

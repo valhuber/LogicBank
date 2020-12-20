@@ -77,7 +77,8 @@ class Customer(Base):
     OrderList = relationship("Order",
                              backref="Customer",
                              cascade="all, delete",
-                             passive_deletes=True,  # means database RI will do the deleting
+                             # passive_deletes=True,  # means database RI will do the deleting... which SQLlite *never* does
+                             # use this *only* when DBMS does cascade deletes, to run LogicBank delete logic
                              cascade_backrefs=True)
 
 
@@ -248,7 +249,7 @@ class Order(Base):
     OrderDetailList = relationship("OrderDetail",
                                    backref="OrderHeader",
                                    cascade="all, delete",
-                                   passive_deletes=True,  # means database RI will do the deleting
+                                   # passive_deletes=True,  # means database RI will do the deleting (never for SqlLite)
                                    cascade_backrefs=True)
 
 #  https://docs.sqlalchemy.org/en/13/orm/mapped_sql_expr.html

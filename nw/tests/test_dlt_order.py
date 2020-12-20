@@ -42,7 +42,7 @@ class Test(unittest.TestCase):
         pre_adjusted_product = session.query(models.Product).filter(models.Product.Id == 58).one()
         session.expunge(pre_adjusted_product)
 
-        print("\nNow delete the Customer")
+        print("\nNow delete the Customer...")
         delete_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
         session.delete(delete_cust)
         session.commit()
