@@ -120,6 +120,7 @@ class Rule:
         """
         return ParentCheck(validate=validate, error_msg=error_msg, enable=enable)
 
+''' disabled, per ORM support (retained in case of misunderstandings)
     @staticmethod
     def parent_cascade(validate: object,
                        error_msg: str = "(error_msg not provided)",
@@ -141,6 +142,7 @@ class Rule:
 
         """
         return ParentCascade(validate=validate, error_msg=error_msg, relationship=relationship, action=action)
+'''
 
     @staticmethod
     def formula(derive: InstrumentedAttribute, calling: Callable = None,
