@@ -1,23 +1,3 @@
-"""
-AbstractRule Repository
-===============
-
-Want a shared copy of rules for engine (e.g, forms/rest server), thread safe.
-
-Alternatives:
-
-    MetaClass
-        https://stackoverflow.com/questions/6760685/creating-a-singleton-in-python
-
-    Module (import logic_bank)
-        Same ref... trying that, simplest
-        import logic_bank
-        import logic.listeners.py
-
-    sqlalchemy Engine Plug-in
-
-"""
-
 import logging
 import sys
 
