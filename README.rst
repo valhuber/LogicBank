@@ -81,4 +81,7 @@ allocate a payment to a set of outstanding orders
 
 0.3.0 - Include logic_bank.extensions (allocation), constraint exceptions raised as ConstraintExceptions
 
-0.4.0 - Eliminate "engine" from runtime, to faciliate use in servers.  Rework nw tests to centralize open logic in setup().
+0.4.0 - Eliminate "engine" from runtime, to facilitate use in servers.  Rework nw tests to centralize open logic in setup().
+
+0.5.0 - Support for `Referential Integrity <https://github.com/valhuber/LogicBank/wiki/Sample-Project---Allocation>`_,
+with examples.
