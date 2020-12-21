@@ -120,29 +120,30 @@ class Rule:
         """
         return ParentCheck(validate=validate, error_msg=error_msg, enable=enable)
 
-''' disabled, per ORM support (retained in case of misunderstandings)
-    @staticmethod
-    def parent_cascade(validate: object,
-                       error_msg: str = "(error_msg not provided)",
-                       relationship: str = "*",
-                       action: ParentCascadeAction = ParentCascadeAction.NULLIFY):
-        """
-        Parent Cascade specifies processing for child rows on parent delete
-
-        Example
-           Rule.parent_cascade(validate=Order, relationship="OrderDetailList", action=ParentCascadeAction.DELETE)
-
-        If rule or action not specified, default is ParentCascadeAction.NULLIFY
-
-        Parent_cascade with ParentCascadeAction.NULLIFY can raise ConstraintException, e.g.:
-            try:
-                session.commit()
-            except ConstraintException as ce:
-                print("Constraint raised: " + str(ce))
-
-        """
-        return ParentCascade(validate=validate, error_msg=error_msg, relationship=relationship, action=action)
-'''
+    '''
+    disabled, per ORM support (retained in case of misunderstandings)
+        @staticmethod
+        def parent_cascade(validate: object,
+                           error_msg: str = "(error_msg not provided)",
+                           relationship: str = "*",
+                           action: ParentCascadeAction = ParentCascadeAction.NULLIFY):
+            """
+            Parent Cascade specifies processing for child rows on parent delete
+    
+            Example
+               Rule.parent_cascade(validate=Order, relationship="OrderDetailList", action=ParentCascadeAction.DELETE)
+    
+            If rule or action not specified, default is ParentCascadeAction.NULLIFY
+    
+            Parent_cascade with ParentCascadeAction.NULLIFY can raise ConstraintException, e.g.:
+                try:
+                    session.commit()
+                except ConstraintException as ce:
+                    print("Constraint raised: " + str(ce))
+    
+            """
+            return ParentCascade(validate=validate, error_msg=error_msg, relationship=relationship, action=action)
+    '''
 
     @staticmethod
     def formula(derive: InstrumentedAttribute, calling: Callable = None,
