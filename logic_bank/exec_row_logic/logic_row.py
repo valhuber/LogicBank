@@ -171,6 +171,7 @@ class LogicRow:
 
         class DotDict(dict):
             """dot.notation access to dictionary attributes"""
+            # thanks: https://stackoverflow.com/questions/2352181/how-to-use-a-dot-to-access-members-of-dictionary/28463329
             __getattr__ = dict.get
             __setattr__ = dict.__setitem__
             __delattr__ = dict.__delitem__
@@ -179,10 +180,10 @@ class LogicRow:
         if a_row is not None:
             result = DotDict({})
             row_mapper = object_mapper(a_row)
-            for each_attr in row_mapper.all_orm_descriptors:
+            for each_attr in row_mapper.column_attrs:  # all_orm_descriptors:
                 each_attr_name = self.get_attr_name(mapper=row_mapper, attr=each_attr)
                 if each_attr_name is None:  # is parent or collection?
-                    debug_stop_prove_parents_and_collections_skipped = True
+                    debug_stop_prove_parents_and_collections_skipped = True  # iff all_orm_descriptors
                     # print("make_copy NULL attr: " + str(result_class) + "." + str(each_attr))
                 else:
                     # print("make_copy attr: " + str(result_class) + "." + each_attr_name)
