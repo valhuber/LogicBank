@@ -38,26 +38,17 @@ class ObjectView(object):
 def get_old_row(obj, session) -> ObjectView:  # FIXME design verify approach
     """
     obtain old_row (during before_flush) from sqlalchemy row
-
-    thanks
-        https://docs.sqlalchemy.org/en/13/_modules/examples/versioned_history/history_meta.html
-        https://goodcode.io/articles/python-dict-object/
-
-    or https://stackoverflow.com/questions/28871406/how-to-clone-a-sqlalchemy-db-object-with-new-primary-key
-        product_obj = products.all()[0]
-
-        db.session.expunge(product_obj)  # expunge the object from session
-        make_transient(product_obj)  # http://docs.sqlalchemy.org/en/rel_1_1/orm/session_api.html#sqlalchemy.orm.session.make_transient
-
-        product_obj.product_uid = 'something'
-        db.session.add(product_obj)
     """
-    use_transient = False  # failed experiment - disabled, but keeping it around
-    if use_transient:
-        old_row = type(obj)()
-        # session.expunge(old_row) # causes Instance <Order at 0x10aedf490> is not present in this Session
-    else:
-        old_row = {}
+
+    class DotDict(dict):
+        """dot.notation access to dictionary attributes"""
+        # thanks: https://stackoverflow.com/questions/2352181/how-to-use-a-dot-to-access-members-of-dictionary/28463329
+        __getattr__ = dict.get
+        __setattr__ = dict.__setitem__
+        __delattr__ = dict.__delitem__
+
+    use_dot_dict = True  # failed experiment - disabled, but keeping it around
+    old_row = DotDict({})
     obj_state = attributes.instance_state(obj)
     obj_mapper = object_mapper(obj)
     for each_map in obj_mapper.iterate_to_root():
@@ -84,26 +75,14 @@ def get_old_row(obj, session) -> ObjectView:  # FIXME design verify approach
             # todo prefers .AttributeState.history -- how to code??
 
             if d:  # changed, and this is the old value
-                if use_transient:
-                    setattr(old_row, prop.key, d[0])
-                else:
-                    old_row[prop.key] = d[0]
+                old_row[prop.key] = d[0]
                 obj_changed = True
             elif u:  # unchanged
-                if use_transient:
-                    setattr(old_row, prop.key, u[0])
-                else:
-                    old_row[prop.key] = u[0]
+                old_row[prop.key] = u[0]
             elif a:  # added (old value null) if the attribute had no value.
-                if use_transient:
-                    setattr(old_row, prop.key, a[0])
-                else:
-                    old_row[prop.key] = a[0]
+                old_row[prop.key] = a[0]
                 obj_changed = True
-    if use_transient:
-        return old_row  # expunge me!!
-    else:
-        return ObjectView(old_row)
+    return old_row
 
 
 def hydrate_row(a_row: base) -> base:

@@ -85,3 +85,7 @@ allocate a payment to a set of outstanding orders
 
 0.5.0 - Support for `Referential Integrity <https://github.com/valhuber/LogicBank/wiki/Sample-Project---Allocation>`_,
 with examples.
+
+0.5.1 - Support domain object constructors with complex (side effects)
+__init__ behavior; use row_mapper.column_attrs (not all_orm_descriptors)
+to avoid 'flush already in progress' when using flask_sqlalchemy
