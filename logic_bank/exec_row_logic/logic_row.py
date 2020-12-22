@@ -118,7 +118,7 @@ class LogicRow:
         row_mapper = object_mapper(self.row)
         if self.row.__tablename__ == "Customerxx":
             print("Debug Stop here")
-        for each_attr in row_mapper.all_orm_descriptors:
+        for each_attr in row_mapper.column_attrs:  # avoid parent objects, child collections
             is_hybrid = isinstance(each_attr, hybrid_property)
             each_attr_name = self.get_attr_name(mapper=row_mapper, attr=each_attr)
             if each_attr_name is None:  # parent or child-list
@@ -168,15 +168,25 @@ class LogicRow:
         :param a_row:
         :return:
         """
+
+        class DotDict(dict):
+            """dot.notation access to dictionary attributes"""
+            __getattr__ = dict.get
+            __setattr__ = dict.__setitem__
+            __delattr__ = dict.__delitem__
+
         result = None
         if a_row is not None:
-            result_class = a_row.__class__
-            result = result_class()  # TODO - this requires empty CTOR... add factory?
+            result = DotDict({})
             row_mapper = object_mapper(a_row)
             for each_attr in row_mapper.all_orm_descriptors:
                 each_attr_name = self.get_attr_name(mapper=row_mapper, attr=each_attr)
-                if each_attr_name is not None:  # is parent or collection (parent??)
-                    setattr(result, each_attr_name, getattr(a_row, each_attr_name))
+                if each_attr_name is None:  # is parent or collection?
+                    debug_stop_prove_parents_and_collections_skipped = True
+                    # print("make_copy NULL attr: " + str(result_class) + "." + str(each_attr))
+                else:
+                    # print("make_copy attr: " + str(result_class) + "." + each_attr_name)
+                    result[each_attr_name] = getattr(a_row, each_attr_name)
         return result
 
     def get_parent_logic_row(self, role_name: str, from_row: base = None) -> 'LogicRow':

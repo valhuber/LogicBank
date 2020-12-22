@@ -25,6 +25,7 @@ class LogicBank:
 
     where myLogic is a function that declares your rules and Python.
     """
+
     @staticmethod
     def activate(session: session, activator: callable):
         """
