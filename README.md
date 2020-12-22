@@ -1,4 +1,4 @@
-Use Logic Bank to govern SQLAlchemy
+Logic Bank governs SQLAlchemy
 update transaction logic - multi-table derivations, constraints,
 and actions such as sending mail or messages. Logic consists of both:
 
