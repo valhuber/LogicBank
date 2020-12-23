@@ -12,7 +12,6 @@ def unpaid_orders(provider: LogicRow):
     unpaid_orders_result = provider.session.query(Order)\
         .filter(Order.AmountOwed > 0, Order.CustomerId == customer_of_payment.Id)\
         .order_by(Order.OrderDate).all()
-    provider.row.AmountUnAllocated = provider.row.Amount  # FIXME
     return unpaid_orders_result
 
 
@@ -28,7 +27,6 @@ def declare_logic():
 
     RuleExtension.allocate(provider=Payment,
                            recipients=unpaid_orders,
-                           # calling=allocate_payment,
                            creating_allocation=PaymentAllocation)
 
     """

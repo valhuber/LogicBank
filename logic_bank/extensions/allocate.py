@@ -87,6 +87,10 @@ class Allocate(EarlyRowEvent):
         :param provider_logic_row: provider
         :return: provider has AmountUnAllocated remaining
         """
+
+        if provider_logic_row.row.AmountUnAllocated is None:
+            provider_logic_row.row.AmountUnAllocated = provider_logic_row.row.Amount  # initialization
+
         allocation_logic_row.insert(reason="Allocate " + provider_logic_row.name)
 
         provider_logic_row.row.AmountUnAllocated = \
