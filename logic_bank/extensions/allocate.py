@@ -1,57 +1,63 @@
 from decimal import Decimal
 from typing import Callable
-
-import sqlalchemy
-from sqlalchemy.orm import object_mapper
-from sqlalchemy_utils import get_mapper
-
-from logic_bank import rule_bank
 from logic_bank.exec_row_logic.logic_row import LogicRow
-from logic_bank.rule_bank import rule_bank_withdraw
+from logic_bank.rule_type.row_event import EarlyRowEvent
 
 
-class Allocate():
+class Allocate(EarlyRowEvent):
     """
-    Allocates anAmount from a Provider to Recipients, creating Allocation rows
+    Allocates anAmount from a Provider to Recipients, creating Allocation rows.
+
     @see https://github.com/valhuber/LogicBank/wiki/Sample-Project---Allocation
     """
-
-    def __init__(self,
-                 from_provider_row: LogicRow,  # eg, payment
-                 to_recipients: list,          # eg, unpaid orders
+    def __init__(self, provider: object,
                  creating_allocation: object,  # eg, PaymentAllocation (junction)
-                 while_calling_allocator: Callable = None):
-        self.from_provider_row = from_provider_row
-        self.to_recipients = to_recipients
-        self.creating_allocation = creating_allocation
+                 while_calling_allocator: callable = None,
+                 calling: Callable = None):
+        self.creating_allocation = creating_allocation  # Custom Rule Arguments
         self.while_calling_allocator = while_calling_allocator
+        super(Allocate, self).__init__(provider, calling)
 
-    def execute(self):
+    def __str__(self):
+        return f'Allocate Rule, for function: {str(self._function)}, creating {str(self.creating_allocation)} '
+
+    def execute(self, logic_row: LogicRow):
+        """
+        called by logic engine, overriding generic earlyEvent rule.
+        Note it passes the rule instance to the handler,
+        so that Custom Rule Arguments are passed only to allocation(), below.
+        """
+        logic_row.log(f'BEGIN {str(self)} on {str(logic_row)}')
+        value = self._function(row=logic_row.row, old_row=logic_row.old_row, logic_row=logic_row, do=self)
+        print(f'END {str(self)} on {str(logic_row)}')
+
+    def allocation(self, provider: LogicRow,  # eg, payment
+                   to_recipients: list):
         """
         Create allocation row for each recipient until while_calling_allocator returns false
 
         :return:
         """
-        self.from_provider_row.log("Allocate " + self.from_provider_row.name)
-        for each_recipient in self.to_recipients:
+        provider.log("Allocate " + provider.name)
+        for each_recipient in to_recipients:
             new_allocation = self.creating_allocation()
             new_allocation_logic_row = LogicRow(row=new_allocation, old_row=new_allocation,
                                                 ins_upd_dlt="ins",
-                                                nest_level=self.from_provider_row.nest_level + 1,
-                                                a_session=self.from_provider_row.session,
-                                                row_sets=self.from_provider_row.row_sets)
-            new_allocation_logic_row.link(to_parent=self.from_provider_row)
+                                                nest_level=provider.nest_level + 1,
+                                                a_session=provider.session,
+                                                row_sets=provider.row_sets)
+            new_allocation_logic_row.link(to_parent=provider)
             each_recipient_logic_row = LogicRow(row=each_recipient, old_row=each_recipient,
                                                 ins_upd_dlt="*", nest_level=0,
-                                                a_session=self.from_provider_row.session,
+                                                a_session=provider.session,
                                                 row_sets=None)
             new_allocation_logic_row.link(to_parent=each_recipient_logic_row)
             if self.while_calling_allocator is not None:
                 allocator = self.while_calling_allocator(new_allocation_logic_row,
-                                                         self.from_provider_row)
+                                                    provider)
             else:
                 allocator = self.while_calling_allocator_default(new_allocation_logic_row,
-                                                                 self.from_provider_row)
+                                                                 provider)
             if not allocator:
                 break
         return self

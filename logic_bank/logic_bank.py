@@ -46,8 +46,10 @@ class LogicBank:
 
 class Rule:
     """Invoke these functions to *define* rules.
+
     Rules are *not* run as they are defined,
     they are run when you issue `session.commit()'.
+
     Use code completion to discover rules.
     """
 

@@ -1,21 +1,21 @@
 from decimal import Decimal
 
 from logic_bank.exec_row_logic.logic_row import LogicRow
-from logic_bank.extensions.allocate import Allocate
+from logic_bank.extensions.rule_extensions import RuleExtension
 from logic_bank.logic_bank import Rule
 from payment_allocation.db.models import Customer, Order, Payment, PaymentAllocation
 
 
-def allocate_payment(row: Payment, old_row: Payment, logic_row: LogicRow):
-    """ get unpaid orders (recipient), invoke allocation """
+def allocate_payment(row: Payment, old_row: Payment, logic_row: LogicRow, do: object):
+    """ event handler: get unpaid orders (recipient), invoke allocation """
     customer_of_payment = row.Customer
     unpaid_orders = logic_row.session.query(Order)\
         .filter(Order.AmountOwed > 0, Order.CustomerId == customer_of_payment.Id)\
         .order_by(Order.OrderDate).all()
     row.AmountUnAllocated = row.Amount
-    Allocate(from_provider_row=logic_row,  # uses default while_calling_allocator
-             to_recipients=unpaid_orders,
-             creating_allocation=PaymentAllocation).execute()
+    do.allocation(provider=logic_row,  # uses default while_calling_allocator
+                  to_recipients=unpaid_orders)
+    # print("rules_bank#allocate_payment complete")
 
 
 def declare_logic():
@@ -28,7 +28,8 @@ def declare_logic():
     Rule.formula(derive=PaymentAllocation.AmountAllocated, as_expression=lambda row:
         min(Decimal(row.Payment.AmountUnAllocated), Decimal(row.Order.AmountOwed)))
 
-    Rule.early_row_event(on_class=Payment, calling=allocate_payment)
+    # Rule.early_row_event(on_class=Payment, calling=allocate_payment)
+    RuleExtension.allocate(provider=Payment, calling=allocate_payment, creating_allocation=PaymentAllocation)
 
     """
     minor issue to research - failed getting unpaid orders like this

@@ -60,6 +60,6 @@ if post_cust.Balance == pre_cust.Balance - 1000:  # 1016 -> 16  ?? 794
     logic_row.log("Correct adjusted Customer Result")
     assert True
 else:
-    logic_row.log("ERROR - incorrect adjusted Customer Result")
-    assert False
+    logic_row.log("ERROR - Balance not reduced 1000")
+    assert False, "Balance not reduced 1000"
 print("\nadd_payment, ran to completion\n\n")
