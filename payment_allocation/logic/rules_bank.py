@@ -6,16 +6,14 @@ from logic_bank.logic_bank import Rule
 from payment_allocation.db.models import Customer, Order, Payment, PaymentAllocation
 
 
-def allocate_payment(row: Payment, old_row: Payment, logic_row: LogicRow, do: object):
-    """ event handler: get unpaid orders (recipient), invoke allocation """
-    customer_of_payment = row.Customer
-    unpaid_orders = logic_row.session.query(Order)\
+def unpaid_orders(provider: LogicRow):
+    """ returns Payments' Customers' Orders, where AmountOwed > 0, by OrderDate """
+    customer_of_payment = provider.row.Customer
+    unpaid_orders_result = provider.session.query(Order)\
         .filter(Order.AmountOwed > 0, Order.CustomerId == customer_of_payment.Id)\
         .order_by(Order.OrderDate).all()
-    row.AmountUnAllocated = row.Amount
-    do.allocation(provider=logic_row,  # uses default while_calling_allocator
-                  to_recipients=unpaid_orders)
-    # print("rules_bank#allocate_payment complete")
+    provider.row.AmountUnAllocated = provider.row.Amount  # FIXME
+    return unpaid_orders_result
 
 
 def declare_logic():
@@ -28,8 +26,10 @@ def declare_logic():
     Rule.formula(derive=PaymentAllocation.AmountAllocated, as_expression=lambda row:
         min(Decimal(row.Payment.AmountUnAllocated), Decimal(row.Order.AmountOwed)))
 
-    # Rule.early_row_event(on_class=Payment, calling=allocate_payment)
-    RuleExtension.allocate(provider=Payment, calling=allocate_payment, creating_allocation=PaymentAllocation)
+    RuleExtension.allocate(provider=Payment,
+                           recipients=unpaid_orders,
+                           # calling=allocate_payment,
+                           creating_allocation=PaymentAllocation)
 
     """
     minor issue to research - failed getting unpaid orders like this

@@ -39,6 +39,7 @@ class RuleExtension:
     @staticmethod
     def allocate(provider: object = None,
                  calling: Callable = None,
+                 recipients: Callable = None,
                  while_calling_allocator: Callable = None,
                  creating_allocation: object = None):
         """
@@ -46,18 +47,16 @@ class RuleExtension:
 
         In your rule_bank:
 
-            RuleExtension.allocate(provider=Payment, calling=allocate_payment, creating_allocation=PaymentAllocation)
-
-        In allocate_payment ("do" is the rule instance, where creating_allocation was saved):
-
-            compute to_recipients...
-            do.allocation(provider=logic_row,  # uses default while_calling_allocator
-                                  to_recipients=unpaid_orders)
+            RuleExtension.allocate(provider=Payment,
+                                   recipients=receiving_orders,
+                                   calling=allocate_payment,
+                                   creating_allocation=PaymentAllocation)
 
         @see https://github.com/valhuber/LogicBank/wiki/Sample-Project---Allocation
         """
         return Allocate(provider=provider,
                         calling=calling,
+                        recipients=recipients,
                         creating_allocation=creating_allocation,
                         while_calling_allocator=while_calling_allocator)
 

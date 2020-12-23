@@ -12,33 +12,40 @@ class Allocate(EarlyRowEvent):
     """
     def __init__(self, provider: object,
                  creating_allocation: object,  # eg, PaymentAllocation (junction)
-                 while_calling_allocator: callable = None,
+                 recipients: Callable = None,
+                 while_calling_allocator: Callable = None,
                  calling: Callable = None):
+        self.recipients = recipients
+        if recipients is None:
+            raise Exception("Recipients lambda is required")
         self.creating_allocation = creating_allocation  # Custom Rule Arguments
         self.while_calling_allocator = while_calling_allocator
         super(Allocate, self).__init__(provider, calling)
 
     def __str__(self):
-        return f'Allocate Rule, for function: {str(self._function)}, creating {str(self.creating_allocation)} '
+        creating = str(self.creating_allocation)
+        nodes = creating.split('.')
+        last_node = nodes[len(nodes)-1]
+        last_node = last_node[0: len(last_node)-2]
+        return f'Allocate Rule, creating: {last_node}'
 
     def execute(self, logic_row: LogicRow):
         """
         called by logic engine, overriding generic earlyEvent rule.
         Note it passes the rule instance to the handler,
         so that Custom Rule Arguments are passed only to allocation(), below.
-        """
-        logic_row.log(f'BEGIN {str(self)} on {str(logic_row)}')
-        value = self._function(row=logic_row.row, old_row=logic_row.old_row, logic_row=logic_row, do=self)
-        print(f'END {str(self)} on {str(logic_row)}')
 
-    def allocation(self, provider: LogicRow,  # eg, payment
-                   to_recipients: list):
-        """
+
+        def allocation(self, provider: LogicRow,  # eg, payment
+                       to_recipients: list):
+
         Create allocation row for each recipient until while_calling_allocator returns false
 
         :return:
         """
-        provider.log("Allocate " + provider.name)
+        logic_row.log(f'BEGIN {str(self)}')
+        provider = logic_row
+        to_recipients = self.recipients(provider)
         for each_recipient in to_recipients:
             new_allocation = self.creating_allocation()
             new_allocation_logic_row = LogicRow(row=new_allocation, old_row=new_allocation,
@@ -60,6 +67,7 @@ class Allocate(EarlyRowEvent):
                                                                  provider)
             if not allocator:
                 break
+        provider.log(f'END {str(self)}')
         return self
 
     def while_calling_allocator_default(self, allocation_logic_row, provider_logic_row) -> bool:
@@ -84,4 +92,4 @@ class Allocate(EarlyRowEvent):
         provider_logic_row.row.AmountUnAllocated = \
             provider_logic_row.row.AmountUnAllocated - allocation_logic_row.row.AmountAllocated
 
-        return provider_logic_row.row.AmountUnAllocated > 0  #  terminate allocation loop if none left
+        return provider_logic_row.row.AmountUnAllocated > 0  # terminate allocation loop if none left
