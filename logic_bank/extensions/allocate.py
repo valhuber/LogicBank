@@ -31,15 +31,9 @@ class Allocate(EarlyRowEvent):
 
     def execute(self, logic_row: LogicRow):
         """
-        called by logic engine, overriding generic earlyEvent rule.
-        Note it passes the rule instance to the handler,
-        so that Custom Rule Arguments are passed only to allocation(), below.
+        Called by logic engine, overriding generic EarlyEvent rule.
 
-
-        def allocation(self, provider: LogicRow,  # eg, payment
-                       to_recipients: list):
-
-        Create allocation row for each recipient until while_calling_allocator returns false
+        Creates allocation row for each recipient until while_calling_allocator returns false
 
         :return:
         """
@@ -61,7 +55,7 @@ class Allocate(EarlyRowEvent):
             new_allocation_logic_row.link(to_parent=each_recipient_logic_row)
             if self.while_calling_allocator is not None:
                 allocator = self.while_calling_allocator(new_allocation_logic_row,
-                                                    provider)
+                                                         provider)
             else:
                 allocator = self.while_calling_allocator_default(new_allocation_logic_row,
                                                                  provider)
