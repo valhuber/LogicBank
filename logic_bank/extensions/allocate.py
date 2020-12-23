@@ -67,13 +67,14 @@ class Allocate(EarlyRowEvent):
     def while_calling_allocator_default(self, allocation_logic_row, provider_logic_row) -> bool:
         """
         Called for each created allocation, to
-        compute Allocation.AmountAllocated (by running rules), and
-        reduce Provider.AmountUnAllocated
+            * insert the created allocation (triggering rules that compute `Allocation.AmountAllocated`)
+            * reduce Provider.AmountUnAllocated
+            * return boolean indicating whether Provider.AmountUnAllocated > 0 (remains)
 
         This uses default names:
-        provider.Amount
-        provider.AmountUnallocated
-        allocation.AmountAllocated
+            * provider.Amount
+            * provider.AmountUnallocated
+            * allocation.AmountAllocated
 
         To use your names, copy this code and alter as as required
 
@@ -85,7 +86,7 @@ class Allocate(EarlyRowEvent):
         if provider_logic_row.row.AmountUnAllocated is None:
             provider_logic_row.row.AmountUnAllocated = provider_logic_row.row.Amount  # initialization
 
-        allocation_logic_row.insert(reason="Allocate " + provider_logic_row.name)
+        allocation_logic_row.insert(reason="Allocate " + provider_logic_row.name)  # triggers rules, eg AmountAllocated
 
         provider_logic_row.row.AmountUnAllocated = \
             provider_logic_row.row.AmountUnAllocated - allocation_logic_row.row.AmountAllocated
