@@ -26,6 +26,8 @@ class ConstraintException(SystemError):
 class ObjectView(object):
     """
     Makes a dict look like a row, enabling old_row.attr
+
+    @disparaged
     """
 
     def __init__(self, d):
@@ -35,19 +37,19 @@ class ObjectView(object):
         return str(self.__dict__)
 
 
+class DotDict(dict):
+    """dot.notation access to dictionary attributes"""
+    # thanks: https://stackoverflow.com/questions/2352181/how-to-use-a-dot-to-access-members-of-dictionary/28463329
+    __getattr__ = dict.get
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
+
+
 def get_old_row(obj, session) -> ObjectView:  # FIXME design verify approach
     """
     obtain old_row (during before_flush) from sqlalchemy row
     """
 
-    class DotDict(dict):
-        """dot.notation access to dictionary attributes"""
-        # thanks: https://stackoverflow.com/questions/2352181/how-to-use-a-dot-to-access-members-of-dictionary/28463329
-        __getattr__ = dict.get
-        __setattr__ = dict.__setitem__
-        __delattr__ = dict.__delitem__
-
-    use_dot_dict = True  # failed experiment - disabled, but keeping it around
     old_row = DotDict({})
     obj_state = attributes.instance_state(obj)
     obj_mapper = object_mapper(obj)

@@ -16,7 +16,7 @@ from logic_bank.rule_type.formula import Formula
 from logic_bank.rule_type.parent_cascade import ParentCascade, ParentCascadeAction
 from logic_bank.rule_type.parent_check import ParentCheck
 from logic_bank.rule_type.row_event import EarlyRowEvent
-from logic_bank.util import ConstraintException
+from logic_bank.util import ConstraintException, DotDict
 
 
 class LogicRow:
@@ -163,18 +163,11 @@ class LogicRow:
 
     def make_copy(self, a_row: base) -> base:
         """
-        returns copy of row, or None
+        returns DotDict copy of row, or None
 
         :param a_row:
         :return:
         """
-
-        class DotDict(dict):
-            """dot.notation access to dictionary attributes"""
-            # thanks: https://stackoverflow.com/questions/2352181/how-to-use-a-dot-to-access-members-of-dictionary/28463329
-            __getattr__ = dict.get
-            __setattr__ = dict.__setitem__
-            __delattr__ = dict.__delitem__
 
         result = None
         if a_row is not None:
