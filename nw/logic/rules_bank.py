@@ -86,7 +86,6 @@ def declare_logic():
     RuleExtension.copy(copy_from=Employee,
                        copy_to=EmployeeAudit,
                        copy_when=lambda logic_row: logic_row.are_attributes_changed([Employee.Salary, Employee.Title]))
-    Rule.formula(derive=EmployeeAudit.FirstName, as_exp="'aa'")
 
 
 class InvokePythonFunctions:  # use functions for more complex rules, type checking, etc (not used)
