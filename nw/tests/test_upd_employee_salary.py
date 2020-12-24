@@ -42,7 +42,7 @@ class Test(unittest.TestCase):
         """
 
         bad_employee_raise = session.query(models.Employee).filter(models.Employee.Id == 1).one()
-        bad_employee_raise.Salary = bad_employee_raise.Salary * Decimal('1.2')
+        bad_employee_raise.Salary = bad_employee_raise.Salary * Decimal('1.1')
 
         did_fail_as_expected = False
 
