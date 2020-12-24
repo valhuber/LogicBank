@@ -30,7 +30,7 @@ class NWCopy(RowEvent):
         """
         Called by logic engine, overriding generic EarlyEvent rule.
 
-        Creates allocation row for each recipient until while_calling_allocator returns false
+        Copies like-named attrs from copy_from (current row) to copy_to
 
         :return:
         """
