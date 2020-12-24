@@ -1,9 +1,12 @@
+from typing import List
+
 import sqlalchemy
 from sqlalchemy import inspect, text
 from sqlalchemy.ext.declarative import base
 from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import object_mapper, session, relationships, RelationshipProperty
+from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 import logic_bank
 from logic_bank.rule_bank.rule_bank import RuleBank
@@ -368,6 +371,17 @@ class LogicRow:
             if getattr(self.row, each_child_column_name) != getattr(self.old_row, each_child_column_name):
                 return True
         return False
+
+    def are_attributes_changed(self, attr_list: List[InstrumentedAttribute]):
+        """ returns list of changed attr names, e.g.,
+
+        if not logic_row.are_attributes_changed([Employee.Salary, Employee.Title])
+        """
+        changes = []
+        for each_attr in attr_list:
+            if getattr(self.row, each_attr.key) != getattr(self.old_row, each_attr.key):
+                changes.append(each_attr.key)
+        return changes
 
     def get_old_child_rows(self, relationship: RelationshipProperty):
         """

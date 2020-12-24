@@ -83,7 +83,9 @@ def declare_logic():
                     calling=raise_over_20_percent,
                     error_msg="{row.LastName} needs a more meaningful raise")
 
-    RuleExtension.copy(copy_from=Employee, copy_to=EmployeeAudit)
+    RuleExtension.copy(copy_from=Employee,
+                       copy_to=EmployeeAudit,
+                       copy_when=lambda logic_row: logic_row.are_attributes_changed([Employee.Salary, Employee.Title]))
     Rule.formula(derive=EmployeeAudit.FirstName, as_exp="'aa'")
 
 

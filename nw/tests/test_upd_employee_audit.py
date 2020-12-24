@@ -38,7 +38,20 @@ class Test(unittest.TestCase):
     def test_run(self):
 
         """
-        Test 1 - alter Salary, ensure EmployeeAudit created
+        Test 1 - alter Salary, ensure no EmployeeAudit created
+        """
+
+        test_emp = session.query(models.Employee).filter(models.Employee.Id == 1).one()
+        test_emp.City = "don't audit this"
+        session.commit()
+
+        print("")
+        test_emp_audit = session.query(models.EmployeeAudit).all()
+        if test_emp_audit:
+            self.fail("Failure - audit row created for just City change")
+
+        """
+        Test 2 - alter Salary, ensure EmployeeAudit created
         """
 
         test_emp = session.query(models.Employee).filter(models.Employee.Id == 1).one()
@@ -48,4 +61,4 @@ class Test(unittest.TestCase):
         print("")
         test_emp_audit = session.query(models.EmployeeAudit).one()
         if test_emp_audit is None:
-            self.fail("Failure - audit row not created")
+            self.fail("Failure - audit row not created on Salary change")

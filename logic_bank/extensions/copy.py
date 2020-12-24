@@ -35,9 +35,11 @@ class Copy(RowEvent):
         :return:
         """
         copy_from = logic_row
-        do_copy = True
+        do_copy = self.copy_when(copy_from)
         # various ways to make conditional - lambda, logic_row.is_changed([<attr-list>]
-        if do_copy:
+        if not do_copy:
+            nothing_changed = True  # debug stop
+        else:
             copy_from.log(f'BEGIN {str(self)}')
             copy_to_row = self.copy_to()
             copy_to_logic_row = LogicRow(row=copy_to_row, old_row=copy_to_row,
