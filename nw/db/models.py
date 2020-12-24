@@ -119,6 +119,8 @@ class Employee(Base):
                                       backref='Manages')  # parent Company
     TerritoryList = relationship("EmployeeTerritory", cascade_backrefs=True, backref="Employee")
 
+    EmployeeAuditList = relationship("EmployeeAudit", cascade_backrefs=True, backref="Employee")
+
     @hybrid_property
     def order_count(self):
         if not hasattr(self, "_order_count"):
@@ -129,6 +131,15 @@ class Employee(Base):
     def order_count(self, value):
         self._order_count = value
 
+class EmployeeAudit(Base):
+    __tablename__ = 'EmployeeAudit'
+
+    Id = Column(Integer, primary_key=True)
+    EmployeeId = Column(ForeignKey('Employee.Id'), nullable=False)
+    LastName = Column(String(8000))
+    FirstName = Column(String(8000))
+    Title = Column(String(8000))
+    Salary = Column(DECIMAL(10, 2))
 
 class Product(Base):
     __tablename__ = 'Product'

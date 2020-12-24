@@ -8,6 +8,7 @@ from sqlalchemy_utils import get_mapper
 from logic_bank import rule_bank
 from logic_bank.exec_row_logic.logic_row import LogicRow
 from logic_bank.extensions.allocate import Allocate
+from logic_bank.extensions.copy import Copy
 from logic_bank.rule_bank import rule_bank_withdraw
 from logic_bank.rule_bank.rule_bank import RuleBank
 from logic_bank.rule_type.row_event import EarlyRowEvent
@@ -38,7 +39,6 @@ class RuleExtension:
 
     @staticmethod
     def allocate(provider: object = None,
-                 calling: Callable = None,
                  recipients: Callable = None,
                  while_calling_allocator: Callable = None,
                  creating_allocation: object = None):
@@ -48,15 +48,26 @@ class RuleExtension:
         In your rule_bank:
 
             RuleExtension.allocate(provider=Payment,
-                                   recipients=receiving_orders,
-                                   calling=allocate_payment,
-                                   creating_allocation=PaymentAllocation)
+                                   recipients=unpaid_orders,
+                                   creating_allocation=PaymentAllocation,
+                                   while_calling_allocator: my_allocator)
 
         @see https://github.com/valhuber/LogicBank/wiki/Sample-Project---Allocation
         """
         return Allocate(provider=provider,
-                        calling=calling,
                         recipients=recipients,
                         creating_allocation=creating_allocation,
                         while_calling_allocator=while_calling_allocator)
 
+    @staticmethod
+    def copy(copy_from: object = None,
+             copy_to: object = None,
+             copy_when: Callable = None,
+             initialize_target: Callable = None):
+        """
+        Copies like-named attrs from copy_from (current row) to copy_to
+        """
+        return Copy(copy_from = copy_from,
+                    copy_to = copy_to,
+                    copy_when = copy_when,
+                    initialize_target = initialize_target)

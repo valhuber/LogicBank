@@ -9,7 +9,7 @@ from decimal import Decimal
 if  __name__ == '__main__':
     print("\nStarted from cmd line - launch unittest and exit\n")
     sys.argv = [sys.argv[0]]
-    unittest.main(module="nw.tests.test_update_employee_salary")
+    unittest.main(module="nw.tests.test_upd_employee_audit")
     exit(0)
 else:
     print("Started from unittest: " + __name__)
@@ -21,7 +21,8 @@ else:
     from nw.logic import session, engine  # opens db, activates rules <--
 
     from logic_bank.exec_row_logic.logic_row import LogicRow  # must follow import of models
-    from logic_bank.util import prt, row_prt
+    from logic_bank.util import prt, row_prt, ConstraintException
+
     print("\n" + sys_env_info + "\n\n")
 
 
@@ -36,26 +37,15 @@ class Test(unittest.TestCase):
 
     def test_run(self):
 
-        """ Test State Transition Logic - raise over 20%
-
-            should fail due to credit limit exceeded (catch exception to verify)
+        """
+        Test 1 - alter Salary, ensure EmployeeAudit created
         """
 
-        bad_employee_raise = session.query(models.Employee).filter(models.Employee.Id == 1).one()
-        bad_employee_raise.Salary = bad_employee_raise.Salary * Decimal('1.2')
+        test_emp = session.query(models.Employee).filter(models.Employee.Id == 1).one()
+        test_emp.Salary = test_emp.Salary * Decimal(1.5)
+        session.commit()
 
-        did_fail_as_expected = False
-
-        try:
-            session.commit()
-        except:
-            session.rollback()
-            did_fail_as_expected = True
-
-        if not did_fail_as_expected:
-            self.fail("too-small should have failed constraint, but succeeded")
-        else:
-            print("\n" + prt("puny raise failed constraint as expected."))
-
-        print("\nupd_employee_salary, ran to completion")
-        self.assertTrue(True)
+        print("")
+        test_emp_audit = session.query(models.EmployeeAudit).one()
+        if test_emp_audit is None:
+            self.fail("Failure - audit row not created")

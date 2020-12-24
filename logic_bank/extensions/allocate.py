@@ -13,14 +13,13 @@ class Allocate(EarlyRowEvent):
     def __init__(self, provider: object,
                  creating_allocation: object,  # eg, PaymentAllocation (junction)
                  recipients: Callable = None,
-                 while_calling_allocator: Callable = None,
-                 calling: Callable = None):
+                 while_calling_allocator: Callable = None):
         self.recipients = recipients
         if recipients is None:
             raise Exception("Recipients lambda is required")
         self.creating_allocation = creating_allocation  # Custom Rule Arguments
         self.while_calling_allocator = while_calling_allocator
-        super(Allocate, self).__init__(provider, calling)
+        super(Allocate, self).__init__(provider, None)
 
     def __str__(self):
         creating = str(self.creating_allocation)

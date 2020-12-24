@@ -1,8 +1,9 @@
 from decimal import Decimal
 
 from logic_bank.exec_row_logic.logic_row import LogicRow
+from logic_bank.extensions.rule_extensions import RuleExtension
 from logic_bank.logic_bank import Rule
-from nw.db.models import Customer, OrderDetail, Product, Order, OrderClass, Employee
+from nw.db.models import Customer, OrderDetail, Product, Order, OrderClass, Employee, EmployeeAudit
 from logic_bank.rule_type.parent_cascade import ParentCascadeAction
 
 
@@ -81,6 +82,9 @@ def declare_logic():
     Rule.constraint(validate=Employee,
                     calling=raise_over_20_percent,
                     error_msg="{row.LastName} needs a more meaningful raise")
+
+    RuleExtension.copy(copy_from=Employee, copy_to=EmployeeAudit)
+    Rule.formula(derive=EmployeeAudit.FirstName, as_exp="'aa'")
 
 
 class InvokePythonFunctions:  # use functions for more complex rules, type checking, etc (not used)

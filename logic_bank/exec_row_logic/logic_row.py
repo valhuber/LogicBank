@@ -15,7 +15,7 @@ from logic_bank.rule_type.constraint import Constraint
 from logic_bank.rule_type.formula import Formula
 from logic_bank.rule_type.parent_cascade import ParentCascade, ParentCascadeAction
 from logic_bank.rule_type.parent_check import ParentCheck
-from logic_bank.rule_type.row_event import EarlyRowEvent
+from logic_bank.rule_type.row_event import EarlyRowEvent, RowEvent
 from logic_bank.util import ConstraintException, DotDict
 
 
@@ -219,6 +219,17 @@ class LogicRow:
         """
         early_row_events = rule_bank_withdraw.rules_of_class(self, EarlyRowEvent)
         for each_row_event in early_row_events:
+            each_row_event.execute(self)
+
+    def row_events(self):
+        self.log_engine("early_events")
+        """
+        early_row_events = rule_bank_withdraw.generic_rules_of_class(EarlyRowEvent)  # FIXME - review duplication
+        for each_row_event in early_row_events:
+            each_row_event.execute(self)
+        """
+        row_events = rule_bank_withdraw.rules_of_class(self, RowEvent)
+        for each_row_event in row_events:
             each_row_event.execute(self)
 
     def copy_rules(self):
@@ -643,6 +654,7 @@ class LogicRow:
             self.constraints()
             self.parent_cascade_attribute_changes_to_children()  # child chaining (cascade changed parent references)
             self.parent_cascade_pk_change()  # actions - delete, nullify, prevent
+            self.row_events()
             if self.row_sets is not None:  # eg, for debug as in upd_order_shipped test
                 self.row_sets.remove_submitted(logic_row=self)
 
