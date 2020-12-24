@@ -383,6 +383,24 @@ class LogicRow:
                 changes.append(each_attr.key)
         return changes
 
+    def set_same_named_attributes(self, from_logic_row: 'LogicRow'):
+        row_mapper = object_mapper(self.row)
+        if self.row.__tablename__ == "Customerxx":
+            print("Debug Stop here")
+        from_attrs = object_mapper(from_logic_row.row).column_attrs
+        for each_attr in row_mapper.column_attrs:  # avoid parent objects, child collections
+            is_hybrid = isinstance(each_attr, hybrid_property)
+            each_attr_name = self.get_attr_name(mapper=row_mapper, attr=each_attr)
+            if each_attr_name is None:  # parent or child-list
+                raise Exception("attr_name is None, should not occur for row_mapper.column_attrs")
+            else:
+                if each_attr_name in self.table_meta.primary_key.columns.keys():
+                    debug_skip_primary_key_columns = True
+                else:
+                    if each_attr_name in from_attrs:
+                        setattr(self.row, each_attr_name, getattr(from_logic_row.row, each_attr_name))
+        return
+
     def get_old_child_rows(self, relationship: RelationshipProperty):
         """
         result = getattr(self.old_row, role_name)  # even with util.use_transient, yields nothing, unsure why

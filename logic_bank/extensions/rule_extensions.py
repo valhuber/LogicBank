@@ -65,7 +65,12 @@ class RuleExtension:
              copy_when: Callable = None,
              initialize_target: Callable = None):
         """
-        Copies like-named attrs from copy_from (current row) to copy_to
+        Copies like-named attrs from copy_from (current row) to copy_to, e.g.,
+
+            RuleExtension.copy(copy_from=Employee,
+                copy_to=EmployeeAudit,
+                copy_when=lambda logic_row: logic_row.are_attributes_changed([Employee.Salary, Employee.Title]))
+
         """
         return Copy(copy_from = copy_from,
                     copy_to = copy_to,

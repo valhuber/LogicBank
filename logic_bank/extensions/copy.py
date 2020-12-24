@@ -36,7 +36,6 @@ class Copy(RowEvent):
         """
         copy_from = logic_row
         do_copy = self.copy_when(copy_from)
-        # various ways to make conditional - lambda, logic_row.is_changed([<attr-list>]
         if not do_copy:
             nothing_changed = True  # debug stop
         else:
@@ -48,7 +47,7 @@ class Copy(RowEvent):
                                                 a_session=copy_from.session,
                                                 row_sets=copy_from.row_sets)
             copy_to_logic_row.link(to_parent=copy_from)
-            # copy_to_logic_row.copy_corresponding(copy_from)  TBD
+            copy_to_logic_row.set_same_named_attributes(copy_from)
             copy_to_logic_row.insert(reason="Copy " + copy_to_logic_row.name)  # triggers rules...
             # copy_from.log(f'END {str(self)}')
         return self
