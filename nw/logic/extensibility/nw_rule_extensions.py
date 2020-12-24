@@ -1,5 +1,4 @@
 from typing import Callable
-
 from nw.logic.extensibility.nw_copy import NWCopy
 
 """
@@ -25,7 +24,6 @@ class NWRuleExtension:
 
     Use code completion to discover rules.
     """
-
 
     @staticmethod
     def nw_copy(copy_from: object = None,

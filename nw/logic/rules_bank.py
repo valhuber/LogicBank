@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from logic_bank.exec_row_logic.logic_row import LogicRow
 from logic_bank.extensions.rule_extensions import RuleExtension
-from logic_bank.logic_bank import Rule
+from logic_bank.logic_bank import Rule, DeclareRule
 from nw.db.models import Customer, OrderDetail, Product, Order, OrderClass, Employee, EmployeeAudit
 from logic_bank.rule_type.parent_cascade import ParentCascadeAction
 from nw.logic.extensibility.nw_rule_extensions import NWRuleExtension
@@ -46,7 +46,7 @@ def declare_logic():
     Rule.sum(derive=Customer.Balance, as_sum_of=Order.AmountTotal,
              where=lambda row: row.ShippedDate is None)  # *not* a sql select sum...
 
-    Rule.sum(derive=Order.AmountTotal, as_sum_of=OrderDetail.Amount)
+    DeclareRule.sum(derive=Order.AmountTotal, as_sum_of=OrderDetail.Amount)
 
     Rule.formula(derive=OrderDetail.Amount, as_expression=lambda row: row.UnitPrice * row.Quantity)
     Rule.copy(derive=OrderDetail.UnitPrice, from_parent=Product.UnitPrice)
@@ -89,9 +89,8 @@ def declare_logic():
                        copy_when=lambda logic_row: logic_row.are_attributes_changed([Employee.Salary, Employee.Title]))
     """
     NWRuleExtension.nw_copy(copy_from=Employee,
-                       copy_to=EmployeeAudit,
-                       copy_when=lambda logic_row: logic_row.are_attributes_changed([Employee.Salary, Employee.Title]))
-
+                            copy_to=EmployeeAudit,
+                            copy_when=lambda logic_row: logic_row.are_attributes_changed([Employee.Salary, Employee.Title]))
 
 
 class InvokePythonFunctions:  # use functions for more complex rules, type checking, etc (not used)

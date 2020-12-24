@@ -17,13 +17,19 @@ from logic_bank.rule_type.sum import Sum
 
 class LogicBank:
     """
-    Logic consists of Rules, and Python.
+    Declare rules, e.g.
 
-    Activate your logic by calling
+        declare_logic():
+            DeclareRule.sum(derive=Order.AmountTotal, as_sum_of=OrderDetail.Amount)  # discover with code completion
 
-        activate(session: session, activator: my_logic)
+    Activate them:
 
-    where myLogic is a function that declares your rules and Python.
+        LogicBank.activate(session=session, activator=declare_logic)  # register LogicBank listeners to SQLAlchemy
+
+    Execute them:
+
+        session.commit()  # LogicBank listeners execute rules relevant for submitted changes
+
     """
 
     @staticmethod
@@ -209,3 +215,22 @@ class Rule:
         """
         return CommitRowEvent(on_class, calling)  # --> load_logic
 
+
+class DeclareRule(Rule):
+    """
+    Same as Rule, but makes clear these statements *declare* rules, e.g.
+
+        declare_logic():
+
+            DeclareRule.sum(derive=Order.AmountTotal, as_sum_of=OrderDetail.Amount)
+
+    Activate them:
+
+        LogicBank.activate(session=session, activator=declare_logic)  # registers LogicBank listeners to SQLAlchemy
+
+    Execute them:
+
+        session.commit()  # LogicBank listeners execute rules relevant for submitted changes
+
+    """
+    pass
