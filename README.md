@@ -119,7 +119,7 @@ are fully automated by the engine, based solely on the rules above.
 
 **Reuse over Use Cases is automatic.**
 Just as a spreadsheet summing a column reacts
-to inserted, updates and deletes,
+to inserts, updates and deletes,
 rules designed for _add_ also
 automate _deleting_ and _updating_ orders.
 This is how 5 rules represent the same logic as 200 lines of code.
@@ -162,7 +162,7 @@ _their_ interpretation of working software.
 The [fab-quick-start](https://github.com/valhuber/fab-quick-start/wiki)
 project enables you to build a basic web app in minutes.
 
-<figure><img src="images/fab.png" width="800"></figure>
+<figure><img src="images/fab.png"></figure>
 
 This project has already generated such an app, which you can run
 once you've finished the Installation process, below.
