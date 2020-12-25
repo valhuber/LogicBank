@@ -38,7 +38,7 @@ It's also incredibly repetitive - you often get the feeling you're doing the sam
 And you're right.  It's because backend logic follows patterns of "what" is supposed to happen.
 And your code is the "how".  Suddenly, a simple cocktail napkin specification explodes into a massive amount of legacy code:
 
-<figure><img src="images/overview/rules-vs-code.png" width="800"></figure>
+<figure><img src="images/overview/rules-vs-code.png"></figure>
 
 Logic Bank was designed to make the cocktail napkin spec _executable_.
 
@@ -47,7 +47,7 @@ Logic Bank introduces rules that are 40X more concise than legacy code.
 The 5 rules below (lines 34-43) express the same logic as 200 lines of code [**(see them here)**](nw/logic/legacy).  That's because rules are all about "what"
 -- spreadsheet-like expressions that automate the tedious "how":
 
-<figure><img src="images/overview/cocktail-logic-bank.png" width="800"></figure>
+<figure><img src="images/overview/cocktail-logic-bank.png"></figure>
 
 ### Standard Python - Declare, Extend, Manage
 Logic Bank is fully integrated with Python:
@@ -63,7 +63,7 @@ additional background, and real world experience.
 
 
 ## Architecture - handle SQLAlchemy ```before_flush``` Events
-<figure><img src="images/architecture.png" width="800"></figure>
+<figure><img src="images/architecture.png"></figure>
 
 Logic Bank operates as shown above:
 
@@ -96,7 +96,7 @@ Let's see how logic operates on a typical, multi-table transaction.
 
 #### Logic Execution: Add Order - Watch, React, Chain
 
-<figure><img src="images/check-credit.png" width="500"></figure>
+<figure><img src="images/check-credit.png"></figure>
 
 
 The `add_order` example illustrates how
@@ -117,7 +117,10 @@ All of the dependency management to see which attributes have changed,
 logic ordering, the SQL commands to read and adjust rows, and the chaining
 are fully automated by the engine, based solely on the rules above.
 
-**Reuse over Use Cases is automatic,** so rules designed for _add_ also
+**Reuse over Use Cases is automatic.**
+Just as a spreadsheet summing a column reacts
+to inserted, updates and deletes,
+rules designed for _add_ also
 automate _deleting_ and _updating_ orders.
 This is how 5 rules represent the same logic as 200 lines of code.
 
