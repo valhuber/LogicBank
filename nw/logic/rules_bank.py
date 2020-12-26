@@ -1,3 +1,4 @@
+import datetime
 from decimal import Decimal
 
 from logic_bank.exec_row_logic.logic_row import LogicRow
@@ -83,14 +84,23 @@ def declare_logic():
     Rule.constraint(validate=Employee,
                     calling=raise_over_20_percent,
                     error_msg="{row.LastName} needs a more meaningful raise")
-    """
+    """ also provided in system version
     RuleExtension.copy(copy_from=Employee,
                        copy_to=EmployeeAudit,
                        copy_when=lambda logic_row: logic_row.are_attributes_changed([Employee.Salary, Employee.Title]))
     """
+
     NWRuleExtension.nw_copy(copy_from=Employee,
                             copy_to=EmployeeAudit,
                             copy_when=lambda logic_row: logic_row.are_attributes_changed([Employee.Salary, Employee.Title]))
+
+    def handle_all(logic_row: LogicRow):
+        row = logic_row.row
+        if logic_row.ins_upd_dlt == "ins" and hasattr(row, "CreatedOn"):
+            row.CreatedOn = datetime.datetime.now()
+            logic_row.log("early_row_event_all_classes - handle_all sets 'Created_on"'')
+
+    Rule.early_row_event_all_classes(early_row_event_all_classes=handle_all)
 
 
 class InvokePythonFunctions:  # use functions for more complex rules, type checking, etc (not used)

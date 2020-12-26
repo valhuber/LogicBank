@@ -1,5 +1,4 @@
 from sqlalchemy.orm import session
-
 import logic_bank
 from logic_bank.exec_row_logic.logic_row import LogicRow
 from logic_bank.exec_trans_logic.row_sets import RowSets
@@ -31,25 +30,32 @@ def before_flush(a_session: session, a_flush_context, an_instances):
     Logic Phase
     """
     logic_bank.logic_logger.debug("Logic Phase:\t\tROW LOGIC (sqlalchemy before_flush)\t\t\t")
-    # print("\n***************** sqlalchemy calls logic_bank\n")
 
     row_sets = RowSets()  # type : RowSet
+    client_inserts = []
+
     for each_instance in a_session.dirty:
         row_sets.add_submitted(each_instance)
+
+    for each_instance in a_session.new:
+        row_sets.add_submitted(each_instance)
+        """ inserts first...
+            SQLAlchemy queues these on a_session.new (but *not* updates!) 
+            so, process the client changes, so that triggered inserts (eg. audit) aren't run twice
+        """
+        client_inserts.append(each_instance)
 
     bug_explore = None  # None to disable, [None, None] to enable
     if bug_explore is not None:  # temp hack - order rows to explore bug (upd_order_reuse)
         temp_debug(a_session, bug_explore, row_sets)
     else:
         for each_instance in a_session.dirty:
-            table_name = each_instance.__tablename__
             old_row = get_old_row(each_instance, a_session)
             logic_row = LogicRow(row=each_instance, old_row=old_row, ins_upd_dlt="upd",
                                  nest_level=0, a_session=a_session, row_sets=row_sets)
             logic_row.update(reason="client")
 
-    for each_instance in a_session.new:
-        table_name = each_instance.__tablename__
+    for each_instance in client_inserts:  # a_session.new:
         logic_row = LogicRow(row=each_instance, old_row=None, ins_upd_dlt="ins",
                              nest_level=0, a_session=a_session, row_sets=row_sets)
         logic_row.insert(reason="client")
@@ -57,7 +63,6 @@ def before_flush(a_session: session, a_flush_context, an_instances):
     # if len(a_session.deleted) > 0:
         # print("deleting")
     for each_instance in a_session.deleted:
-        table_name = each_instance.__tablename__
         logic_row = LogicRow(row=each_instance, old_row=None, ins_upd_dlt="dlt",
                              nest_level=0, a_session=a_session, row_sets=row_sets)
         logic_row.delete(reason="client")
@@ -67,7 +72,7 @@ def before_flush(a_session: session, a_flush_context, an_instances):
     Commit Logic Phase
     """
     logic_bank.logic_logger.debug("Logic Phase:\t\tCOMMIT   \t\t\t\t\t\t\t\t\t")
-    processed_rows = dict.copy(row_sets.processed_rows)
+    processed_rows = dict.copy(row_sets.processed_rows)  # set in LogicRow ctor
     for each_logic_row_key in processed_rows:
         each_logic_row = processed_rows[each_logic_row_key]
         logic_bank.engine_logger.debug("visit: " + each_logic_row.__str__())

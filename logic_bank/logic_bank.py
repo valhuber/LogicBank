@@ -129,34 +129,11 @@ class Rule:
         """
         return ParentCheck(validate=validate, error_msg=error_msg, enable=enable)
 
-    '''
-    disabled, per ORM support (retained in case of misunderstandings)
-        @staticmethod
-        def parent_cascade(validate: object,
-                           error_msg: str = "(error_msg not provided)",
-                           relationship: str = "*",
-                           action: ParentCascadeAction = ParentCascadeAction.NULLIFY):
-            """
-            Parent Cascade specifies processing for child rows on parent delete
-    
-            Example
-               Rule.parent_cascade(validate=Order, relationship="OrderDetailList", action=ParentCascadeAction.DELETE)
-    
-            If rule or action not specified, default is ParentCascadeAction.NULLIFY
-    
-            Parent_cascade with ParentCascadeAction.NULLIFY can raise ConstraintException, e.g.:
-                try:
-                    session.commit()
-                except ConstraintException as ce:
-                    print("Constraint raised: " + str(ce))
-    
-            """
-            return ParentCascade(validate=validate, error_msg=error_msg, relationship=relationship, action=action)
-    '''
-
     @staticmethod
-    def formula(derive: InstrumentedAttribute, calling: Callable = None,
-                as_expression: Callable = None, as_exp: str = None):
+    def formula(derive: InstrumentedAttribute,
+                calling: Callable = None,
+                as_expression: Callable = None, as_exp: str = None,
+                no_prune: bool = False):
         """
         Formulas declare column value, based on current and parent rows
 
@@ -170,7 +147,9 @@ class Rule:
           * ex_expression - lambda (for type checking)
           * calling - function (for more complex formula, with old_row)
         """
-        return Formula(derive=derive, calling=calling, as_exp=as_exp, as_expression=as_expression)
+        return Formula(derive=derive,
+                       calling=calling, as_exp=as_exp, as_expression=as_expression,
+                       no_prune=no_prune)
 
     @staticmethod
     def copy(derive: InstrumentedAttribute, from_parent: any):
@@ -194,6 +173,23 @@ class Rule:
         EarlyRowEvent(on_class, calling)  # --> load_logic
 
     @staticmethod
+    def early_row_event_all_classes(early_row_event_all_classes: Callable = None):
+        """
+        early event for all mapped classes, intended for time/date/user stamping, e.g.
+
+        def handle_all(logic_row: LogicRow):
+            row = logic_row.row
+            if logic_row.ins_upd_dlt == "ins" and hasattr(row, "CreatedOn"):
+                row.CreatedOn = datetime.datetime.now()
+                logic_row.log("early_row_event_all_classes - handle_all sets 'Created_on"'')
+
+        Rule.early_row_event_all_classes(early_row_event_all_classes=handle_all)
+
+        """
+        rule_bank_setup.setup_early_row_event_all_classes(
+            early_row_event_all_classes=early_row_event_all_classes)
+
+    @staticmethod
     def row_event(on_class: object, calling: Callable = None):
         """
         Row Events are Python functions called during logic, after formulas/constraints
@@ -214,6 +210,31 @@ class Rule:
         Use: send mail/message
         """
         return CommitRowEvent(on_class, calling)  # --> load_logic
+
+    '''
+    disabled, per ORM support (retained in case of misunderstandings)
+        @staticmethod
+        def parent_cascade(validate: object,
+                           error_msg: str = "(error_msg not provided)",
+                           relationship: str = "*",
+                           action: ParentCascadeAction = ParentCascadeAction.NULLIFY):
+            """
+            Parent Cascade specifies processing for child rows on parent delete
+
+            Example
+               Rule.parent_cascade(validate=Order, relationship="OrderDetailList", action=ParentCascadeAction.DELETE)
+
+            If rule or action not specified, default is ParentCascadeAction.NULLIFY
+
+            Parent_cascade with ParentCascadeAction.NULLIFY can raise ConstraintException, e.g.:
+                try:
+                    session.commit()
+                except ConstraintException as ce:
+                    print("Constraint raised: " + str(ce))
+
+            """
+            return ParentCascade(validate=validate, error_msg=error_msg, relationship=relationship, action=action)
+    '''
 
 
 class DeclareRule(Rule):

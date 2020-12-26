@@ -10,9 +10,7 @@ and support Custom Rule Arguments (@see allocate).
 
 Extend this class with your own Rule Extensions.
 
-This class 'publishes' rules built by providers, for consumers.
-
-It enables
+This class 'publishes' rules built by providers, for consumers.  It enables:
     1. Discovery of rules
     2. Code completion for Custom Rule Arguments
 """

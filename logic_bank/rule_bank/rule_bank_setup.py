@@ -24,6 +24,10 @@ def setup(a_session: session):
     rules_bank._at = datetime.now()
     return
 
+def setup_early_row_event_all_classes(early_row_event_all_classes: callable):
+    ll = RuleBank()
+    ll._early_row_event_all_classes = early_row_event_all_classes
+
 
 def set_referring_children(rule, dependency: list):
     pass

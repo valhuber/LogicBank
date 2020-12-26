@@ -28,7 +28,7 @@ class NWCopy(RowEvent):
 
     def execute(self, logic_row: LogicRow):
         """
-        Called by logic engine, overriding generic EarlyEvent rule.
+        Called by logic engine, overriding generic Event rule.
 
         Copies like-named attrs from copy_from (current row) to copy_to
 
@@ -40,12 +40,7 @@ class NWCopy(RowEvent):
             nothing_changed = True  # debug stop
         else:
             copy_from.log(f'BEGIN {str(self)}')
-            copy_to_row = self.copy_to()
-            copy_to_logic_row = LogicRow(row=copy_to_row, old_row=copy_to_row,
-                                                ins_upd_dlt="ins",
-                                                nest_level=copy_from.nest_level + 1,
-                                                a_session=copy_from.session,
-                                                row_sets=copy_from.row_sets)
+            copy_to_logic_row = copy_from.new_logic_row(new_row_class=self.copy_to)
             copy_to_logic_row.link(to_parent=copy_from)
             copy_to_logic_row.set_same_named_attributes(copy_from)
             copy_to_logic_row.insert(reason="Copy " + copy_to_logic_row.name)  # triggers rules...

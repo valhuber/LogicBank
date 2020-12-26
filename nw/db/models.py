@@ -140,6 +140,7 @@ class EmployeeAudit(Base):
     FirstName = Column(String(8000))
     Title = Column(String(8000))
     Salary = Column(DECIMAL(10, 2))
+    CreatedOn = Column(String(200))
 
 class Product(Base):
     __tablename__ = 'Product'

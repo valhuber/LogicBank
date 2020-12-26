@@ -56,7 +56,7 @@ class LogicRow:
 
         self.row_sets = row_sets
         if row_sets is not None:  # eg, for debug as in upd_order_shipped test
-            row_sets.add_processed(logic_row=self)
+            row_sets.add_processed(logic_row=self)  # used in commit logic
 
         rb = RuleBank()
         self.rb = rb
@@ -164,6 +164,17 @@ class LogicRow:
         output = output.replace("]:", "] {" + msg + "}", 1)
         logic_bank.engine_logger.debug(output)
 
+    def new_logic_row(self, new_row_class: sqlalchemy.ext.declarative.api.DeclarativeMeta) -> 'LogicRow':
+        """ creates a new row of type new_row_class """
+        new_row = new_row_class()
+        result = LogicRow(row=new_row,
+                          old_row=new_row,
+                          ins_upd_dlt="ins",
+                          nest_level=self.nest_level + 1,
+                          a_session=self.session,
+                          row_sets=self.row_sets)
+        return result
+
     def make_copy(self, a_row: base) -> base:
         """
         returns DotDict copy of row, or None
@@ -256,6 +267,7 @@ class LogicRow:
         return role_def
 
     def link(self, to_parent: 'LogicRow'):
+        """ set self.to_parent (parent_accessor) = to_parent """
         parent_mapper = object_mapper(to_parent.row)
         parents_relationships = parent_mapper.relationships
         parent_role_name = None
@@ -384,6 +396,7 @@ class LogicRow:
         return changes
 
     def set_same_named_attributes(self, from_logic_row: 'LogicRow'):
+        """ copy like-named values from from_logic_row -> self """
         row_mapper = object_mapper(self.row)
         if self.row.__tablename__ == "Customerxx":
             print("Debug Stop here")
@@ -665,6 +678,12 @@ class LogicRow:
                                     ins_upd_dlt=ins_upd_dlt)
         return result_logic_row
 
+    def early_row_event_all_classes(self, verb_reason: str):
+        rules_bank = RuleBank()
+        if rules_bank._early_row_event_all_classes is not None:
+            self.log("early_row_event_all_classes - " + verb_reason)
+            rules_bank._early_row_event_all_classes(self)
+
     def update(self, reason: str = None, row: base = None):
         """
         make updates - with logic - in events, for example
@@ -672,7 +691,7 @@ class LogicRow:
         row = sqlalchemy read
         logic_row.update(row=row, msg="my log message")
         """
-        if row is not None:
+        if row is not None:  # FIXME why??
             user_logic_row = self.user_row_update(row=row, ins_upd_dlt="upd")
             user_logic_row.update(reason=reason)
         else:
@@ -692,16 +711,17 @@ class LogicRow:
 
     def insert(self, reason: str = None, row: base = None):
         """
-        make updates - with logic - in events, for example
+        make inserts - with logic - in events, for example
 
-        row = sqlalchemy read
-        logic_row.update(row=row, msg="my log message")
+        row = mapped_class()
+        logic_row.insert(row=row, msg="my log message")
         """
         if row is not None:
             user_logic_row = self.user_row_update(row=row, ins_upd_dlt="ins")
             user_logic_row.insert(reason=reason)
         else:
             self.reason = reason
+            self.early_row_event_all_classes("Insert - " + reason)
             self.log("Insert - " + reason)
             self.load_parents_on_insert()
             self.early_row_events()
@@ -709,7 +729,8 @@ class LogicRow:
             self.formula_rules()
             self.adjust_parent_aggregates()
             self.constraints()
-            # self.cascade_to_children()
+            if self.row_sets is not None:  # eg, for debug as in upd_order_shipped test
+                self.row_sets.remove_submitted(logic_row=self)
 
     def delete(self, reason: str = None, row: base = None):
         """

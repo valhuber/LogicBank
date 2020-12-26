@@ -42,6 +42,8 @@ class RuleBank(metaclass=Singleton):  # FIXME design review singleton
     orm_objects = {}  # type: Dict[str, TableRules]
     """ Dict[mapped_class: str, List[TablesRules]] -- rules for a table """
     _at = datetime.now()
+    _early_row_event_all_classes = None
+    """ a single even handler (function) called for all inserts, updates and deletes """
 
     def __init__(self):
         self._metadata = None

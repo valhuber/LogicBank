@@ -13,7 +13,8 @@ class Formula(Derivation):
     def __init__(self, derive: InstrumentedAttribute,
                  as_exp: str = None,              # for very short expressions
                  as_expression: Callable = None,  # short, with type checking
-                 calling: Callable = None         # complex formula
+                 calling: Callable = None,        # complex formula
+                 no_prune: bool = False           # never prune
                  ):
         """
         Specify rep
@@ -27,6 +28,7 @@ class Formula(Derivation):
         self._as_exp = as_exp
         self._as_expression = as_expression
         self._function = calling
+        self._no_prune = no_prune
 
         self._as_exp_lambda = None   # we exec this, or _function
 
