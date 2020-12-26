@@ -6,6 +6,8 @@ Logic Bank supports Rule Extensions, of Event Rules.
 Rule Extensions are called when event rules are called,
 and support Custom Rule Arguments (@see allocate).
 
+@see https://github.com/valhuber/LogicBank/wiki/Rule-Extensibility
+
 Extend this class with your own Rule Extensions.
 
 This class 'publishes' rules built by providers, for consumers.
