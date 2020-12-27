@@ -95,6 +95,8 @@ to avoid 'flush already in progress' when using flask_sqlalchemy
 
 - `Rule Extensibility <https://github.com/valhuber/LogicBank/wiki/Rule-Extensibility>`_
 
+   - e.g., for auditing
+
 - Generic early events: `early_row_event_all_classes` (see Rule Extensibility link above)
 
    - e.g., for time/date stamping
@@ -106,3 +108,5 @@ to avoid 'flush already in progress' when using flask_sqlalchemy
    - set_same_named_attributes
 
 - Minor rename of logic class in `nw`.  Some screen shots may still show the old name (`rules_bank.py`) instead of `logic.py`.
+
+- Bug Fix: (normal) row events weren't firing (other events - early and commit events - were fine)

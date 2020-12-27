@@ -118,10 +118,9 @@ logic ordering, the SQL commands to read and adjust rows, and the chaining
 are fully automated by the engine, based solely on the rules above.
 
 **Reuse over Use Cases is automatic.**
-Just as a spreadsheet summing a column reacts
-to inserts, updates and deletes,
-rules designed for _add_ also
-automate _deleting_ and _updating_ orders.
+Just as a spreadsheet reacts
+to inserts, updates and deletes to a summed column,
+rules automate _adding_, _deleting_ and _updating_ orders.
 This is how 5 rules represent the same logic as 200 lines of code.
 
 Check out more examples:
