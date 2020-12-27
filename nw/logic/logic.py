@@ -89,9 +89,9 @@ def declare_logic():
                        copy_when=lambda logic_row: logic_row.are_attributes_changed([Employee.Salary, Employee.Title]))
     """
 
-    NWRuleExtension.nw_copy(copy_from=Employee,
-                            copy_to=EmployeeAudit,
-                            copy_when=lambda logic_row: logic_row.are_attributes_changed([Employee.Salary, Employee.Title]))
+    NWRuleExtension.nw_copy_row(copy_from=Employee,
+                                copy_to=EmployeeAudit,
+                                copy_when=lambda logic_row: logic_row.are_attributes_changed([Employee.Salary, Employee.Title]))
 
     def handle_all(logic_row: LogicRow):
         row = logic_row.row

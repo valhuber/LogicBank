@@ -1,5 +1,5 @@
 from typing import Callable
-from nw.logic.extensibility.nw_copy import NWCopy
+from nw.logic.extensibility.nw_copy import NWCopyRow
 
 """
 Logic Bank supports Rule Extensions, of Event Rules.
@@ -26,7 +26,7 @@ class NWRuleExtension:
     """
 
     @staticmethod
-    def nw_copy(copy_from: object = None,
+    def nw_copy_row(copy_from: object = None,
              copy_to: object = None,
              copy_when: Callable = None,
              initialize_target: Callable = None):
@@ -35,10 +35,11 @@ class NWRuleExtension:
 
             RuleExtension.copy_row(copy_from=Employee,
                 copy_to=EmployeeAudit,
-                copy_when=lambda logic_row: logic_row.are_attributes_changed([Employee.Salary, Employee.Title]))
+                copy_when=lambda logic_row:
+                    logic_row.are_attributes_changed([Employee.Salary, Employee.Title]))
 
         """
-        return NWCopy(copy_from = copy_from,
+        return NWCopyRow(copy_from = copy_from,
                     copy_to = copy_to,
                     copy_when = copy_when,
                     initialize_target = initialize_target)

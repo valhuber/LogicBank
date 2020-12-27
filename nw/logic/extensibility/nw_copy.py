@@ -4,7 +4,7 @@ from logic_bank.exec_row_logic.logic_row import LogicRow
 from logic_bank.rule_type.row_event import RowEvent
 
 
-class NWCopy(RowEvent):
+class NWCopyRow(RowEvent):
     """
     Copy copy_from -> copy_to (e.g., auditing).
     """
@@ -17,7 +17,7 @@ class NWCopy(RowEvent):
             raise Exception("copy_to object is required")
         self.copy_when = copy_when  # Custom Rule Arguments
         self.initialize_target = initialize_target
-        super(NWCopy, self).__init__(copy_from, None)
+        super(NWCopyRow, self).__init__(copy_from, None)
 
     def __str__(self):
         copy_to = str(self.copy_to)

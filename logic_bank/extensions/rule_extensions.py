@@ -1,17 +1,6 @@
-from decimal import Decimal
 from typing import Callable
-
-import sqlalchemy
-from sqlalchemy.orm import object_mapper
-from sqlalchemy_utils import get_mapper
-
-from logic_bank import rule_bank
-from logic_bank.exec_row_logic.logic_row import LogicRow
 from logic_bank.extensions.allocate import Allocate
-from logic_bank.extensions.copy import Copy
-from logic_bank.rule_bank import rule_bank_withdraw
-from logic_bank.rule_bank.rule_bank import RuleBank
-from logic_bank.rule_type.row_event import EarlyRowEvent
+from logic_bank.extensions.copy_row import CopyRow
 
 """
 Logic Bank supports Rule Extensions, of Event Rules.
@@ -60,7 +49,7 @@ class RuleExtension:
                         while_calling_allocator=while_calling_allocator)
 
     @staticmethod
-    def copy(copy_from: object = None,
+    def copy_row(copy_from: object = None,
              copy_to: object = None,
              copy_when: Callable = None,
              initialize_target: Callable = None):
@@ -72,7 +61,7 @@ class RuleExtension:
                 copy_when=lambda logic_row: logic_row.are_attributes_changed([Employee.Salary, Employee.Title]))
 
         """
-        return Copy(copy_from = copy_from,
+        return CopyRow(copy_from = copy_from,
                     copy_to = copy_to,
                     copy_when = copy_when,
                     initialize_target = initialize_target)
