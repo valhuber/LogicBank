@@ -44,7 +44,7 @@ Logic Bank was designed to make the cocktail napkin spec _executable_.
 
 ## What - Declare Spreadsheet-like Rules - 40X More Concise
 Logic Bank introduces rules that are 40X more concise than legacy code.
-The 5 rules below (lines 34-43) express the same logic as 200 lines of code [**(see them here)**](nw/logic/legacy).  That's because rules are all about "what"
+The 5 rules below (lines 40-49) express the same logic as 200 lines of code [**(see them here)**](nw/logic/legacy).  That's because rules are all about "what"
 -- spreadsheet-like expressions that automate the tedious "how":
 
 <figure><img src="images/overview/cocktail-logic-bank.png"></figure>
@@ -52,7 +52,7 @@ The 5 rules below (lines 34-43) express the same logic as 200 lines of code [**(
 ### Standard Python - Declare, Extend, Manage
 Logic Bank is fully integrated with Python:
 * **Declare** rules in Python as shown above
-* **Extend** rules with Python (rule on line 45 invokes the Python function on line 26)
+* **Extend** rules with Python (rule on line 51 invokes the Python function on line 32)
 * **Manage** logic using your existing IDE (PyCharm, VSCode etc for code completion, debugging, etc),
 and source control tools and procedures
 
@@ -103,15 +103,15 @@ The `add_order` example illustrates how
 __Watch / React / Chain__ operates to
 check the Credit Limit as each OrderDetail is inserted:
 
-1.  The `OrderDetail.UnitPrice` (copy, line 43) references Product, so inserts cause it to be copied
+1.  The `OrderDetail.UnitPrice` (copy, line 49) references Product, so inserts cause it to be copied
     
-2.  `Amount` (formula, line 42) watches `UnitPrice`, so its new value recomputes `Amount`
+2.  `Amount` (formula, line 48) watches `UnitPrice`, so its new value recomputes `Amount`
     
-3.  `AmountTotal` (sum, line 40) watches `Amount`, so `AmountTotal` is adjusted (more on adjustment, below)
+3.  `AmountTotal` (sum, line 46) watches `Amount`, so `AmountTotal` is adjusted (more on adjustment, below)
     
-4.  `Balance` (sum, line 37) watches `AmountTotal`, so it is adjusted
+4.  `Balance` (sum, line 43) watches `AmountTotal`, so it is adjusted
     
-5.  And the Credit Limit constraint (line 34) is checked (exceptions are raised if constraints are violated, and the transaction is rolled back)
+5.  And the Credit Limit constraint (line 40) is checked (exceptions are raised if constraints are violated, and the transaction is rolled back)
     
 All of the dependency management to see which attributes have changed,
 logic ordering, the SQL commands to read and adjust rows, and the chaining
