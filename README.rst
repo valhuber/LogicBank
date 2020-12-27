@@ -58,6 +58,7 @@ Many thanks to
 - Tyler Band, for testing and the Banking sample
 - Max Tardiveau, for testing
 - Nishanth Shyamsundar, for testing
+- Achim Götz, for design collaboration
 
 
 
@@ -89,3 +90,19 @@ with examples.
 0.5.1 - Support domain object constructors with complex (side effects)
 __init__ behavior; use row_mapper.column_attrs (not all_orm_descriptors)
 to avoid 'flush already in progress' when using flask_sqlalchemy
+
+0.6.0 - Support for
+
+- `Rule Extensibility <https://github.com/valhuber/LogicBank/wiki/Rule-Extensibility>`_
+
+- Generic early events: `early_row_event_all_classes` (see Rule Extensibility link above)
+
+   - e.g., for time/date stamping
+
+- New LogicRow functions (see Rule Extensibility link above):
+
+   - are_attributes_changed
+
+   - set_same_named_attributes
+
+- Minor rename of logic class in `nw`.  Some screen shots may still show the old name (`rules_bank.py`) instead of `logic.py`.

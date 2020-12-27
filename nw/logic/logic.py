@@ -29,10 +29,6 @@ def declare_logic():
     LogicBank.activate(session=session, activator=declare_logic)
     """
 
-    def units_in_stock(row: Product, old_row: Product, logic_row: LogicRow):
-        result = row.UnitsInStock - (row.UnitsShipped - old_row.UnitsShipped)
-        return result
-
     def congratulate_sales_rep(row: Order, old_row: Order, logic_row: LogicRow):
         if logic_row.ins_upd_dlt == "ins":  # logic engine fills parents for insert
             sales_rep = row.SalesRep  # type : Employee
@@ -56,6 +52,9 @@ def declare_logic():
 
     Rule.formula(derive=OrderDetail.ShippedDate, as_exp="row.OrderHeader.ShippedDate")
 
+    def units_in_stock(row: Product, old_row: Product, logic_row: LogicRow):
+        result = row.UnitsInStock - (row.UnitsShipped - old_row.UnitsShipped)
+        return result
     Rule.sum(derive=Product.UnitsShipped, as_sum_of=OrderDetail.Quantity,
              where="row.ShippedDate is not None")
     Rule.formula(derive=Product.UnitsInStock, calling=units_in_stock)

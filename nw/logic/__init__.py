@@ -4,7 +4,7 @@ import sqlalchemy
 from sqlalchemy.orm import session
 
 from logic_bank.logic_bank import LogicBank
-from nw.logic.rules_bank import declare_logic
+from nw.logic.logic import declare_logic
 
 import nw.logic.legacy.setup as legacy_setup
 
