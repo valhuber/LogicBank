@@ -256,7 +256,7 @@ python -m unittest discover -p "test*.py"  # run all tests
 > Log lines are long - consider copying them to a text
 > editor to view with / without word wrap
 > 
-> Or, run in an IDE - they look [like this](../../wikihome#debugging-standard-debugger-logic-logging).
+> Or, run in an IDE - they look [like this](../../wiki/home#debugging-standard-debugger-logic-logging).
 
 #### Optional - Run `basic_web_app`
 Flask App Builder is based on SQLAlchemy, so it can integrate  Logic Bank as
