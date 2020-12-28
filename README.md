@@ -237,7 +237,30 @@ pip install -r requirements.txt
 
 ### Verify and Run
 
-#### Run `basic_web_app`
+#### Run the `nw/tests`
+Run the `nw/tests` programs under your IDE or the
+command line; start with `add_order` and `upd_order_shipped,`
+and see the [walk-throughs here](../../wiki/home#logic-execution-watch-react-chain).
+The tests use ```unittest``` - you can run them as follows:
+
+```
+cd nw/tests
+python -m unittest test_add_order.py
+python test_add_order.py  # or, run it like this
+
+python -m unittest discover -p "test*.py"  # run all tests
+```
+
+> Note: the console **log** depicts logic execution
+>
+> Log lines are long - consider copying them to a text
+> editor to view with / without word wrap
+>
+
+#### Optional - Run `basic_web_app`
+Flask App Builder is based on SQLAlchemy, so it can integrate  Logic Bank as
+[described here](../../wiki/Flask-App-Builder-Integration).  The project contains a
+pre-built sample you can run:
 
 ```
 cd LogicBank
@@ -262,26 +285,6 @@ You can
     * The web app has been [configured](../../wiki/Flask-App-Builder-Integration) to activate the rules
     * The logic for this update [is interesting](../../wiki/Ship-Order) -
     check out the console log
-
-#### Run the `nw/tests`
-Run the `nw/tests` programs under your IDE or the
-command line; start with `add_order` and `upd_order_shipped,`
-and see the [walk-throughs here](../../wiki/home#logic-execution-watch-react-chain).
-The tests use ```unittest``` - you can run them as follows:
-
-```
-cd nw/tests
-python -m unittest test_add_order.py
-python test_add_order.py  # or, run it like this
-
-python -m unittest discover -p "test*.py"  # run all tests
-```
-
-> Note: the console **log** depicts logic execution
->
-> Log lines are long - consider copying them to a text
-> editor to view with / without word wrap
->
 
 ## Next Steps
 
