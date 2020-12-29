@@ -136,12 +136,11 @@ Check out more examples:
 ### Scalability: Automatic Prune / Optimize logic
 Scalability requires more than clustering - SQLs must be pruned
 and optimized.  For example, the balance rule:
-* is **pruned** if a non-referenced column is altered (e.g., Shipping Address)
+* is **pruned** if only a non-referenced column is altered (e.g., Shipping Address)
 * is **optimized** into a 1-row _adjustment_ update instead of an
-expensive SQL aggregate.
+expensive SQL aggregate
 
-For more on how
-logic automates and optimizes multi-table transactions,
+For more on how logic automates and optimizes multi-table transactions,
 [click here](../../wiki#scalability-automatic-pruning-and-optimization).
 
 
