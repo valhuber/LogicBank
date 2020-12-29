@@ -76,12 +76,12 @@ Logic Bank operates as shown above:
       
 ``` LogicBank.activate(session=session, activator=declare_logic) ```
     
- 2. Your application makes calls on `SQLAlchemy` for inserts, updates and deletes
-    and issues ```session.commit()``` (as usual).
+ 2. Your application operates as usual: makes calls on `SQLAlchemy` for inserts, updates and deletes
+    and issues `session.commit()`
 
     - By bundling transaction logic into SQLAlchemy data access, your logic
   is automatically shared, whether for hand-written code (Flask apps, APIs)
-  or via generators such as Flask AppBuilder.
+  or via generators such as Flask AppBuilder
       
 
  3. The **Logic Bank** engine handles SQLAlchemy `before_flush` events on
@@ -93,7 +93,7 @@ Logic Bank operates as shown above:
     - **react** by running rules that referenced changed attributes, which can
     - **chain** to still other attributes that refer to
 _those_ changes.  Note these might be in different tables,
-providing automation for _multi-table logic_.
+providing automation for _multi-table logic_
 
 Logic does not apply to updates outside SQLAlchemy,
 nor to SQLAlchemy batch updates or unmapped sql updates.
