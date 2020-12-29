@@ -51,7 +51,7 @@ The 5 rules below (lines 40-49) express the same logic as 200 lines of code [**(
 
 ### Standard Python - Declare, Extend, Manage
 Logic Bank is fully integrated with Python:
-* **Declare** rules in Python as shown above
+* **Declare** rules in Python as shown above (more details in Architecture, below)
 * **Extend** rules with Python (rule on line 51 invokes the Python function on line 32)
 * **Manage** logic using your existing IDE (PyCharm, VSCode etc for code completion, debugging, etc),
 and source control tools and procedures
@@ -67,20 +67,26 @@ additional background, and real world experience.
 
 Logic Bank operates as shown above:
 
- 1. **Declare** logic as rules and Python (see example above).
- 
-    - Activate: ``` LogicBank.activate(session=session, activator=declare_logic) ```
-    
-        > Note: ```declare_logic``` is the function shown above
+ 1. **Declare and Activate** (see example above):
 
- 2. Your application makes calls on `SQLAlchemy` for inserts, updates and deletes.
+    - Declaration function: create a function like ```declare_logic``` (above, line 12),
+    and declare your rules using ```Rule.``` (e.g., with IDE code completion)
+ 
+    - Activate: after opening your database, issue
+      
+``` LogicBank.activate(session=session, activator=declare_logic) ```
+    
+ 2. Your application makes calls on `SQLAlchemy` for inserts, updates and deletes
+    and issues ```session.commit()``` (as usual).
 
     - By bundling transaction logic into SQLAlchemy data access, your logic
   is automatically shared, whether for hand-written code (Flask apps, APIs)
   or via generators such as Flask AppBuilder.
+      
 
  3. The **Logic Bank** engine handles SQLAlchemy `before_flush` events on
-`Mapped Tables`
+`Mapped Tables`, so executes when you issue ```session.commit()```
+    
 
  4. The logic engine operates much like a spreadsheet:
     - **watch** for changes at the attribute level
