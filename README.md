@@ -224,6 +224,11 @@ Issues?  [Try here](https://github.com/valhuber/fab-quick-start/wiki/Mac-Python-
 
 
 ### Install LogicBank
+This procedure installs the Logic Bank source code, including
+examples you can explore.
+
+> To use Logic Bank in your own project: `pip install LogicBank`
+
 In your IDE or Command Line:
 
 ```
@@ -244,7 +249,7 @@ pip install -r requirements.txt
 
 #### Run the `nw/tests`
 Run the `nw/tests` programs under your IDE or the
-command line; start with `add_order` and `upd_order_shipped,`
+command line; start with `test_add_order` and `test_upd_order_shipped,`
 and see the [walk-throughs here](../../wiki/home#logic-execution-watch-react-chain).
 The tests use ```unittest``` - you can run them as follows:
 
@@ -335,17 +340,18 @@ pip install logicbank
 #### What's in the project
 Logic Bank consists of:
 
-* Three test database systems - `nw,`  `banking` and `payment_allocation`;
+* Several test database systems - `nw,`  `banking`,
+  `referential_integrity` and `payment_allocation`;
 these contain
 
-    * [Databases](nw/db) sqlite (no install required)
+    * [Databases](nw/db) sqlite (no install required) and models
 
     * [Test folders](nw/tests) that run key transactions - just run the scripts
 (note the logs)
 
     * [Flask AppBuilder apps](nw/basic_web_app) (as described above)
     
-    * [Logic](nw/logic) - models and rules (and for `nw`,
+    * [Logic](nw/logic) - rules (and for `nw`,
     the manual `legacy` code for contrast to rules)
     
 * The `nw` sample illustrates comparisons of Business logic, both
