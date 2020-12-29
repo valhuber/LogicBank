@@ -336,7 +336,9 @@ pip install logicbank
 
 
 # Project Information
+
 <figure><img src="images/logic-bank-project.png"></figure>
+
 #### What's in the project
 Logic Bank consists of:
 
