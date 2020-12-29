@@ -51,7 +51,7 @@ The 5 rules below (lines 40-49) express the same logic as 200 lines of code [**(
 
 ### Standard Python - Declare, Extend, Manage
 Logic Bank is fully integrated with Python:
-* **Declare** rules in Python as shown above (more details in Architecture, below)
+* **Declare** rules in Python as shown above (more details in How, below)
 * **Extend** rules with Python (rule on line 51 invokes the Python function on line 32)
 * **Manage** logic using your existing IDE (PyCharm, VSCode etc for code completion, debugging, etc),
 and source control tools and procedures
