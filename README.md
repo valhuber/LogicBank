@@ -100,7 +100,7 @@ nor to SQLAlchemy batch updates or unmapped sql updates.
 
 Let's see how logic operates on a typical, multi-table transaction.
 
-#### Logic Execution: Add Order - Watch, React, Chain
+### Logic Execution: Add Order - Watch, React, Chain
 
 <figure><img src="images/check-credit.png"></figure>
 
@@ -123,7 +123,7 @@ All of the dependency management to see which attributes have changed,
 logic ordering, the SQL commands to read and adjust rows, and the chaining
 are fully automated by the engine, based solely on the rules above.
 
-**Reuse over Use Cases is automatic.**
+### Spreadsheet-like Automatic Reuse
 Just as a spreadsheet reacts
 to inserts, updates and deletes to a summed column,
 rules automate _adding_, _deleting_ and _updating_ orders.
@@ -133,7 +133,7 @@ Check out more examples:
 * [**Ship Order**](../../wiki/Ship-Order) illustrates *cascade*, another form of multi-table logic
 * [**Banking**](../../wiki/Sample-Project---Banking) is a complex transaction using the command pattern
 
-#### Scalability: Automatic Prune / Optimize logic
+### Scalability: Automatic Prune / Optimize logic
 Scalability requires more than clustering - SQLs must be pruned
 and optimized.  For example, the balance rule:
 * is **pruned** if a non-referenced column is altered (e.g., Shipping Address)
