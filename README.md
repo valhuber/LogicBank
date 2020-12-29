@@ -17,7 +17,7 @@ This readme contains:
 1. [Background](#background)
     * [Why](#why---simple-cocktail-napkin-spec-explodes-into-massive-legacy-code) - problems addressed
     * [What](#what---declare-spreadsheet-like-rules---40x-more-concise) - what are spreadsheet-like rules
-    * [How](#architecture---handle-sqlalchemy-before_flush-events) - usage / operation overview
+    * [How](#how---usage-and-operation-overview) - usage / operation overview
     * [Logic Execution](#logic-execution-add-order---watch-react-chain) - sample transaction execution, reuse and scalability
     * [Instant Web App](#an-agile-perspective) - built using [Flask App Builder Quickstart](https://github.com/valhuber/fab-quick-start/wiki)
 1. [Install Instructions](#installation) - of Python and Logic Bank, with verify and run instructions
