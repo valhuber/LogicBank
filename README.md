@@ -72,8 +72,6 @@ Logic Bank operates as shown above:
     and declare your rules using ```Rule.``` (e.g., with IDE code completion)
  
     b. ```activate```: after opening your database, issue:
-      
-``` LogicBank.activate(session=session, activator=declare_logic) ```
     
  2. Your application operates as usual: makes calls on `SQLAlchemy` for inserts, updates and deletes
     and issues `session.commit()`
