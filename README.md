@@ -71,7 +71,10 @@ Logic Bank operates as shown above:
     a. Create a ```declare_logic``` function (above, line 12),
     and declare your rules using ```Rule.``` (e.g., with IDE code completion)
  
-    b. ```activate```: after opening your database, issue:
+    b. After opening your database, call ```activate```
+    to register your rules, and establish Logic Bank as
+    a listener for SQLAlchemy ```before_flush``` events
+    
     
  2. Your application operates as usual: makes calls on `SQLAlchemy` for inserts, updates and deletes
     and issues `session.commit()`
