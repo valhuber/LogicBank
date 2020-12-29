@@ -16,8 +16,8 @@ This readme contains:
 
 1. [Background](#background)
     * [Why](#why---simple-cocktail-napkin-spec-explodes-into-massive-legacy-code) - problems addressed
-    * [What](#what---declare-spreadsheet-like-rules---40x-more-concise) - usage overview
-    * [How](#architecture---handle-sqlalchemy-before_flush-events) - architecture, components
+    * [What](#what---declare-spreadsheet-like-rules---40x-more-concise) - what are spreadsheet-like rules
+    * [How](#architecture---handle-sqlalchemy-before_flush-events) - usage / operation overview
     * [Logic Execution](#logic-execution-add-order---watch-react-chain) - sample transaction execution, reuse and scalability
     * [Instant Web App](#an-agile-perspective) - built using [Flask App Builder Quickstart](https://github.com/valhuber/fab-quick-start/wiki)
 1. [Install Instructions](#installation) - of Python and Logic Bank, with verify and run instructions
@@ -62,7 +62,7 @@ See [here](../../wiki#technology-evaluation) for
 additional background, and real world experience.
 
 
-## Architecture - handle SQLAlchemy ```before_flush``` Events
+## How - Usage and Operation Overview
 <figure><img src="images/architecture.png"></figure>
 
 Logic Bank operates as shown above:
@@ -72,7 +72,7 @@ Logic Bank operates as shown above:
     - Declaration function: create a function like ```declare_logic``` (above, line 12),
     and declare your rules using ```Rule.``` (e.g., with IDE code completion)
  
-    - Activate: after opening your database, issue
+    - Activate: after opening your database, issue:
       
 ``` LogicBank.activate(session=session, activator=declare_logic) ```
     
