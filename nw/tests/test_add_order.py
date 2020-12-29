@@ -17,7 +17,9 @@ else:
     tests.copy_gold_over_db()
 
     import nw.db.models as models
+
     from nw.logic import session, engine  # opens db, activates rules <--
+    # activate rules:   LogicBank.activate(session=session, activator=declare_logic)
 
     from logic_bank.exec_row_logic.logic_row import LogicRow  # must follow import of models
     from logic_bank.util import prt, row_prt, ConstraintException

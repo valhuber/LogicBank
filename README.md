@@ -69,10 +69,10 @@ Logic Bank operates as shown above:
 
  1. **Declare and Activate** (see example above):
 
-    - Declaration function: create a function like ```declare_logic``` (above, line 12),
+    a. Create a ```declare_logic``` function (above, line 12),
     and declare your rules using ```Rule.``` (e.g., with IDE code completion)
  
-    - Activate: after opening your database, issue:
+    b. ```activate```: after opening your database, issue:
       
 ``` LogicBank.activate(session=session, activator=declare_logic) ```
     
