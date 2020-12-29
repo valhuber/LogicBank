@@ -64,7 +64,6 @@ additional background, and real world experience.
 
 ## How - Usage and Operation Overview
 <figure><img src="images/architecture.png"></figure>
-
 Logic Bank operates as shown above:
 
  1. **Declare and Activate** (see example above):
