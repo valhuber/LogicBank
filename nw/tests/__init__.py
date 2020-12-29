@@ -70,7 +70,7 @@ def setUp(test: object, file: str):
     import nw.logic.legacy.setup as legacy_setup
 
     import nw.db as db
-    # db.open_db()
+    db.open_db()
 
     by_rules = True  # True => use rules, False => use legacy hand code (for comparison)
     if by_rules:
@@ -109,7 +109,8 @@ def tearDown(test: object, file: str):
     print("** Engine: " + str(id((db.db_session).get_bind())))
     print("** Started: " + test.started_at + " Ended: " + str(datetime.now()))
     print("**********************")
-    test.session = None  # attempting to kill instances of session, engine
+
+    test.session = None  # attemptting to kill instances of session, engine
     test.engine = None
     db.destroy_session_and_engine()
     pass

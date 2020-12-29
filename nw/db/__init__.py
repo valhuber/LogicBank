@@ -40,6 +40,10 @@ def open_db():
 
 def destroy_session_and_engine():
     global db_engine, db_session
+    from sqlalchemy import event
+    from logic_bank.exec_trans_logic.listeners import before_flush, before_commit
+    event.remove(db_session, "before_flush", before_flush)
+    event.remove(db_session, "before_commit", before_commit)
     db_session.close()
     db_engine.dispose()
 
