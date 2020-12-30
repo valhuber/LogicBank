@@ -317,7 +317,7 @@ A good way to proceed is to
 
 ### Articles
 There a few articles that provide some orientation to Logic Bank:
-* [Extensible Rules](https://dzone.com/articles/logic-bank-now-extensible-drive-95-automation-even)
+* [Extensible Rules](https://dzone.com/articles/logic-bank-now-extensible-drive-95-automation-even) - defining new rule types, using Python
 * [Declarative](https://dzone.com/articles/agile-design-automation-how-are-rules-different-fr) - exploring _multi-statement_ declarative technology
 * [Automate Business Logic With Logic Bank](https://dzone.com/articles/automate-business-logic-with-logic-bank) - general introduction, discussions of extensibility, manageability and scalability
 * [Agile Design Automation With Logic Bank](https://dzone.com/articles/logical-data-indendence) - focuses on automation, design flexibility and agile iterations
