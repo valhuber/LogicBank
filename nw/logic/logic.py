@@ -83,6 +83,19 @@ def declare_logic():
     Rule.constraint(validate=Employee,
                     calling=raise_over_20_percent,
                     error_msg="{row.LastName} needs a more meaningful raise")
+
+    def audit_by_event(row: Employee, old_row: Employee, logic_row: LogicRow):
+        tedious = False  # tedious code to repeat for every audited class
+        if tedious:      # see instead the following rule extension - nw_copy_row
+            if logic_row.are_attributes_changed([Employee.Salary, Employee.Title]):
+                copy_to_logic_row = logic_row.new_logic_row(EmployeeAudit)
+                copy_to_logic_row.link(to_parent=logic_row)
+                copy_to_logic_row.set_same_named_attributes(logic_row)
+                copy_to_logic_row.insert(reason="Manual Copy " + copy_to_logic_row.name)  # triggers rules...
+                # logic_row.log("audit_by_event (Manual Copy) complete")
+
+    Rule.commit_row_event(on_class=Employee, calling=audit_by_event)
+
     """ also provided in system version
     RuleExtension.copy(copy_from=Employee,
                        copy_to=EmployeeAudit,

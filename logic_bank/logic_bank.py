@@ -17,32 +17,38 @@ from logic_bank.rule_type.sum import Sum
 
 class LogicBank:
     """
-    Declare rules, e.g.
+    1. Declare rules, e.g.
 
         declare_logic():
-            DeclareRule.sum(derive=Order.AmountTotal, as_sum_of=OrderDetail.Amount)  # discover with code completion
+            Rule.sum(derive=Order.AmountTotal, as_sum_of=OrderDetail.Amount)  # discover with code completion
 
-    Activate them:
+    2. Activate them:
 
         LogicBank.activate(session=session, activator=declare_logic)  # register LogicBank listeners to SQLAlchemy
 
-    Execute them:
+    3. Execute them:
 
         session.commit()  # LogicBank listeners execute rules relevant for submitted changes
+
+    .. _Rule Summary:
+   https://github.com/valhuber/LogicBank/wiki/Rule-Summary
 
     """
 
     @staticmethod
     def activate(session: session, activator: callable):
         """
-        register SQLAlchemy listeners
+        Call after opening database to activate logic:
 
-        create RuleBank, load rules - later executed on commit
+            - register SQLAlchemy listeners
 
-        raises exception if cycles detected
+            - create RuleBank, load rules - later executed on commit
 
-        :param session: SQLAlchemy session
-        :param activator: user function that declares rules (e.g., Rule.sum...)
+            - raises exception if cycles detected
+
+        Arguments:
+            session: SQLAlchemy session
+            activator: user function that declares rules (e.g., Rule.sum...)
         """
 
         rule_bank_setup.setup(session)
@@ -51,12 +57,12 @@ class LogicBank:
 
 
 class Rule:
-    """Invoke these functions to *define* rules.
+    """Invoke these functions to declare rules.
 
     Rules are *not* run as they are defined,
     they are run when you issue `session.commit()'.
 
-    Use code completion to discover rules.
+    Use code completion to discover rules and their parameters.
     """
 
     @staticmethod
@@ -69,6 +75,13 @@ class Rule:
                    where=Lambda row: row.ShippedDate is None)
 
         Optimized to eliminate / minimize SQLs: Pruning, Adjustment Logic
+
+        Args:
+            derive:
+            as_sum_of:
+            where:
+
+
         """
         return Sum(derive, as_sum_of, where)
 
@@ -82,6 +95,11 @@ class Rule:
                    where=Lambda row: row.ShippedDate is None)
 
         Optimized to eliminate / minimize SQLs: Pruning, Adjustment Logic
+
+        Args:
+            derive:
+            as_count_of:
+            where:
         """
         return Count(derive, as_count_of, where)
 
@@ -116,23 +134,28 @@ class Rule:
         Example
            Rule.parent_check(validate=Customer, enable=True, error_msg="Missing Parent")
 
-        Use enable: False to tolerate orphans
-            Not recommended - for existing databases with bad data
-            Behavior is undefined for other rules (sum, count, parent references, etc)
-
         Parent_check failures raise ConstraintException, e.g.:
             try:
                 session.commit()
             except ConstraintException as ce:
                 print("Constraint raised: " + str(ce))
 
+        Args:
+            validate: name of mapped class
+            error_msg: message included in exception (can have {} syntax)
+            enable: True (default) = enable, False means disable (tolerate orphans)
+
+        Note: False not recommended - for existing databases with bad data
+            Behavior is undefined for other rules (sum, count, parent references, etc)
+
         """
         return ParentCheck(validate=validate, error_msg=error_msg, enable=enable)
 
     @staticmethod
     def formula(derive: InstrumentedAttribute,
+                as_exp: str = None,  # string (for very short expression)
+                as_expression: Callable = None,
                 calling: Callable = None,
-                as_expression: Callable = None, as_exp: str = None,
                 no_prune: bool = False):
         """
         Formulas declare column value, based on current and parent rows
@@ -142,10 +165,13 @@ class Rule:
                        as_expression=lambda row: row.UnitPrice * row.Quantity)
 
         Unlike Copy rules, Parent changes are propagated to child row(s)
-        Supply 1 (one) of the following:
-          * as_exp - string (for very short expressions - price * quantity)
-          * ex_expression - lambda (for type checking)
-          * calling - function (for more complex formula, with old_row)
+
+        Args:
+            derive: class.attribute being derived
+            as_exp: string (for very short expressions - price * quantity)
+            as_expression: lambda (for syntax checking)
+            calling: function (for more complex formula, with old_row)
+            no_prune: disable pruning (rarely used, default False)
         """
         return Formula(derive=derive,
                        calling=calling, as_exp=as_exp, as_expression=as_expression,
@@ -160,6 +186,10 @@ class Rule:
           Rule.copy(derive=OrderDetail.UnitPrice, from_parent=Product.UnitPrice)
 
         Unlike formulas references, parent changes are *not* propagated to children
+
+        Args:
+            derive:
+            from_parent:
         """
         return Copy(derive=derive, from_parent=from_parent)
 
@@ -169,6 +199,10 @@ class Rule:
         Row Events are Python functions called before logic
         Possible multiple calls per transaction
         Use: computing foreign keys...
+
+        Args:
+            on_class:
+            calling:
         """
         EarlyRowEvent(on_class, calling)  # --> load_logic
 
@@ -185,6 +219,9 @@ class Rule:
 
         Rule.early_row_event_all_classes(early_row_event_all_classes=handle_all)
 
+        Args:
+            early_row_event_all_classes:
+
         """
         rule_bank_setup.setup_early_row_event_all_classes(
             early_row_event_all_classes=early_row_event_all_classes)
@@ -195,6 +232,10 @@ class Rule:
         Row Events are Python functions called during logic, after formulas/constraints
         Possible multiple calls per transaction
         Use: recursive explosions (e.g, Bill of Materials)
+
+        Args:
+            on_class:
+            calling:
         """
         RowEvent(on_class, calling)  # --> load_logic
 
@@ -208,6 +249,10 @@ class Rule:
 
         1 call per row, per transaction
         Use: send mail/message
+
+        Args:
+            on_class:
+            calling:
         """
         return CommitRowEvent(on_class, calling)  # --> load_logic
 

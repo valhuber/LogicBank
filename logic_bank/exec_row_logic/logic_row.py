@@ -33,7 +33,8 @@ class LogicRow:
 
     Additional instance variables: ins_upd_dlt, nest_level, session, etc.
 
-    Helper Methods (get_parent_logic_row(role_name), log, etc)
+    Helper Methods: are_attributes_changed, set_same_named_attributes,
+    get_parent_logic_row(role_name), log, etc
 
     Called from client, from before_flush listeners, and here for parent/child chaining
     """
@@ -267,7 +268,20 @@ class LogicRow:
         return role_def
 
     def link(self, to_parent: 'LogicRow'):
-        """ set self.to_parent (parent_accessor) = to_parent """
+        """
+        set self.to_parent (parent_accessor) = to_parent
+
+        Example
+            if logic_row.are_attributes_changed([Employee.Salary, Employee.Title]):
+                copy_to_logic_row = logic_row.new_logic_row(EmployeeAudit)
+                copy_to_logic_row.link(to_parent=logic_row)  # link to parent Employee
+                copy_to_logic_row.set_same_named_attributes(logic_row)
+                copy_to_logic_row.insert(reason="Manual Copy " + copy_to_logic_row.name)  # triggers rules...
+
+        Args:
+            to_parent: mapped class that is parent to this logic_row
+
+        """
         parent_mapper = object_mapper(to_parent.row)
         parents_relationships = parent_mapper.relationships
         parent_role_name = None
@@ -385,9 +399,20 @@ class LogicRow:
         return False
 
     def are_attributes_changed(self, attr_list: List[InstrumentedAttribute]):
-        """ returns list of changed attr names, e.g.,
+        """
+        returns list of actually changed attr names (or empty list)
+
+        Example
+            if logic_row.are_attributes_changed([Employee.Salary, Employee.Title]):
+                copy_to_logic_row = logic_row.new_logic_row(EmployeeAudit)
+                copy_to_logic_row.link(to_parent=logic_row)  # link to parent Employee
+                copy_to_logic_row.set_same_named_attributes(logic_row)
+                copy_to_logic_row.insert(reason="Manual Copy " + copy_to_logic_row.name)  # triggers rules...
 
         if not logic_row.are_attributes_changed([Employee.Salary, Employee.Title])
+
+        Args:
+            attr_list: list of mapped attribute names (see example above)
         """
         changes = []
         for each_attr in attr_list:
@@ -396,7 +421,20 @@ class LogicRow:
         return changes
 
     def set_same_named_attributes(self, from_logic_row: 'LogicRow'):
-        """ copy like-named values from from_logic_row -> self """
+        """
+        copy like-named values from from_logic_row -> self
+
+        Example
+            if logic_row.are_attributes_changed([Employee.Salary, Employee.Title]):
+                copy_to_logic_row = logic_row.new_logic_row(EmployeeAudit)
+                copy_to_logic_row.link(to_parent=logic_row)  # link to parent Employee
+                copy_to_logic_row.set_same_named_attributes(logic_row)
+                copy_to_logic_row.insert(reason="Manual Copy " + copy_to_logic_row.name)  # triggers rules...
+
+        Args:
+            from_logic_row: source of copy (to self)
+
+        """
         row_mapper = object_mapper(self.row)
         if self.row.__tablename__ == "Customerxx":
             print("Debug Stop here")
@@ -670,6 +708,18 @@ class LogicRow:
             parent_adjuster.save_altered_parents()  # iff req'd (altered only)
 
     def user_row_update(self, row: base, ins_upd_dlt: str) -> 'LogicRow':
+        """
+        returns a created LogicRow from a SQLAlchemy row,
+        to support LogicRow.insert/update/delete
+
+        Args:
+            row: SQLAlchemy row
+            ins_upd_dlt: supplied by LogicRow.insert/update/delete
+
+        Returns:
+            LogicRow
+
+        """
         result_logic_row = LogicRow(row = row,
                                     old_row = self.make_copy(row),
                                     nest_level=self.nest_level+1,
@@ -679,24 +729,39 @@ class LogicRow:
         return result_logic_row
 
     def early_row_event_all_classes(self, verb_reason: str):
+        """
+        if exists: rules_bank._early_row_event_all_classes(self)
+
+        Args:
+            verb_reason: debug string (not used)
+
+        Returns:
+
+        """
         rules_bank = RuleBank()
         if rules_bank._early_row_event_all_classes is not None:
-            self.log("early_row_event_all_classes - " + verb_reason)
+            # self.log("early_row_event_all_classes - " + verb_reason)
             rules_bank._early_row_event_all_classes(self)
 
     def update(self, reason: str = None, row: base = None):
         """
         make updates - with logic - in events, for example
 
-        row = sqlalchemy read
-        logic_row.update(row=row, msg="my log message")
+        Example
+            row = sqlalchemy read
+            logic_row.update(row=row, msg="my log message")
+
+        Args:
+            reason: message inserted to to logging
+            row: either a LogicRow, or a SQLAlchemy row
         """
-        if row is not None:  # FIXME why??
+        if row is not None:  # e.g., event code reads/updates SQLAlchemy row
             user_logic_row = self.user_row_update(row=row, ins_upd_dlt="upd")
             user_logic_row.update(reason=reason)
         else:
             self.reason = reason
             self.log("Update - " + reason)
+            self.early_row_event_all_classes("Update - " + reason)
             self.early_row_events()
             self.check_parents_on_update()
             self.copy_rules()
@@ -713,16 +778,22 @@ class LogicRow:
         """
         make inserts - with logic - in events, for example
 
-        row = mapped_class()
-        logic_row.insert(row=row, msg="my log message")
+        Example
+            row = mapped_class()
+            logic_row.insert(row=row, msg="my log message")
+
+        Args:
+            reason: message inserted to to logging
+            row: either a LogicRow, or a SQLAlchemy row
         """
+
         if row is not None:
             user_logic_row = self.user_row_update(row=row, ins_upd_dlt="ins")
             user_logic_row.insert(reason=reason)
         else:
             self.reason = reason
-            self.early_row_event_all_classes("Insert - " + reason)
             self.log("Insert - " + reason)
+            self.early_row_event_all_classes("Insert - " + reason)
             self.load_parents_on_insert()
             self.early_row_events()
             self.copy_rules()
@@ -734,10 +805,15 @@ class LogicRow:
 
     def delete(self, reason: str = None, row: base = None):
         """
-        make updates - with logic - in events, for example
+        make deletes - with logic - in events, for example
 
-        row = sqlalchemy read
-        logic_row.update(row=row, msg="my log message")
+        Example
+            row = sqlalchemy read
+            logic_row.delete(row=row, msg="my log message")
+
+        Args:
+            reason: message inserted to to logging
+            row: either a LogicRow, or a SQLAlchemy row
         """
         if row is not None:
             user_logic_row = self.user_row_update(row=row, ins_upd_dlt="ins")
@@ -745,6 +821,7 @@ class LogicRow:
         else:
             self.reason = reason
             self.log("delete - " + reason)
+            self.early_row_event_all_classes("Delete - " + reason)
             self.early_row_events()
             self.adjust_parent_aggregates()
             self.constraints()
