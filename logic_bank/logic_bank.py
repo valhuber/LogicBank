@@ -62,6 +62,9 @@ class Rule:
     Rules are *not* run as they are defined,
     they are run when you issue `session.commit()'.
 
+    .. _Rule Summary:
+        https://github.com/valhuber/LogicBank/wiki/Rule-Summary
+
     Use code completion to discover rules and their parameters.
     """
 
@@ -77,9 +80,9 @@ class Rule:
         Optimized to eliminate / minimize SQLs: Pruning, Adjustment Logic
 
         Args:
-            derive:
-            as_sum_of:
-            where:
+            derive: name of parent <class.attribute> being derived
+            as_sum_of: name of child <class.attribute> being summed
+            where: optional where clause designated which child rows are summed
 
 
         """
@@ -97,21 +100,23 @@ class Rule:
         Optimized to eliminate / minimize SQLs: Pruning, Adjustment Logic
 
         Args:
-            derive:
-            as_count_of:
-            where:
+            derive: name of parent <class.attribute> being derived
+            as_sum_of: name of child <class> being counted
+            where: optional where clause designated which child rows are counted
         """
         return Count(derive, as_count_of, where)
 
     @staticmethod
-    def constraint(validate: object, as_condition: any = None,
-                   error_msg: str = "(error_msg not provided)",
-                   calling: Callable = None):
+    def constraint(validate: object,
+                   calling: Callable = None,
+                   as_condition: any = None,
+                   error_msg: str = "(error_msg not provided)"):
         """
         Constraints declare condition that must be true for all commits
 
         Example
-          Rule.constraint(validate=Customer, as_condition=lambda row: row.Balance <= row.CreditLimit,
+          Rule.constraint(validate=Customer,
+                          as_condition=lambda row: row.Balance <= row.CreditLimit,
                           error_msg="balance ({row.Balance}) exceeds credit ({row.CreditLimit})")
 
 
@@ -120,6 +125,12 @@ class Rule:
                 session.commit()
             except ConstraintException as ce:
                 print("Constraint raised: " + str(ce))
+
+        Args:
+            validate: name of mapped <class>
+            calling: function, passed row, old_row, logic_row (complex constraints)
+            as_condition: lambda, passed row (simple constraints)
+            error_msg:
 
         """
         return Constraint(validate=validate, calling=calling, as_condition=as_condition, error_msg=error_msg)
@@ -167,10 +178,10 @@ class Rule:
         Unlike Copy rules, Parent changes are propagated to child row(s)
 
         Args:
-            derive: class.attribute being derived
+            derive: <class.attribute> being derived
             as_exp: string (for very short expressions - price * quantity)
-            as_expression: lambda (for syntax checking)
-            calling: function (for more complex formula, with old_row)
+            as_expression: lambda, passed row (for syntax checking)
+            calling: function (for more complex formula, pass row, old_row, logic_row)
             no_prune: disable pruning (rarely used, default False)
         """
         return Formula(derive=derive,
@@ -188,23 +199,23 @@ class Rule:
         Unlike formulas references, parent changes are *not* propagated to children
 
         Args:
-            derive:
-            from_parent:
+            derive: <class.attribute> being copied into
+            from_parent: <parent-class.attribute> source of copy
         """
         return Copy(derive=derive, from_parent=from_parent)
 
     @staticmethod
     def early_row_event(on_class: object, calling: Callable = None):
         """
-        Row Events are Python functions called before logic
+        Row Events are Python functions called *before* logic
         Possible multiple calls per transaction
         Use: computing foreign keys...
 
         Args:
-            on_class:
-            calling:
+            on_class: <class> for event
+            calling: function, passed row, old_row, logic_row
         """
-        EarlyRowEvent(on_class, calling)  # --> load_logic
+        return EarlyRowEvent(on_class, calling)  # --> load_logic
 
     @staticmethod
     def early_row_event_all_classes(early_row_event_all_classes: Callable = None):
@@ -220,39 +231,41 @@ class Rule:
         Rule.early_row_event_all_classes(early_row_event_all_classes=handle_all)
 
         Args:
-            early_row_event_all_classes:
+            early_row_event_all_classes: function, passed logic_row
 
         """
-        rule_bank_setup.setup_early_row_event_all_classes(
+        return rule_bank_setup.setup_early_row_event_all_classes(
             early_row_event_all_classes=early_row_event_all_classes)
 
     @staticmethod
     def row_event(on_class: object, calling: Callable = None):
         """
-        Row Events are Python functions called during logic, after formulas/constraints
+        Row Events are Python functions called *during* logic, after formulas/constraints
         Possible multiple calls per transaction
         Use: recursive explosions (e.g, Bill of Materials)
 
         Args:
-            on_class:
-            calling:
+            on_class: <class> for event
+            calling: function, passed row, old_row, logic_row
         """
-        RowEvent(on_class, calling)  # --> load_logic
+        return RowEvent(on_class, calling)  # --> load_logic
 
     @staticmethod
     def commit_row_event(on_class: object, calling: Callable = None):
         """
-        Row Events are Python functions called during logic, after formulas/constraints
+        Row Events are Python functions called during logic
+            *after* all row' formulas/constraints
 
         Example
             Rule.commit_row_event(on_class=Order, calling=congratulate_sales_rep)
 
         1 call per row, per transaction
-        Use: send mail/message
+
+        Example use: send mail/message
 
         Args:
-            on_class:
-            calling:
+            on_class: <class> for event
+            calling: function, passed row, old_row, logic_row
         """
         return CommitRowEvent(on_class, calling)  # --> load_logic
 
