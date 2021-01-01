@@ -279,8 +279,11 @@ cd examples/nw/basic_web_app
 python run.py
 ```
 You then start the app (use **new window**) with
-[`http://0.0.0.0:8080`](http://0.0.0.0:8080)
-(or, try [`http://127.0.0.1:5000/`](http://127.0.0.1:5000/))
+[`http://0.0.0.0:8080`](http://0.0.0.0:8080), or try
+
+* [`http://127.0.0.1:5000/`](http://127.0.0.1:5000/)
+* [`http://127.0.0.1:8080/`](http://127.0.0.1:8080/)
+
 > **Login** (upper right): user = admin, password = p
 
 You can
