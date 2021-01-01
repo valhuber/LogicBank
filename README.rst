@@ -16,7 +16,7 @@ Logic is declared in Python (example below), and is:
 
 - **Extensible:** logic consists of rules (see below), plus standard Python code
 
-- **Multi-table:** rules like `sum` automate multi-table transactions
+- **Multi-table:** rules like ``sum`` automate multi-table transactions
 
 - **Scalable:** rules are pruned and optimized; for example, sums are processed as *1 row adjustment updates,* rather than expensive SQL aggregate queries
 
@@ -97,7 +97,7 @@ to avoid 'flush already in progress' when using flask_sqlalchemy
 
    - e.g., for auditing
 
-- Generic early events: `early_row_event_all_classes` (see Rule Extensibility link above)
+- Generic early events: ``early_row_event_all_classes`` (see Rule Extensibility link above)
 
    - e.g., for time/date stamping
 
@@ -107,6 +107,8 @@ to avoid 'flush already in progress' when using flask_sqlalchemy
 
    - set_same_named_attributes
 
-- Minor rename of logic class in `nw`.  Some screen shots may still show the old name (`rules_bank.py`) instead of `logic.py`.
+- Minor rename of logic class in ``nw``.  Some screen shots may still show the old name (`rules_bank.py`) instead of `logic.py`.
 
 - Bug Fix: (normal) row events weren't firing (other events - early and commit events - were fine)
+
+0.6.1 - Improved docstrings, samples reorganized into ``examples`` folder

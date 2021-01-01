@@ -44,7 +44,7 @@ Logic Bank was designed to make the cocktail napkin spec _executable_.
 
 ## What - Declare Spreadsheet-like Rules - 40X More Concise
 Logic Bank introduces rules that are 40X more concise than legacy code.
-The 5 rules below (lines 40-49) express the same logic as 200 lines of code [**(see them here)**](nw/logic/legacy).  That's because rules are all about "what"
+The 5 rules below (lines 40-49) express the same logic as 200 lines of code [**(see them here)**](examples/nw/logic/legacy).  That's because rules are all about "what"
 -- spreadsheet-like expressions that automate the tedious "how":
 
 <figure><img src="images/overview/cocktail-logic-bank.png"></figure>
@@ -153,7 +153,7 @@ Here's how rules can help.
 
 #### Working Software _Now_
 The examples above illustrate how just a few rules can replace 
-[pages of code](nw/logic/legacy).
+[pages of code](examples/nw/logic/legacy).
 
 #### Collaboration: Running Screens - Automatic Basic Web App
 
@@ -254,7 +254,7 @@ and see the [walk-throughs here](../../wiki/home#logic-execution-watch-react-cha
 The tests use ```unittest``` - you can run them as follows:
 
 ```
-cd nw/tests
+cd examples/nw/tests
 python -m unittest test_add_order.py
 python test_add_order.py  # or, run it like this
 
@@ -275,12 +275,12 @@ pre-built sample you can run:
 
 ```
 cd LogicBank
-cd nw/basic_web_app
-# windows set FLASK_APP=app
-export FLASK_APP=app
-flask run
+cd examples/nw/basic_web_app
+python run.py
 ```
-You then start the app (use **new window**) with [`http://127.0.0.1:5000/`]( http://127.0.0.1:5000/)
+You then start the app (use **new window**) with
+[`http://0.0.0.0:8080`](http://0.0.0.0:8080)
+(or, try [`http://127.0.0.1:5000/`](http://127.0.0.1:5000/))
 > **Login** (upper right): user = admin, password = p
 
 You can
@@ -307,6 +307,7 @@ Check out the [**Examples**](../../wiki/Examples) - note the **navigation bar** 
 providing a reusable pattern for a *provider* to allocate
 to a set of *recipients*
 * [**Banking**](../../wiki/Sample-Project---Banking) is a complex transaction using the command pattern
+* [**Referential Integrity**](../../wiki/Referential-Integrity) illustrates referential integrity support
 
 
 A good way to proceed is to
@@ -347,18 +348,18 @@ Logic Bank consists of:
   `referential_integrity` and `payment_allocation`;
 these contain
 
-    * [Databases](nw/db) sqlite (no install required) and models
+    * [Databases](examples/nw/db) sqlite (no install required) and models
 
-    * [Test folders](nw/tests) that run key transactions - just run the scripts
+    * [Test folders](examples/nw/tests) that run key transactions - just run the scripts
 (note the logs)
 
-    * [Flask AppBuilder apps](nw/basic_web_app) (as described above)
+    * [Flask AppBuilder apps](examples/nw/basic_web_app) (as described above)
     
-    * [Logic](nw/logic) - rules (and for `nw`,
+    * [Logic](examples/nw/logic) - rules (and for `nw`,
     the manual `legacy` code for contrast to rules)
     
 * The `nw` sample illustrates comparisons of Business logic, both
-[by code](nw/logic/legacy) and by rules (shown above).
+[by code](examples/nw/logic/legacy) and by rules (shown above).
 
 * The `logic_bank` engine source code
 
