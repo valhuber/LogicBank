@@ -10,7 +10,7 @@ using standard tools and techniques
 
 > The example described below is a _typical_ example of multi-table logic.
 >
-> You may find it helpful to begin with [this Tutorial, using a basic example](https://github.com/valhuber/LogicBankTutorial).
+> You may find it helpful to begin with [this Tutorial, using a basic example](../../wiki/Tutorial).
 
 This readme contains:
 
