@@ -302,9 +302,14 @@ You can
 
 ## Next Steps
 
+### Run the Tutorial
+
+First, run the [**10 minute Tutorial**](../../wiki/Tutorial).
+You will see how to create, run and debug a rule in a simple, running example.
+
 ### Explore Sample Transactions
 
-Check out the [**Examples**](../../wiki/Examples) - note the **navigation bar** on the right.  Key samples:
+Then, check out the [**Examples**](../../wiki/Examples) - note the **navigation bar** on the right.  Key samples:
 * [**Ship Order**](../../wiki/Ship-Order) illustrates *cascade*, another form of multi-table logic
 * [**Allocation**](../../wiki/Sample-Project---Allocation) illustrates *extensibility*,
 providing a reusable pattern for a *provider* to allocate
