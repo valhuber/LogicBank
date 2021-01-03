@@ -1,17 +1,22 @@
 from decimal import Decimal
+import logging, sys, os
+from shutil import copyfile
 
-import logic_bank_utils.util as logic_bank_utils
-from logic_bank.util import row_prt, prt
+import sqlalchemy
+
+from logic_bank_utils import util as logic_bank_utils
 
 (did_fix_path, sys_env_info) = \
     logic_bank_utils.add_python_path(project_dir="LogicBank", my_file=__file__)
 print("\n" + did_fix_path + "\n\n" + sys_env_info + "\n\n")
-import os
-from shutil import copyfile
-# from logic_bank.util import prt
 
+from logic_bank.logic_bank import LogicBank
+from logic_bank.util import row_prt, prt
+from logic_bank.exec_row_logic.logic_row import LogicRow
 
-def setup_db():
+import examples.tutorial.db.models as models
+
+def copy_db_from_gold():
     """ copy db/database-gold.db over db/database.db"""
     print("\n" + prt("restoring database-gold\n"))
 
@@ -27,13 +32,42 @@ def setup_db():
     db_source = os.path.join(basedir, "db/database-gold.db")
     copyfile(src=db_source, dst=db_loc)
 
-setup_db()
+def setup_logging():
+    logic_logger = logging.getLogger('logic_logger')  # for debugging user logic
+    logic_logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(message)s - %(asctime)s - %(name)s - %(levelname)s')
+    handler.setFormatter(formatter)
+    logic_logger.addHandler(handler)
 
-import sqlalchemy_utils
+    do_engine_logging = False
+    engine_logger = logging.getLogger('engine_logger')  # for internals
+    if do_engine_logging:
+        engine_logger.setLevel(logging.DEBUG)
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter('%(message)s - %(asctime)s - %(name)s - %(levelname)s')
+        handler.setFormatter(formatter)
+        engine_logger.addHandler(handler)
 
-import examples.tutorial.db.models as models
-from logic_bank.exec_row_logic.logic_row import LogicRow
-from examples.tutorial.logic import session  # opens db, activates logic listener <--
+setup_logging()
+copy_db_from_gold()
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+basedir = os.path.dirname(basedir)
+
+db_loc = os.path.join(basedir, "db/database.db")
+
+conn_string = "sqlite:///" + db_loc
+engine = sqlalchemy.create_engine(conn_string, echo=False)  # sqlalchemy sqls...
+
+session_maker = sqlalchemy.orm.sessionmaker()
+session_maker.configure(bind=engine)
+session = session_maker()
+
+from examples.tutorial.logic.rules_bank import declare_logic
+LogicBank.activate(session=session, activator=declare_logic)
 
 pre_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
 session.expunge(pre_cust)

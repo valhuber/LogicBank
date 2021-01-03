@@ -192,7 +192,7 @@ class Test(unittest.TestCase):
             AssertionError
         
         Good run:
-            @__init__.py#<module>(): session created, listeners registered
+            @Z__init__.py#<module>(): session created, listeners registered
         
             ..Customer[ALFKI] {starting} Address: Obere Str. 57, Balance: 960.0000000000, City: Berlin, CompanyName: Alfreds Futterkiste, ContactName: Maria Anders, ContactTitle: Sales Representative, Country: Germany, CreditLimit: 2000.0000000000, Fax: 030-0076545, Id: ALFKI, Phone: 030-0074321, PostalCode: 12209, Region: Western Europe  row@: 0x105074100 - 2020-09-20 19:36:30,581 - logic_logger - DEBUG
             ..Customer[ANATR] {starting} Address: Avda. de la Constitución 2222, Balance: 0E-10, City: México D.F., CompanyName: Ana Trujillo Emparedados y helados, ContactName: Ana Trujillo, ContactTitle: Owner, Country: Mexico, CreditLimit: 1000.0000000000, Fax: (5) 555-3745, Id: ANATR, Phone: (5) 555-4729, PostalCode: 05021, Region: Central America  row@: 0x105074970 - 2020-09-20 19:36:30,582 - logic_logger - DEBUG
