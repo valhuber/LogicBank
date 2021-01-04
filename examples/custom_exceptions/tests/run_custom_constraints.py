@@ -66,6 +66,7 @@ session_maker = sqlalchemy.orm.sessionmaker()
 session_maker.configure(bind=engine)
 session = session_maker()
 
+
 class MyConstraintException(ConstraintException):
     pass
 
@@ -75,8 +76,6 @@ def constraint_handler(message: str):
 
 from examples.custom_exceptions.logic.rules_bank import declare_logic
 LogicBank.activate(session=session, activator=declare_logic, constraint_event=constraint_handler)
-# consider refusing client updates to derivations
-# recompute
 
 pre_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
 session.expunge(pre_cust)
@@ -103,7 +102,6 @@ except MyConstraintException as ce:
 except:
     assert False, "Unexpected Exception Type"
 
-if not did_fail_as_expected:
-    assert False, "huge order expected to fail, but succeeded"
+assert did_fail_as_expected, "custom constraint did not occur"
 
 print("\nrun_customer_constraints, ran to completion\n\n")

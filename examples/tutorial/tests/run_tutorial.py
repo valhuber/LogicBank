@@ -68,8 +68,6 @@ session = session_maker()
 
 from examples.tutorial.logic.rules_bank import declare_logic
 LogicBank.activate(session=session, activator=declare_logic)
-# consider refusing client updates to derivations
-# recompute
 
 pre_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
 session.expunge(pre_cust)
