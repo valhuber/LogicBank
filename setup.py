@@ -22,7 +22,7 @@ project_urls = {
 
 setup(
     name="logicbank",
-    version="0.6.0",
+    version="0.7.0",
     url="https://github.com/valhuber/logicbank",
     license="BSD",
     author="Val Huber",
