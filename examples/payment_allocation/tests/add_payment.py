@@ -1,21 +1,74 @@
 from decimal import Decimal
+import logging, sys, os
+from shutil import copyfile
 
-import logic_bank_utils.util as logic_bank_utils
+import sqlalchemy
+import sqlalchemy_utils
+
+from logic_bank_utils import util as logic_bank_utils
 
 (did_fix_path, sys_env_info) = \
     logic_bank_utils.add_python_path(project_dir="LogicBank", my_file=__file__)
 print("\n" + did_fix_path + "\n\n" + sys_env_info + "\n\n")
 
-
-from examples.payment_allocation.tests import setup_db  # careful - this must follow fix-path, above
-setup_db()
-
-import sqlalchemy_utils
-
-from examples.payment_allocation.db import models
+from logic_bank.logic_bank import LogicBank
+from logic_bank.util import row_prt, prt
 from logic_bank.exec_row_logic.logic_row import LogicRow
-from logic_bank.util import row_prt
-from examples.payment_allocation.logic import session  # opens db, activates logic listener <--
+
+import examples.payment_allocation.db.models as models
+
+def copy_db_from_gold():
+    """ copy db/database-gold.db over db/database.db"""
+    print("\n" + prt("restoring database-gold\n"))
+
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    basedir = os.path.dirname(basedir)
+
+    print("\n********************************\n"
+          "  IMPORTANT - create database.db from database-gold.db in " + basedir + "/payment_allocation/db/\n" +
+          "            - from -- " + prt("") +
+          "\n********************************")
+
+    db_loc = os.path.join(basedir, "db/database.db")
+    db_source = os.path.join(basedir, "db/database-gold.db")
+    copyfile(src=db_source, dst=db_loc)
+
+def setup_logging():
+    logic_logger = logging.getLogger('logic_logger')  # for debugging user logic
+    logic_logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(message)s - %(asctime)s - %(name)s - %(levelname)s')
+    handler.setFormatter(formatter)
+    logic_logger.addHandler(handler)
+
+    do_engine_logging = False
+    engine_logger = logging.getLogger('engine_logger')  # for internals
+    if do_engine_logging:
+        engine_logger.setLevel(logging.DEBUG)
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter('%(message)s - %(asctime)s - %(name)s - %(levelname)s')
+        handler.setFormatter(formatter)
+        engine_logger.addHandler(handler)
+
+setup_logging()
+copy_db_from_gold()
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+basedir = os.path.dirname(basedir)
+
+db_loc = os.path.join(basedir, "db/database.db")
+
+conn_string = "sqlite:///" + db_loc
+engine = sqlalchemy.create_engine(conn_string, echo=False)  # sqlalchemy sqls...
+
+session_maker = sqlalchemy.orm.sessionmaker()
+session_maker.configure(bind=engine)
+session = session_maker()
+
+from examples.payment_allocation.logic.rules_bank import declare_logic
+LogicBank.activate(session=session, activator=declare_logic)
 
 cls = sqlalchemy_utils.functions.get_class_by_table(models.Base, "Product", data=None)  # FIXME ??
 

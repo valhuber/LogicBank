@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # sudo chmod +x py.py
 # ./py.py
+# in .zshrc: python py.py
 
 import os, sys
 import subprocess
 
 
-def show(cmd: str) -> str:
+def show(cmd: str):
     result_b = subprocess.check_output(cmd, shell=True)
     result = str(result_b)  # b'pyenv 1.2.21\n'
     result = result[2: len(result)-3]
@@ -15,7 +16,7 @@ def show(cmd: str) -> str:
     print(f'{cmd}: {spaces}{result}')
 
 
-def print_hi(name):
+def python_status():
     print("\n\nPython Status here, 1.0\n")
     show("pyenv --version")
     show("pyenv global")
@@ -23,11 +24,10 @@ def print_hi(name):
     show("virtualenv --version")
     show("python --version")
     print("PYTHONPATH..")
-    path = str(sys.path)
     for p in sys.path:
         print(".." + p)
     print("")
 
 
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    python_status()
