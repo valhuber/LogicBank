@@ -45,5 +45,12 @@
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/referential_integrity/db/database.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="constraint_events" uuid="b0e01672-6d09-44cb-a70b-b070a87b0956">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/examples/custom_exceptions/db/database-gold.db</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

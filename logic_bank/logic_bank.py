@@ -36,7 +36,7 @@ class LogicBank:
     """
 
     @staticmethod
-    def activate(session: session, activator: callable):
+    def activate(session: session, activator: callable, constraint_event: callable = None):
         """
         Call after opening database to activate logic:
 
@@ -49,9 +49,11 @@ class LogicBank:
         Arguments:
             session: SQLAlchemy session
             activator: user function that declares rules (e.g., Rule.sum...)
+            constraint_event: optional user function called on constraint exceptions
         """
-
-        rule_bank_setup.setup(session)
+        rule_bank = rule_bank_setup.setup(session)
+        if constraint_event is not None:
+            rule_bank.constraint_event = constraint_event
         activator()
         rule_bank_setup.compute_formula_execution_order()
 

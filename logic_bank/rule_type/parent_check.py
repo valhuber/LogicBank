@@ -2,7 +2,6 @@ import logic_bank.exec_row_logic.logic_row as LogicRow
 
 from logic_bank.rule_bank.rule_bank import RuleBank
 from logic_bank.rule_type.abstractrule import AbstractRule
-from logic_bank.util import ConstraintException
 
 
 class ParentCheck(AbstractRule):

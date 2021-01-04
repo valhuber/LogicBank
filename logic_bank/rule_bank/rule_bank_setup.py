@@ -22,7 +22,7 @@ def setup(a_session: session):
 
     rules_bank.orm_objects = {}
     rules_bank._at = datetime.now()
-    return
+    return rules_bank
 
 def setup_early_row_event_all_classes(early_row_event_all_classes: callable):
     ll = RuleBank()

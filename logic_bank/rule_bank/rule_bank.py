@@ -47,6 +47,7 @@ class RuleBank(metaclass=Singleton):  # FIXME design review singleton
 
     def __init__(self):
         self._metadata = None
+        self.constraint_event = None
 
     def deposit_rule(self, a_rule: 'AbstractRule'):
         if a_rule.table not in self.orm_objects:

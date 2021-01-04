@@ -11,10 +11,10 @@ from logic_bank_utils import util as logic_bank_utils
 print("\n" + did_fix_path + "\n\n" + sys_env_info + "\n\n")
 
 from logic_bank.logic_bank import LogicBank
-from logic_bank.util import row_prt, prt
+from logic_bank.util import row_prt, prt, ConstraintException
 from logic_bank.exec_row_logic.logic_row import LogicRow
 
-import examples.tutorial.db.models as models
+import examples.custom_exceptions.db.models as models
 
 def copy_db_from_gold():
     """ copy db/database-gold.db over db/database.db"""
@@ -66,8 +66,15 @@ session_maker = sqlalchemy.orm.sessionmaker()
 session_maker.configure(bind=engine)
 session = session_maker()
 
-from examples.tutorial.logic.rules_bank import declare_logic
-LogicBank.activate(session=session, activator=declare_logic)
+class MyConstraintException(ConstraintException):
+    pass
+
+def constraint_handler(message: str):
+    raise MyConstraintException("Custom constraint_handler for: " + message)
+
+
+from examples.custom_exceptions.logic.rules_bank import declare_logic
+LogicBank.activate(session=session, activator=declare_logic, constraint_event=constraint_handler)
 # consider refusing client updates to derivations
 # recompute
 
@@ -80,23 +87,23 @@ session.expunge(pre_cust)
 
 cust_alfki = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
 
-amount_total = 500  # 500 should work; change to 1000 to see constraint fire
+amount_total = 1000
 
 new_order = models.Order(AmountTotal=amount_total)
 cust_alfki.OrderList.append(new_order)
 
+did_fail_as_expected = False
 session.add(new_order)
-session.commit()  # this fires the rules (adjust balance, verify <=2000)
+try:
+    session.commit()
+except MyConstraintException as ce:
+    print("\nExpected constraint: " + str(ce))
+    session.rollback()
+    did_fail_as_expected = True
+except:
+    assert False, "Unexpected Exception Type"
 
-post_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
+if not did_fail_as_expected:
+    assert False, "huge order expected to fail, but succeeded"
 
-print("\nadd_order, update completed\n\n")
-
-logic_row = LogicRow(row=post_cust, old_row=pre_cust, ins_upd_dlt="*", nest_level=0, a_session=session, row_sets=None)
-
-assert post_cust.Balance == pre_cust.Balance + amount_total,\
-    "ERROR - incorrect adjusted Customer Result (EXPECTED - now add rules)"
-
-logic_row.log("Correct adjusted Customer Result")
-
-print("\nadd_order, ran to completion\n\n")
+print("\nrun_customer_constraints, ran to completion\n\n")

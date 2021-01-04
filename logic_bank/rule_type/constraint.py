@@ -22,9 +22,17 @@ class Constraint(AbstractRule):
         self._as_condition = as_condition
         self._calling = calling
         if calling is None and as_condition is None:
-            raise ConstraintException(f'Constraint {str} requires calling or as_expression')
+            msg = "Constraint " + str + " requires calling or as_expression"
+            ll = RuleBank()
+            if ll.constraint_event:
+                ll.constraint_event(msg)
+            raise ConstraintException(msg)
         if calling is not None and as_condition is not None:
-            raise ConstraintException(f'Constraint {str} either calling or as_expression')
+            msg = "Constraint " + str + " either calling or as_expression"
+            ll = RuleBank()
+            if ll.constraint_event:
+                ll.constraint_event(msg)
+            raise ConstraintException(msg)
         if calling is not None:
             self._function = calling
         elif isinstance(as_condition, str):
@@ -57,6 +65,9 @@ class Constraint(AbstractRule):
             msg = eval(f'f"""{self._error_msg}"""')
             from sqlalchemy import exc
             # exception = exc.DBAPIError(msg, None, None)  # 'statement', 'params', and 'orig'
+            ll = RuleBank()
+            if ll.constraint_event:
+                ll.constraint_event(msg)
             raise ConstraintException(msg)
         else:
             raise RuntimeError(f'Constraint did not return boolean: {str(self)}')

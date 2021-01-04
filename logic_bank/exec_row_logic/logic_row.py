@@ -380,7 +380,11 @@ class LogicRow:
                             each_child_logic_row.update(reason="Cascade Nullify - " + each_child_role_name)
 
                         elif refinteg_action == ParentCascadeAction.PREVENT:
-                            raise ConstraintException("Delete rejected - " + each_child_role_name + " has rows")
+                            msg = "Delete rejected - " + each_child_role_name + " has rows"
+                            ll = RuleBank()
+                            if ll.constraint_event:
+                                ll.constraint_event(msg)
+                            raise ConstraintException(msg)
                         else:
                             raise Exception("Invalid parent_cascade action: " + refinteg_action)
 
@@ -641,6 +645,9 @@ class LogicRow:
                     if does_parent_exist is None and ref_integ_enabled:
                         msg = "Missing Parent: " + parent_role_name
                         self.log(msg)
+                        ll = RuleBank()
+                        if ll.constraint_event:
+                            ll.constraint_event(msg)
                         raise ConstraintException(msg)
                     else:
                         self.log("Warning: Missing Parent: " + parent_role_name)
@@ -680,6 +687,9 @@ class LogicRow:
                                 if does_parent_exist is None and ref_integ_rule._enable == True:
                                     msg = "Missing Parent: " + parent_role_name
                                     self.log(msg)
+                                    ll = RuleBank()
+                                    if ll.constraint_event:
+                                        ll.constraint_event(msg)
                                     raise ConstraintException(msg)
                                 else:
                                     self.log("Warning: Missing Parent: " + parent_role_name)
