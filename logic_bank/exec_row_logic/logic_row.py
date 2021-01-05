@@ -15,6 +15,7 @@ from sqlalchemy.ext.declarative import declarative_base
 # from logic_bank.exec_row_logic.parent_role_adjuster import ParentRoleAdjuster
 from logic_bank.rule_bank import rule_bank_withdraw
 from logic_bank.rule_type.constraint import Constraint
+from logic_bank.rule_type.derivation import Derivation
 from logic_bank.rule_type.formula import Formula
 from logic_bank.rule_type.parent_cascade import ParentCascade, ParentCascadeAction
 from logic_bank.rule_type.parent_check import ParentCheck
@@ -33,8 +34,9 @@ class LogicRow:
 
     Additional instance variables: ins_upd_dlt, nest_level, session, etc.
 
-    Helper Methods: are_attributes_changed, set_same_named_attributes,
-    get_parent_logic_row(role_name), log, etc
+    Helper Methods
+        are_attributes_changed, set_same_named_attributes,
+        get_parent_logic_row(role_name), get_derived_attributes, log, etc
 
     Called from client, from before_flush listeners, and here for parent/child chaining
     """
@@ -401,6 +403,29 @@ class LogicRow:
             if getattr(self.row, each_child_column_name) != getattr(self.old_row, each_child_column_name):
                 return True
         return False
+
+    def get_derived_attributes(self) -> List[InstrumentedAttribute]:
+        """
+            returns a list of derived attributes
+
+            Example:
+                def handle_all(logic_row: LogicRow):
+                    row = logic_row.row
+                    if logic_row.ins_upd_dlt == "ins" and hasattr(row, "CreatedOn"):
+                        row.CreatedOn = datetime.datetime.now()
+                        logic_row.log("early_row_event_all_classes - handle_all sets 'Created_on"'')
+
+                    if logic_row.nest_level == 0:  # client updates should not alter derivations
+                        derived_attributes = logic_row.get_derived_attributes()
+                        if logic_row.are_attributes_changed(derived_attributes):
+                            # NOTE: this does not trigger constraint_event registered in activate
+                            raise ConstraintException("One or more derived attributes are changed")
+        """
+        result_derived_attrs = []
+        derivations = rule_bank_withdraw.rules_of_class(self, Derivation)
+        for each_derivation in derivations:
+            result_derived_attrs.append(each_derivation._derive)
+        return result_derived_attrs
 
     def are_attributes_changed(self, attr_list: List[InstrumentedAttribute]):
         """

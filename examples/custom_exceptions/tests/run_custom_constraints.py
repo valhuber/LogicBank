@@ -90,7 +90,7 @@ pre_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").
 session.expunge(pre_cust)
 
 """
-    Create Order row
+    Test 1 - Order too big, verify constraint class
 """
 
 cust_alfki = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
@@ -105,6 +105,29 @@ session.add(new_order)
 try:
     session.commit()
 except MyConstraintException as ce:
+    print("\nExpected constraint: " + str(ce))
+    session.rollback()
+    did_fail_as_expected = True
+except:
+    assert False, "Unexpected Exception Type"
+
+assert did_fail_as_expected, "custom constraint did not occur"
+
+
+"""
+    Test 2 - Ensure clients do not update derived attributes (here, balance)
+"""
+
+cust_alfki = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
+
+amount_total = 1000
+
+cust_alfki.Balance = 0
+
+did_fail_as_expected = False
+try:
+    session.commit()
+except ConstraintException as ce:
     print("\nExpected constraint: " + str(ce))
     session.rollback()
     did_fail_as_expected = True
