@@ -115,3 +115,7 @@ to avoid 'flush already in progress' when using flask_sqlalchemy
 
 0.8.0 - `Custom Exceptions <https://github.com/valhuber/LogicBank/wiki/Custom-Constraint-Handling>`_, callback signature **changed** to include
 additional parameters
+
+0.9.0 - Add logicRow.get_derived_attributes, which
+can be used to enforce behaviors such as
+`Unalterable Derivations <https://github.com/valhuber/LogicBank/wiki/Rule-Extensibility#unalterable-derivations>`_
