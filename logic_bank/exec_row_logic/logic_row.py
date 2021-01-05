@@ -71,7 +71,7 @@ class LogicRow:
                 self.table_meta = row.metadata.tables[type(self.row).__name__]
             else:
                 self.table_meta = inspect(self.row)
-                self.log_engine("Restriction: Class Name must equal Table Name: " + self.name)
+                self.log_engine("Using Class Name (not Table Name): " + self.name)
 
     def get_attr_name(self, mapper, attr)-> str:
         """polymorhpism is for wimps - find the name
@@ -383,7 +383,7 @@ class LogicRow:
                             msg = "Delete rejected - " + each_child_role_name + " has rows"
                             ll = RuleBank()
                             if ll.constraint_event:
-                                ll.constraint_event(msg)
+                                ll.constraint_event(message=msg, logic_row=self, constraint=None)
                             raise ConstraintException(msg)
                         else:
                             raise Exception("Invalid parent_cascade action: " + refinteg_action)
@@ -647,7 +647,7 @@ class LogicRow:
                         self.log(msg)
                         ll = RuleBank()
                         if ll.constraint_event:
-                            ll.constraint_event(msg)
+                            ll.constraint_event(message=msg, logic_row=self, constraint=None)
                         raise ConstraintException(msg)
                     else:
                         self.log("Warning: Missing Parent: " + parent_role_name)
@@ -689,7 +689,7 @@ class LogicRow:
                                     self.log(msg)
                                     ll = RuleBank()
                                     if ll.constraint_event:
-                                        ll.constraint_event(msg)
+                                        ll.constraint_event(message=msg, logic_row=self, constraint=None)
                                     raise ConstraintException(msg)
                                 else:
                                     self.log("Warning: Missing Parent: " + parent_role_name)

@@ -1,5 +1,7 @@
 import inspect
-from typing import Callable
+from typing import Callable, Sequence
+
+from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 import logic_bank.exec_row_logic.logic_row as LogicRow
 
@@ -15,23 +17,25 @@ class Constraint(AbstractRule):
     def __init__(self, validate: object,
                  error_msg: str,
                  calling: Callable = None,
-                 as_condition: object = None):  # str or lambda boolean expression
+                 as_condition: object = None,  # str or lambda boolean expression
+                 error_attributes: Sequence[InstrumentedAttribute] = None):
         super(Constraint, self).__init__(validate)
         # self.table = validate  # setter finds object
         self._error_msg = error_msg
         self._as_condition = as_condition
         self._calling = calling
+        self.error_attributes = error_attributes
         if calling is None and as_condition is None:
             msg = "Constraint " + str + " requires calling or as_expression"
             ll = RuleBank()
             if ll.constraint_event:
-                ll.constraint_event(msg)
+                ll.constraint_event(message=msg, logic_row=None, constraint=None)
             raise ConstraintException(msg)
         if calling is not None and as_condition is not None:
             msg = "Constraint " + str + " either calling or as_expression"
             ll = RuleBank()
             if ll.constraint_event:
-                ll.constraint_event(msg)
+                ll.constraint_event(message=msg, logic_row=None, constraint=None)
             raise ConstraintException(msg)
         if calling is not None:
             self._function = calling
@@ -67,7 +71,7 @@ class Constraint(AbstractRule):
             # exception = exc.DBAPIError(msg, None, None)  # 'statement', 'params', and 'orig'
             ll = RuleBank()
             if ll.constraint_event:
-                ll.constraint_event(msg)
+                ll.constraint_event(message=msg, logic_row=logic_row, constraint=self)
             raise ConstraintException(msg)
         else:
             raise RuntimeError(f'Constraint did not return boolean: {str(self)}')

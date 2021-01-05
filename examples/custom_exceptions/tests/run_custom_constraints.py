@@ -66,12 +66,21 @@ session_maker = sqlalchemy.orm.sessionmaker()
 session_maker.configure(bind=engine)
 session = session_maker()
 
+from logic_bank.rule_type.constraint import Constraint
 
 class MyConstraintException(ConstraintException):
     pass
 
-def constraint_handler(message: str):
-    raise MyConstraintException("Custom constraint_handler for: " + message)
+def constraint_handler(message: str, constraint: Constraint, logic_row: LogicRow):
+    error_attrs = ""
+    if constraint:
+        if constraint.error_attributes:
+            for each_error_attribute in constraint.error_attributes:
+                error_attrs = error_attrs + each_error_attribute.name + " "
+    exception_message = "Custom constraint_handler for: " + message +\
+                        ", error_attributes: " + error_attrs
+    logic_row.log(exception_message)
+    raise MyConstraintException(exception_message)
 
 
 from examples.custom_exceptions.logic.rules_bank import declare_logic

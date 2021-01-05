@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Sequence
 
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.orm import session
@@ -45,6 +45,19 @@ class LogicBank:
             - create RuleBank, load rules - later executed on commit
 
             - raises exception if cycles detected
+
+        Use constraint_event to log / change class of constraints, for example
+
+            def constraint_handler(message: str, constraint: Constraint, logic_row: LogicRow):
+                error_attrs = ""
+                if constraint:
+                    if constraint.error_attributes:
+                        for each_error_attribute in constraint.error_attributes:
+                            error_attrs = error_attrs + each_error_attribute.name + " "
+                exception_message = "Custom constraint_handler for: " + message +\
+                                    ", error_attributes: " + error_attrs
+                logic_row.log(exception_message)
+                raise MyConstraintException(exception_message)
 
         Arguments:
             session: SQLAlchemy session
@@ -112,7 +125,8 @@ class Rule:
     def constraint(validate: object,
                    calling: Callable = None,
                    as_condition: any = None,
-                   error_msg: str = "(error_msg not provided)"):
+                   error_msg: str = "(error_msg not provided)",
+                   error_attributes=None):
         """
         Constraints declare condition that must be true for all commits
 
@@ -128,14 +142,20 @@ class Rule:
             except ConstraintException as ce:
                 print("Constraint raised: " + str(ce))
 
+        @see https://github.com/valhuber/LogicBank/wiki/Custom-Constraint-Handling
+
         Args:
             validate: name of mapped <class>
             calling: function, passed row, old_row, logic_row (complex constraints)
             as_condition: lambda, passed row (simple constraints)
-            error_msg:
+            error_msg: string, with {row.attribute} replacements
+            error_attributes: list of attributes
 
         """
-        return Constraint(validate=validate, calling=calling, as_condition=as_condition, error_msg=error_msg)
+        if error_attributes is None:
+            error_attributes = []
+        return Constraint(validate=validate, calling=calling, as_condition=as_condition,
+                          error_attributes=error_attributes, error_msg=error_msg)
 
     @staticmethod
     def parent_check(validate: object,

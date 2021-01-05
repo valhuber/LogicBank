@@ -112,3 +112,6 @@ to avoid 'flush already in progress' when using flask_sqlalchemy
 - Bug Fix: (normal) row events weren't firing (other events - early and commit events - were fine)
 
 0.7.0 - `Custom Exceptions <https://github.com/valhuber/LogicBank/wiki/Custom-Constraint-Handling>`_, Improved docstrings, samples (and Tutorial) reorganized into ``examples`` folder
+
+0.8.0 - `Custom Exceptions <https://github.com/valhuber/LogicBank/wiki/Custom-Constraint-Handling>`_, callback signature **changed** to include
+additional parameters

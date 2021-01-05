@@ -11,6 +11,8 @@ def declare_logic():
 
     Rule.constraint(validate=Customer,
                     error_msg="balance ({row.Balance}) exceeds CreditLimit ({row.CreditLimit})",
-                    as_condition=lambda row: row.Balance <= row.CreditLimit)
+                    as_condition=lambda row: row.Balance <= row.CreditLimit,
+                    error_attributes=[Customer.CreditLimit, Customer.Balance])
+                    # error_attributes="Customer.CreditLimit, Customer.Balance")
 
     Rule.sum(derive=Customer.Balance, as_sum_of=Order.AmountTotal)
