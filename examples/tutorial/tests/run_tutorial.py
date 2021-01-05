@@ -88,13 +88,21 @@ session.commit()  # this fires the rules (adjust balance, verify <=2000)
 
 post_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
 
-print("\nadd_order, update completed\n\n")
-
 logic_row = LogicRow(row=post_cust, old_row=pre_cust, ins_upd_dlt="*", nest_level=0, a_session=session, row_sets=None)
 
 assert post_cust.Balance == pre_cust.Balance + amount_total,\
     "ERROR - incorrect adjusted Customer Result (EXPECTED - now add rules)"
 
+print("\nNote: log shows that sum rule adjusted balance *up* due to order Insert\n")
 logic_row.log("Correct adjusted Customer Result")
+
+show_reuse = True  # set True to observe reuse in console log
+if not show_reuse:
+    pass
+    # print("Reuse example disabled")
+else:
+    new_order.AmountTotal = new_order.AmountTotal - 10
+    session.commit()
+    print("\nNote: log shows that sum rule adjusted balance *down* due to order Update")
 
 print("\nadd_order, ran to completion\n\n")
