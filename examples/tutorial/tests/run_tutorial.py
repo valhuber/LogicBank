@@ -66,7 +66,7 @@ session_maker = sqlalchemy.orm.sessionmaker()
 session_maker.configure(bind=engine)
 session = session_maker()
 
-from examples.tutorial.logic.rules_bank import declare_logic
+from examples.tutorial.logic.tutorial_logic import declare_logic
 LogicBank.activate(session=session, activator=declare_logic)
 
 pre_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
@@ -96,7 +96,7 @@ assert post_cust.Balance == pre_cust.Balance + amount_total,\
 print("\nNote: log shows that sum rule adjusted balance *up* due to order Insert\n")
 logic_row.log("Correct adjusted Customer Result")
 
-show_reuse = True  # set True to observe reuse in console log
+show_reuse = False  # set True to observe reuse in console log
 if not show_reuse:
     pass
     # print("Reuse example disabled")
