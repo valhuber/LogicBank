@@ -171,6 +171,9 @@ def get_referring_children(parent_logic_row: LogicRow) -> dict:
                     pass  # eg, banking - ALERT is child of customer, has no rules, that's ok
                 else:
                     child_table_rules = rule_bank.orm_objects[child_class_name].rules
+                    if parent_role_name is None:
+                        raise Exception("Relationship is missing 'back populates' for parent: " +
+                                        parent_logic_row.__str__())
                     search_for_rew_parent = "row." + parent_role_name
                     for each_rule in child_table_rules:
                         if isinstance(each_rule, (Formula, Constraint)):  # eg, OrderDetail.ShippedDate
