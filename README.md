@@ -13,7 +13,7 @@ using standard tools and techniques
 > You may find it helpful to begin with [this Tutorial, using a basic example](../../wiki/Tutorial).
 >
 >
-> **Update:** checkout [**ApiLogicServer**](https://github.com/valhuber/ApiLogicServer#readme) - create a complete JSON:API for your database, with LogicBank, and a basic web app
+> **Update - Jan 26, 2021:** checkout [**ApiLogicServer**](https://github.com/valhuber/ApiLogicServer#readme) - create a complete JSON:API for your database, with LogicBank, and a basic web app
 
 This readme contains:
 
