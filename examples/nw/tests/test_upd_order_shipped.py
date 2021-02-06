@@ -2,6 +2,8 @@ import sys, unittest
 import logic_bank_utils.util as logic_bank_utils
 from datetime import datetime
 
+from sqlalchemy.orm import joinedload
+
 (did_fix_path, sys_env_info) = \
     logic_bank_utils.add_python_path(project_dir="LogicBank", my_file=__file__)
 
@@ -54,7 +56,9 @@ class Test(unittest.TestCase):
         session.expunge(pre_cust)
 
         print("")
-        test_order = session.query(models.Order).filter(models.Order.Id == 11011).join(models.Employee).one()
+        test_order = session.query(models.Order).filter(models.Order.Id == 11011).\
+            join(models.Employee).options(joinedload(models.Order.SalesRep)).\
+            one()
         if test_order.ShippedDate is None or test_order.ShippedDate == "":
             test_order.ShippedDate = str(datetime.now())
             print(prt("Shipping order - ShippedDate: ['' -> " + test_order.ShippedDate + "]"))
