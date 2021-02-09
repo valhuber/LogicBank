@@ -148,6 +148,7 @@ class LogicRow:
                 else:
                     result += str(value)
         result += f'  row@: {str(hex(id(self.row)))}'
+        result += f'  session@: {str(hex(id(self.session)))}'
         return result  # str(my_dict)
 
     def log(self, msg: str) -> str:
