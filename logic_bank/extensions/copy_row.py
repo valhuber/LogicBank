@@ -43,6 +43,9 @@ class CopyRow(RowEvent):
             copy_to_logic_row = copy_from.new_logic_row(new_row_class=self.copy_to)
             copy_to_logic_row.link(to_parent=copy_from)
             copy_to_logic_row.set_same_named_attributes(copy_from)
+            do_session_add = False
+            if do_session_add:  # does not appear to matter...
+                copy_to_logic_row.session.add(copy_to_logic_row.row)
             copy_to_logic_row.insert(reason="Copy " + copy_to_logic_row.name)  # triggers rules...
             # copy_from.log(f'END {str(self)}')
         return self

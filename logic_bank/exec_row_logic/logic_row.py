@@ -147,8 +147,8 @@ class LogicRow:
                     result += value
                 else:
                     result += str(value)
-        result += f'  row@: {str(hex(id(self.row)))}'
-        result += f'  session@: {str(hex(id(self.session)))}'
+        result += f'  row: {str(hex(id(self.row)))}'
+        result += f'  session: {str(hex(id(self.session)))}'
         return result  # str(my_dict)
 
     def log(self, msg: str) -> str:
@@ -665,10 +665,12 @@ class LogicRow:
             if each_relationship.direction == sqlalchemy.orm.interfaces.MANYTOONE:  # cust, emp
                 parent_role_name = each_relationship.key  # eg, OrderList
                 if self.is_foreign_key_null(each_relationship) is False:
-                    # continue
+                    # continue - foreign key not null - parent *should* exist
                     self.get_parent_logic_row(parent_role_name)  # sets the accessor
                     does_parent_exist = getattr(self.row, parent_role_name)
-                    if does_parent_exist is None and ref_integ_enabled:
+                    if does_parent_exist:
+                        pass  # yes, parent exists... it's all fine
+                    elif ref_integ_enabled:
                         msg = "Missing Parent: " + parent_role_name
                         self.log(msg)
                         ll = RuleBank()

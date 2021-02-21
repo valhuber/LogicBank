@@ -74,6 +74,8 @@ class Aggregate(Derivation):
             curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
             if curr_value is None:
                 curr_value = 0
+            if delta is None:
+                delta = 0
             setattr(parent_adjustor.parent_logic_row.row, self._column, curr_value + delta)
             # parent_adjustor.child_logic_row.log(f'adjust_from_inserted/adopted_child adjusts {str(self)}')
 

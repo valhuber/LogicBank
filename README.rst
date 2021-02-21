@@ -119,3 +119,9 @@ additional parameters
 0.9.0 - Add logicRow.get_derived_attributes, which
 can be used to enforce behaviors such as
 `Unalterable Derivations <https://github.com/valhuber/LogicBank/wiki/Rule-Extensibility#unalterable-derivations>`_
+
+0.9.2 - Add session to logic_row.__str__(), listeners
+
+0.9.3 - Allow for nulls in summed/sum
+
+0.9.4 - Fix bad Warning: Missing Parent:
