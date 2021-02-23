@@ -240,7 +240,7 @@ class LogicRow:
             each_row_event.execute(self)
 
     def row_events(self):
-        self.log_engine("early_events")
+        self.log_engine("row_events")
         """
         early_row_events = rule_bank_withdraw.generic_rules_of_class(EarlyRowEvent)  # FIXME - review duplication
         for each_row_event in early_row_events:
