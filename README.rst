@@ -125,3 +125,5 @@ can be used to enforce behaviors such as
 0.9.3 - Allow for nulls in summed/sum
 
 0.9.4 - Fix bad Warning: Missing Parent:
+
+0.9.5 - Reduce requirement to initialize summed field

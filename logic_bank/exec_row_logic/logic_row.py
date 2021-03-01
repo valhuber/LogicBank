@@ -230,22 +230,12 @@ class LogicRow:
 
     def early_row_events(self):
         self.log_engine("early_events")
-        """
-        early_row_events = rule_bank_withdraw.generic_rules_of_class(EarlyRowEvent)  # FIXME - review duplication
-        for each_row_event in early_row_events:
-            each_row_event.execute(self)
-        """
         early_row_events = rule_bank_withdraw.rules_of_class(self, EarlyRowEvent)
         for each_row_event in early_row_events:
             each_row_event.execute(self)
 
     def row_events(self):
         self.log_engine("row_events")
-        """
-        early_row_events = rule_bank_withdraw.generic_rules_of_class(EarlyRowEvent)  # FIXME - review duplication
-        for each_row_event in early_row_events:
-            each_row_event.execute(self)
-        """
         row_events = rule_bank_withdraw.rules_of_class(self, RowEvent)
         for each_row_event in row_events:
             each_row_event.execute(self)

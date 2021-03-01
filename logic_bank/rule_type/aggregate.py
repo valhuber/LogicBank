@@ -63,19 +63,15 @@ class Aggregate(Derivation):
                                    get_old_summed_field: Callable):
         where = self._where_cond(parent_adjustor.child_logic_row.row)
         delta = get_summed_field()
+        if delta is None:
+            delta = 0
         if where and delta != 0.0:  # trigger update by setting parent_adjustor.parent_logic_row
-            parent_role_name = self.get_parent_role_from_child_role_name(
-                child_logic_row=parent_adjustor.child_logic_row,
-                child_role_name=self._child_role_name
-            )
             if parent_adjustor.parent_logic_row is None:
                 parent_adjustor.parent_logic_row = \
                     parent_adjustor.child_logic_row.get_parent_logic_row(role_name=self._parent_role_name)
             curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
             if curr_value is None:
                 curr_value = 0
-            if delta is None:
-                delta = 0
             setattr(parent_adjustor.parent_logic_row.row, self._column, curr_value + delta)
             # parent_adjustor.child_logic_row.log(f'adjust_from_inserted/adopted_child adjusts {str(self)}')
 
@@ -105,6 +101,8 @@ class Aggregate(Derivation):
         is_different_parent = parent_adjustor.child_logic_row.is_different_parent(parent_role_name)
         summed_field = get_summed_field()
         old_summed_field = get_old_summed_field()
+        if old_summed_field is None:
+            old_summed_field = 0
         if is_different_parent:
             self.adjust_from_updated_reparented_child(parent_adjustor=parent_adjustor,
                                                       get_summed_field=get_summed_field,
@@ -126,13 +124,10 @@ class Aggregate(Derivation):
                 delta = - summed_field
 
             if delta != 0.0:  # trigger update by setting parent_adjustor.parent_logic_row
-                """ parent_role_name = self.get_parent_role_from_child_role_name(  # FIXME remove this
-                    child_logic_row=parent_adjustor.child_logic_row,
-                    child_role_name=self._child_role_name
-                ) """
-                if parent_adjustor.parent_logic_row is None:
-                    parent_adjustor.parent_logic_row = \
-                        parent_adjustor.child_logic_row.get_parent_logic_row(role_name=self._parent_role_name)
+                if delta is not None and delta != 0.0:  # FIXME
+                    if parent_adjustor.parent_logic_row is None:
+                        parent_adjustor.parent_logic_row = \
+                            parent_adjustor.child_logic_row.get_parent_logic_row(role_name=self._parent_role_name)
                 curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
                 setattr(parent_adjustor.parent_logic_row.row, self._column, curr_value + delta)
                 # parent_adjustor.child_logic_row.log(f'adjust_from_updated_child adjusts {str(self)}')
