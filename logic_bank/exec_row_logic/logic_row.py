@@ -458,6 +458,7 @@ class LogicRow:
         row_mapper = object_mapper(self.row)
         if self.row.__tablename__ == "Customerxx":
             print("Debug Stop here")
+            # TODO - check use of LogicRow (using row_mapper.column_attrs??  vs attrs)
         from_attrs = object_mapper(from_logic_row.row).column_attrs
         for each_attr in row_mapper.column_attrs:  # avoid parent objects, child collections
             is_hybrid = isinstance(each_attr, hybrid_property)

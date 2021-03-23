@@ -69,6 +69,7 @@ class Constraint(AbstractRule):
             msg = eval(f'f"""{self._error_msg}"""')
             from sqlalchemy import exc
             # exception = exc.DBAPIError(msg, None, None)  # 'statement', 'params', and 'orig'
+            logic_row.log(f'Constraint Failure: {msg}')
             ll = RuleBank()
             if ll.constraint_event:
                 ll.constraint_event(message=msg, logic_row=logic_row, constraint=self)
