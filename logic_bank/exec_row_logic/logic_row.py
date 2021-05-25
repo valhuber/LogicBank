@@ -2,7 +2,7 @@ from typing import List
 
 import sqlalchemy
 from sqlalchemy import inspect, text
-from sqlalchemy.ext.declarative import base
+from sqlalchemy.orm import base
 from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import object_mapper, session, relationships, RelationshipProperty
@@ -168,7 +168,7 @@ class LogicRow:
         output = output.replace("]:", "] {" + msg + "}", 1)
         logic_bank.engine_logger.debug(output)
 
-    def new_logic_row(self, new_row_class: sqlalchemy.ext.declarative.api.DeclarativeMeta) -> 'LogicRow':
+    def new_logic_row(self, new_row_class: sqlalchemy.orm.DeclarativeMeta) -> 'LogicRow':
         """ creates a new row of type new_row_class """
         new_row = new_row_class()
         result = LogicRow(row=new_row,
@@ -247,10 +247,16 @@ class LogicRow:
             logic_row = self
             if logic_row.ins_upd_dlt == "ins" or \
                     logic_row.is_different_parent(parent_role_name=role_name):
-                self.log("copy_rules for role: " + role_name)
+                # self.log("copy_rules for role: " + role_name)
+                attributes_copied = ""
                 parent_logic_row = logic_row.get_parent_logic_row(role_name)
                 for each_copy_rule in copy_rules_for_table:  # TODO consider orphans
+                    if attributes_copied == "":
+                        attributes_copied = each_copy_rule._column
+                    else:
+                        attributes_copied += f', {each_copy_rule._column}'
                     each_copy_rule.execute(logic_row, parent_logic_row)
+                self.log(f'copy_rules for role: {role_name} - {attributes_copied}')
 
     def get_parent_role_def(self, parent_role_name: str):
         """ returns sqlalchemy role_def """
@@ -875,6 +881,14 @@ class ParentRoleAdjuster:
         self.parent_role_name = parent_role_name  # which parent are we dealing with?
         self.parent_logic_row = None
         self.previous_parent_logic_row = None
+        self.adjusting_attributes = ""
+        """ list of attributes being adjusted, for log """
+
+    def append_adjusting_attributes(self, attribute_name: str):
+        if self.adjusting_attributes == "":
+            self.adjusting_attributes = attribute_name
+        else:
+            self.adjusting_attributes += f', {attribute_name}'
 
     def save_altered_parents(self):
         """
@@ -898,7 +912,7 @@ class ParentRoleAdjuster:
                 self.child_logic_row.log("Adjustment deferred for " + self.parent_role_name)
             else:
                 parent_logic_row.ins_upd_dlt = "upd"
-                parent_logic_row.update(reason="Adjusting " + self.parent_role_name)
+                parent_logic_row.update(reason="Adjusting " + self.parent_role_name + ": " + self.adjusting_attributes)
                 # no after_flush: https://stackoverflow.com/questions/63563680/sqlalchemy-changes-in-before-flush-not-triggering-before-flush
         if self.previous_parent_logic_row is None:
             pass
@@ -910,4 +924,4 @@ class ParentRoleAdjuster:
             else:
                 current_session = self.child_logic_row.session
                 previous_parent_logic_row.ins_upd_dlt = "upd"
-                previous_parent_logic_row.update(reason="Adjusting " + self.parent_role_name)
+                previous_parent_logic_row.update(reason="Adjusting Old " + self.parent_role_name)

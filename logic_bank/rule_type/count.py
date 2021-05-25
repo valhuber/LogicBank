@@ -19,7 +19,7 @@ class Count(Aggregate):
     def __init__(self, derive: InstrumentedAttribute, as_count_of: object, where: any):
         super(Count, self).__init__(derive=derive, where=where)
 
-        if not isinstance(as_count_of, sqlalchemy.ext.declarative.api.DeclarativeMeta):
+        if not isinstance(as_count_of, sqlalchemy.orm.DeclarativeMeta):
             raise Exception("rule definition error, not mapped class: " + str(as_count_of))
         self._as_count_of = as_count_of
         self._as_count_of_class_name = self.get_class_name(as_count_of)

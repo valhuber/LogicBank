@@ -52,5 +52,12 @@
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/examples/custom_exceptions/db/database-gold.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="load_event" uuid="9a915314-4efa-4625-80a1-708f5589f9ef">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/examples/nw/tests/load_event.db</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

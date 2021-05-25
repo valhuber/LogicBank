@@ -43,7 +43,7 @@ class Sum(Aggregate):
 
     def adjust_parent(self, parent_adjustor: ParentRoleAdjuster):
         """
-        @see LogicRow.adjust_parent_aggregates
+        @see LogicRow.adjust_parent_aggregates - drives adjustments by calling this for each aggregate
         Set parent_adjustor iff adjustment update is required for this aggregate
             * Insert & Delete - value non-zero
             * Update - summed field, where or pk changes
