@@ -13,7 +13,7 @@ def before_commit(a_session: session):
         * not called for auto-commit transactions
         * called prior to before_flush
     """
-    logic_bank.logic_logger.debug(f'\nLogic Phase:\t\tBEFORE COMMIT(session={str(hex(id(a_session)))})          \t\t\t\t\t\t')
+    logic_bank.logic_logger.info(f'\nLogic Phase:\t\tBEFORE COMMIT(session={str(hex(id(a_session)))})          \t\t\t\t\t\t')
 
 
 def before_flush(a_session: session, a_flush_context, an_instances):
@@ -29,7 +29,7 @@ def before_flush(a_session: session, a_flush_context, an_instances):
     """
     Logic Phase
     """
-    logic_bank.logic_logger.debug(f'Logic Phase:\t\tROW LOGIC(session={str(hex(id(a_session)))}) (sqlalchemy before_flush)\t\t\t')
+    logic_bank.logic_logger.info(f'Logic Phase:\t\tROW LOGIC(session={str(hex(id(a_session)))}) (sqlalchemy before_flush)\t\t\t')
 
     row_sets = RowSets()  # type : RowSet
     client_inserts = []
@@ -40,7 +40,7 @@ def before_flush(a_session: session, a_flush_context, an_instances):
     for each_instance in a_session.new:
         row_sets.add_submitted(each_instance)
         """ inserts first...
-            SQLAlchemy queues these on a_session.new (but *not* updates!) 
+            SQLAlchemy queues these on a_session.new (but *not* updates!)
             so, process the client changes, so that triggered inserts (eg. audit) aren't run twice
         """
         client_inserts.append(each_instance)
@@ -71,7 +71,7 @@ def before_flush(a_session: session, a_flush_context, an_instances):
     """
     Commit Logic Phase
     """
-    logic_bank.logic_logger.debug(f'Logic Phase:\t\tCOMMIT(session={str(hex(id(a_session)))})   \t\t\t\t\t\t\t\t\t\t')
+    logic_bank.logic_logger.info(f'Logic Phase:\t\tCOMMIT(session={str(hex(id(a_session)))})   \t\t\t\t\t\t\t\t\t\t')
     processed_rows = dict.copy(row_sets.processed_rows)  # set in LogicRow ctor
     for each_logic_row_key in processed_rows:
         each_logic_row = processed_rows[each_logic_row_key]
@@ -84,7 +84,7 @@ def before_flush(a_session: session, a_flush_context, an_instances):
     """
     Proceed with sqlalchemy flush processing
     """
-    logic_bank.logic_logger.debug(f'Logic Phase:\t\tFLUSH(session={str(hex(id(a_session)))})   (sqlalchemy flush processing)       \t')
+    logic_bank.logic_logger.info(f'Logic Phase:\t\tFLUSH(session={str(hex(id(a_session)))})   (sqlalchemy flush processing)       \t')
 
 
 def temp_debug(a_session, bug_explore, row_cache):

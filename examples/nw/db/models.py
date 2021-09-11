@@ -10,7 +10,6 @@ on relationships...
 
 from logic_bank import logic_bank  # import this first - import ordering
 
-import sqlalchemy_utils
 from sqlalchemy import Boolean, Column, DECIMAL, DateTime, Float, ForeignKey, Integer, LargeBinary, String, \
     UniqueConstraint, select, func
 from sqlalchemy.orm import relationship, column_property

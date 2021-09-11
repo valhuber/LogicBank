@@ -130,3 +130,4 @@ can be used to enforce behaviors such as
 
 0.9.6 - Show Constraint Failures in Console Log
 
+1.0.1 - Replace print with logging for listing rules

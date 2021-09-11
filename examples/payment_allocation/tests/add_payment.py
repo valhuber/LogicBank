@@ -3,7 +3,6 @@ import logging, sys, os
 from shutil import copyfile
 
 import sqlalchemy
-import sqlalchemy_utils
 
 from logic_bank_utils import util as logic_bank_utils
 
@@ -69,8 +68,6 @@ session = session_maker()
 
 from examples.payment_allocation.logic.rules_bank import declare_logic
 LogicBank.activate(session=session, activator=declare_logic)
-
-cls = sqlalchemy_utils.functions.get_class_by_table(models.Base, "Product", data=None)  # FIXME ??
 
 pre_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
 session.expunge(pre_cust)

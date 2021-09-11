@@ -73,6 +73,7 @@ class Aggregate(Derivation):
             if curr_value is None:
                 curr_value = 0
             setattr(parent_adjustor.parent_logic_row.row, self._column, curr_value + delta)
+            parent_adjustor.append_adjusting_attributes(self._column)
             # parent_adjustor.child_logic_row.log(f'adjust_from_inserted/adopted_child adjusts {str(self)}')
 
     def adjust_from_deleted_child(self,
@@ -91,6 +92,7 @@ class Aggregate(Derivation):
                     parent_adjustor.child_logic_row.get_parent_logic_row(role_name=self._parent_role_name)
             curr_value = get_summed_field()
             setattr(parent_adjustor.parent_logic_row.row, self._column, curr_value - delta)
+            parent_adjustor.append_adjusting_attributes(self._column)
             # print(f'adjust_from_deleted/abandoned_child adjusts {str(self)}')
 
     def adjust_from_updated_child(self,
@@ -130,6 +132,7 @@ class Aggregate(Derivation):
                             parent_adjustor.child_logic_row.get_parent_logic_row(role_name=self._parent_role_name)
                 curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
                 setattr(parent_adjustor.parent_logic_row.row, self._column, curr_value + delta)
+                parent_adjustor.append_adjusting_attributes(self._column)
                 # parent_adjustor.child_logic_row.log(f'adjust_from_updated_child adjusts {str(self)}')
 
     def adjust_from_updated_reparented_child(self,
@@ -151,6 +154,7 @@ class Aggregate(Derivation):
                     raise ConstraintException(msg)
                 curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
                 setattr(parent_adjustor.parent_logic_row.row, self._column, curr_value + delta)
+                parent_adjustor.append_adjusting_attributes(self._column)
 
         where = self._where_cond(parent_adjustor.child_logic_row.old_row)
         delta = get_old_summed_field()
@@ -162,6 +166,7 @@ class Aggregate(Derivation):
                         from_row=parent_adjustor.child_logic_row.old_row)
             curr_value = getattr(parent_adjustor.previous_parent_logic_row.row, self._column)
             setattr(parent_adjustor.previous_parent_logic_row.row, self._column, curr_value - delta)
+            parent_adjustor.append_adjusting_attributes(self._column)
 
     def get_child_role_name(self, child_attrs):
         found_attr = None

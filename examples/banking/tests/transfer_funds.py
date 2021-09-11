@@ -4,7 +4,7 @@ import logging, sys, os
 from shutil import copyfile
 
 import sqlalchemy
-import sqlalchemy_utils
+# import sqlalchemy_utils
 
 from logic_bank_utils import util as logic_bank_utils
 

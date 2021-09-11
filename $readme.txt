@@ -7,6 +7,10 @@ Major friction due to Python Path
     This should make debug runs == cmd-line, vsc
     Using LogicBankUtils to set path (to LogicBank) in each nw/tests
 
+Major issues with SQLAlchemy1.4 (DeclarativeMeta (etc) now merged in SQLAlchemy.orm)ß
+    But, SQLAlchemy Utils is very old -- nothing since 2014!  Seems ok to remove (done)
+    And it fails with SAFRS JABase
+
 Significant bug fixes:
     See nw/trans_tests/upd_order_reuse, and logic_engine/exec_row_logic/logic_row#save_altered_parents
 
