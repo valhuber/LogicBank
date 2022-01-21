@@ -11,6 +11,12 @@ def fpath(name):
 def read(fname):
     return open(fpath(fname)).read()
 
+find_version = True
+if find_version:
+    with io.open("logic_bank/rule_bank/rule_bank_setup.py", "rt", encoding="utf8") as f:
+        version = re.search(r"__version__ = \"(.*?)\"", f.read()).group(1)
+else:
+    version = "0.0"
 
 def desc():
     return read("README.rst")
@@ -22,7 +28,7 @@ project_urls = {
 
 setup(
     name="logicbank",
-    version="1.0.1",
+    version=version,
     url="https://github.com/valhuber/logicbank",
     license="BSD",
     author="Val Huber",
@@ -42,7 +48,7 @@ setup(
     platforms="any",
     install_requires=[
         "python-dateutil>=2.3, <3",
-        "sqlalchemy-utils>=0.32.21, <1",
+        "sqlalchemy>=1.4",
     ],
     classifiers=[
         "Development Status :: 3 - Alpha",

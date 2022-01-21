@@ -4,3 +4,5 @@
 **/__pycache__
 *.egg-info
 venv/
+*database.db
+database.db

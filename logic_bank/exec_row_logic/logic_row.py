@@ -2,7 +2,7 @@ from typing import List
 
 import sqlalchemy
 from sqlalchemy import inspect, text
-from sqlalchemy.ext.declarative import base
+from sqlalchemy.orm import base
 from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import object_mapper, session, relationships, RelationshipProperty
@@ -168,7 +168,7 @@ class LogicRow:
         output = output.replace("]:", "] {" + msg + "}", 1)
         logic_bank.engine_logger.debug(output)
 
-    def new_logic_row(self, new_row_class: sqlalchemy.ext.declarative.api.DeclarativeMeta) -> 'LogicRow':
+    def new_logic_row(self, new_row_class: sqlalchemy.orm.DeclarativeMeta) -> 'LogicRow':
         """ creates a new row of type new_row_class """
         new_row = new_row_class()
         result = LogicRow(row=new_row,

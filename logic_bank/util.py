@@ -3,10 +3,10 @@ import inspect
 import os
 
 import sqlalchemy
-from sqlalchemy.exc import UnmappedColumnError
+from sqlalchemy.orm.exc import UnmappedColumnError
 from sqlalchemy.orm import attributes, object_mapper
 
-from sqlalchemy.ext.declarative import base
+from sqlalchemy.orm import base
 
 
 class ConstraintException(SystemError):

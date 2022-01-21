@@ -18,9 +18,9 @@ from logic_bank.util import prt
 
 class AbstractRule(object):
 
-    def __init__(self, decl_meta: sqlalchemy.ext.declarative.api.DeclarativeMeta):
+    def __init__(self, decl_meta: sqlalchemy.orm.DeclarativeMeta):
         #  failed -- mapped_class = get_class_by_table(declarative_base(), a_table_name)  # User class
-        if not isinstance(decl_meta, sqlalchemy.ext.declarative.api.DeclarativeMeta):
+        if not isinstance(decl_meta, sqlalchemy.orm.DeclarativeMeta):
             raise Exception("rule definition error, not mapped class: " + str(decl_meta))
         self._decl_meta = decl_meta
         class_name = self.get_class_name(decl_meta)
@@ -31,7 +31,7 @@ class AbstractRule(object):
         list of attributes this rule refers to, including parent.attribute
         """
 
-    def get_class_name(self, decl_meta: sqlalchemy.ext.declarative.api.DeclarativeMeta) -> str:
+    def get_class_name(self, decl_meta: sqlalchemy.orm.DeclarativeMeta) -> str:
         """
         extract class name from class_
         eg, OrderDetail from <class 'nw.logic.models.OrderDetail'>

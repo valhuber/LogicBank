@@ -9,6 +9,7 @@ from logic_bank.exec_trans_logic.listeners import before_flush, before_commit
 from sqlalchemy.orm import session
 import logging
 
+__version__ = "01.04.00"
 
 def setup(a_session: session):
     """
@@ -79,15 +80,18 @@ def compute_formula_execution_order() -> bool:
     Determine formula execution order based on "row.xx" references (dependencies),
     (or raise exception if cycles detected).
     """
+    global version
     rules_bank = RuleBank()
     for each_key in rules_bank.orm_objects:
         compute_formula_execution_order_for_class(class_name=each_key)
 
     logic_logger = logging.getLogger("logic_logger")
-    logic_logger.debug("\nThe following rules have been activated\n")
+    rule_count = 0
+    logic_logger.debug(f'\nThe following rules have been activated\n')
     list_rules = rules_bank.__str__()
     loaded_rules = list(list_rules.split("\n"))
     for each_rule in loaded_rules:
         logic_logger.debug(each_rule)
-    logic_logger.debug("")
+        rule_count += 1
+    logic_logger.info(f'Logic Bank {__version__} - {rule_count} rules loaded')
     return True
