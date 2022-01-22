@@ -166,7 +166,7 @@ class LogicRow:
         """
         output = str(self)
         output = output.replace("]:", "] {" + msg + "}", 1)
-        logic_bank.engine_logger.debug(output)
+        logic_bank.engine_logger.info(output)
 
     def new_logic_row(self, new_row_class: sqlalchemy.orm.DeclarativeMeta) -> 'LogicRow':
         """ creates a new row of type new_row_class """

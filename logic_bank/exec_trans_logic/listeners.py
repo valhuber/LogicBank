@@ -13,7 +13,7 @@ def before_commit(a_session: session):
         * not called for auto-commit transactions
         * called prior to before_flush
     """
-    logic_bank.logic_logger.info(f'\nLogic Phase:\t\tBEFORE COMMIT(session={str(hex(id(a_session)))})          \t\t\t\t\t\t')
+    logic_bank.logic_logger.debug(f'\nLogic Phase:\t\tBEFORE COMMIT(session={str(hex(id(a_session)))})          \t\t\t\t\t\t')
 
 
 def before_flush(a_session: session, a_flush_context, an_instances):

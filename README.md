@@ -13,7 +13,7 @@ using standard tools and techniques
 > You may find it helpful to begin with [this Tutorial, using a basic example](../../wiki/Tutorial).
 >
 >
-> **Update - Jan 26, 2021:** checkout [**ApiLogicServer**](https://github.com/valhuber/ApiLogicServer#readme) - create a complete JSON:API for your database, with LogicBank, and a basic web app
+> **Update - Jan 26, 2021:** You can use LogicBank for your own projects.  For new projects, the recommended approach is [**ApiLogicServer**](https://github.com/valhuber/ApiLogicServer#readme) - create a complete logic-enabled JSON:API for your database, and a admin app, with 1 command.
 
 This readme contains:
 
@@ -41,7 +41,7 @@ It's also incredibly repetitive - you often get the feeling you're doing the sam
 And you're right.  It's because backend logic follows patterns of "what" is supposed to happen.
 And your code is the "how".  Suddenly, a simple cocktail napkin specification explodes into a massive amount of legacy code:
 
-<figure><img src="images/overview/rules-vs-code.png"></figure>
+<figure><img src="https://github.com/valhuber/LogicBank/blob/main/images/overview/rules-vs-code.png?raw=true"></figure>
 
 Logic Bank was designed to make the cocktail napkin spec _executable_.
 
@@ -50,7 +50,7 @@ Logic Bank introduces rules that are 40X more concise than legacy code.
 The 5 rules below (lines 40-49) express the same logic as 200 lines of code [**(see them here)**](examples/nw/logic/legacy).  That's because rules are all about "what"
 -- spreadsheet-like expressions that automate the tedious "how":
 
-<figure><img src="images/overview/cocktail-logic-bank.png"></figure>
+<figure><img src="https://github.com/valhuber/LogicBank/blob/main/images/overview/cocktail-logic-bank.png?raw=true"></figure>
 
 ### Standard Python - Declare, Extend, Manage
 Logic Bank is fully integrated with Python:
@@ -66,7 +66,7 @@ additional background, and real world experience.
 
 
 ## How - Usage and Operation Overview
-<figure><img src="images/architecture.png"></figure>
+<figure><img src="https://github.com/valhuber/LogicBank/blob/main/images/architecture.png?raw=true"></figure>
 Logic Bank operates as shown above:
 
  1. **Declare and Activate** (see example above):
@@ -84,7 +84,6 @@ Logic Bank operates as shown above:
 
     - By bundling transaction logic into SQLAlchemy data access, your logic
   is automatically shared, whether for hand-written code (Flask apps, APIs)
-  or via generators such as Flask AppBuilder
       
 
  3. The **Logic Bank** engine handles SQLAlchemy `before_flush` events on
@@ -105,7 +104,7 @@ Let's see how logic operates on a typical, multi-table transaction.
 
 ### Logic Execution: Add Order - Watch, React, Chain
 
-<figure><img src="images/check-credit.png"></figure>
+<figure><img src="https://github.com/valhuber/LogicBank/blob/main/images/check-credit.png?raw=true"></figure>
 
 
 The `add_order` example illustrates how
@@ -158,21 +157,6 @@ Here's how rules can help.
 The examples above illustrate how just a few rules can replace 
 [pages of code](examples/nw/logic/legacy).
 
-#### Collaboration: Running Screens - Automatic Basic Web App
-
-Certainly business users are more easily able to
-read rules than code.  But still, rules are
-pretty abstract.
-
-Business users relate best to actual working pages -
-_their_ interpretation of working software.
-The [fab-quick-start](https://github.com/valhuber/fab-quick-start/wiki)
-project enables you to build a basic web app in minutes.
-
-<figure><img src="images/fab.png"></figure>
-
-This project has already generated such an app, which you can run
-once you've finished the Installation process, below.
 
 #### Iteration - Automatic Ordering
 Rules are _self-ordering_ - they recognize their interdependencies,
@@ -271,38 +255,6 @@ python -m unittest discover -p "test*.py"  # run all tests
 > 
 > Or, run in an IDE - they look [like this](../../wiki/home#debugging-standard-debugger-logic-logging).
 
-#### Optional - Run `basic_web_app`
-Flask App Builder is based on SQLAlchemy, so it can integrate  Logic Bank as
-[described here](../../wiki/Flask-App-Builder-Integration).  The project contains a
-pre-built sample you can run:
-
-```
-cd LogicBank
-cd examples/nw/basic_web_app
-python run.py
-```
-You then start the app (use **new window**) with
-[`http://0.0.0.0:8080`](http://0.0.0.0:8080), or try
-
-* [`http://127.0.0.1:5000/`](http://127.0.0.1:5000/)
-* [`http://127.0.0.1:8080/`](http://127.0.0.1:8080/)
-
-> **Login** (upper right): user = admin, password = p
-
-You can
-1. Navigate to Order 11011 (a _multi-page_ web app)
-    * Click **Menu > Customer List** 
-    * Click the **magnifying glass** for the first customer
-    * Click the **List Order tab**
-    * Click the **magnifying glass* for Order **11011**
-2. Click Edit so you can make changes
-3. Change the Shipped Date
-4. Click save
-5. Verify logic enforcement
-    * The web app has been [configured](../../wiki/Flask-App-Builder-Integration) to activate the rules
-    * The logic for this update [is interesting](../../wiki/Ship-Order) -
-    check out the console log
-
 ## Next Steps
 
 ### Run the Tutorial
@@ -350,7 +302,7 @@ pip install logicbank
 
 # Project Information
 
-<figure><img src="images/logic-bank-project.png"></figure>
+<figure><img src="https://github.com/valhuber/LogicBank/blob/main/images/logic-bank-project.png?raw=true"></figure>
 
 #### What's in the project
 Logic Bank consists of:
@@ -363,8 +315,6 @@ these contain
 
     * [Test folders](examples/nw/tests) that run key transactions - just run the scripts
 (note the logs)
-
-    * [Flask AppBuilder apps](examples/nw/basic_web_app) (as described above)
     
     * [Logic](examples/nw/logic) - rules (and for `nw`,
     the manual `legacy` code for contrast to rules)
@@ -374,12 +324,6 @@ these contain
 
 * The `logic_bank` engine source code
 
-
-#### Status: Running, Under Development
-Functionally complete, 9/29/2020, tested for 2 databases.
-
-Incubation - ready to explore and provide feedback
-on general value, and features.
 
 #### Internals
 

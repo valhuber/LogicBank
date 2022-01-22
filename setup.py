@@ -19,7 +19,7 @@ else:
     version = "0.0"
 
 def desc():
-    return read("README.rst")
+    return read("README.md")
 
 
 project_urls = {
@@ -39,7 +39,7 @@ setup(
         "40X more concise, Python for extensibility."
     ),
     long_description=desc(),
-    long_description_content_type="text/x-rst",
+    long_description_content_type='text/markdown',
     # packages=find_packages(include=['logic_bank']),
     packages=['logic_bank', 'logic_bank.exec_row_logic', 'logic_bank.exec_trans_logic', 'logic_bank.rule_bank', 'logic_bank.rule_type', 'logic_bank.extensions'],
     package_data={"": ["LICENSE"]},
@@ -51,7 +51,7 @@ setup(
         "sqlalchemy>=1.4",
     ],
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 5 - Production/Stable",
         "Environment :: Web Environment",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: BSD License",
