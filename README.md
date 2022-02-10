@@ -302,9 +302,14 @@ pip install logicbank
 
 # Project Information
 
-<figure><img src="https://github.com/valhuber/LogicBank/blob/main/images/logic-bank-project.png?raw=true"></figure>
+### Revisions
+
+[Revisions](https://github.com/valhuber/LogicBank/wiki/Summary,-Update-History) are described here.
+
 
 #### What's in the project
+<figure><img src="https://github.com/valhuber/LogicBank/blob/main/images/logic-bank-project.png?raw=true"></figure>
+
 Logic Bank consists of:
 
 * Several test database systems - `nw,`  `banking`,
