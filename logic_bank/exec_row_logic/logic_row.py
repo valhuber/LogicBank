@@ -288,16 +288,19 @@ class LogicRow:
         for each_relationship in parents_relationships:  # eg, Payment has child PaymentAllocation
             if each_relationship.direction == sqlalchemy.orm.interfaces.ONETOMANY:  # PA
                 each_parent_role_name = each_relationship.back_populates  # eg, AllocationList
-                if isinstance(child, each_relationship.entity.class_):
+                child_row_class_name = str(child.__class__.__name__)  # eg, PaymentAllocation
+                child_reln_class_name = str(each_relationship.entity.class_.__name__)  # eg., <class 'models.PaymentAllocation'>
+                # instance fails - see https://github.com/valhuber/LogicBank/issues/6
+                if child_row_class_name == child_reln_class_name:
                     if parent_role_name is not None:
                         raise Exception("TODO - disambiguate relationship from Provider: <" +
                                         to_parent.name +
                                         "> to Allocation: " + str(type(child)))
                     parent_role_name = parent_mapper.class_.__name__  # default TODO design review
         if parent_role_name is None:
-            raise Exception("Missing relationship from Provider: <" +
+            raise Exception("Missing relationship from Parent Provider: <"  +
                             to_parent.name +
-                            "> to Allocation: " + str(type(child)))
+                            "> to child Allocation: " + str(type(child)) + " of class: " + child.__class__.__name__)
         setattr(child, parent_role_name, to_parent.row)
         return True
 
