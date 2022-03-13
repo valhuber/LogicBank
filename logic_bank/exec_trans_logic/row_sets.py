@@ -44,6 +44,8 @@ class RowSets():
             self.submitted_row.remove(logic_row.row)
 
     def print_used(self):
+        """ logs all rules *used8 in the transaction (from self.rules_fired)
+        """
         logic_bank.logic_logger.info(f'\nRules Fired:')
         rule_num = 1
         for each_rule in self.rules_fired:
