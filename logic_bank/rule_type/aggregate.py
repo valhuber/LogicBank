@@ -5,6 +5,7 @@ from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from logic_bank.exec_row_logic.logic_row import LogicRow
 from logic_bank.exec_row_logic.logic_row import ParentRoleAdjuster
+from logic_bank.rule_type.abstractrule import AbstractRule
 from logic_bank.rule_type.derivation import Derivation
 from logic_bank.util import ConstraintException
 
@@ -42,6 +43,7 @@ class Aggregate(Derivation):
         if set, the parent will be updated (for possibly multiple adjusts for this role)
         """
         # parent_adjustor.child_logic_row.log(str(self))  # this is where the work is
+        AbstractRule.execute(self, parent_adjustor.child_logic_row)
         if parent_adjustor.child_logic_row.ins_upd_dlt == "ins":
             self.adjust_from_inserted_child(parent_adjustor,
                                             get_summed_field = get_summed_field,

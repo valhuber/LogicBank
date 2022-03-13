@@ -5,6 +5,7 @@ from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 import logic_bank.exec_row_logic.logic_row as LogicRow
 from logic_bank.rule_bank.rule_bank import RuleBank
+from logic_bank.rule_type.abstractrule import AbstractRule
 from logic_bank.rule_type.derivation import Derivation
 
 
@@ -57,6 +58,7 @@ class Formula(Derivation):
           - _function(row, old_row, logic_row)
         """
         # logic_row.log(f'Formula BEGIN {str(self)} on {str(logic_row)}')
+        AbstractRule.execute(self, logic_row)
         if self._function is not None:
             value = self._function(row=logic_row.row,
                                    old_row=logic_row.old_row, logic_row=logic_row)

@@ -21,6 +21,7 @@ class RowSets():
     def __init__(self):
         self.processed_rows = {}  # type: Dict[base, 'LogicRow']
         self.submitted_row = set()
+        self.rules_fired = set()
 
     def add_processed(self, logic_row: 'LogicRow'):
         """

@@ -3,6 +3,7 @@ from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 import logic_bank.exec_row_logic.logic_row as LogicRow
 from logic_bank.rule_bank.rule_bank import RuleBank
+from logic_bank.rule_type.abstractrule import AbstractRule
 from logic_bank.rule_type.derivation import Derivation
 from typing import Callable
 
@@ -42,6 +43,7 @@ class Copy(Derivation):
         rb.deposit_rule(self)
 
     def execute(self, child_logic_row: LogicRow, parent_logic_row: LogicRow):
+        AbstractRule.execute(self, child_logic_row)
         each_column_value = getattr(parent_logic_row.row, self._from_column)
         setattr(child_logic_row.row, self._column, each_column_value)
 

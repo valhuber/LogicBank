@@ -4,6 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import object_mapper
 
 from logic_bank import engine_logger
+# from logic_bank.exec_row_logic.logic_row import LogicRow
 from logic_bank.rule_bank import rule_bank_withdraw
 from sqlalchemy.orm import mapperlib
 
@@ -30,6 +31,9 @@ class AbstractRule(object):
         """
         list of attributes this rule refers to, including parent.attribute
         """
+
+    def execute(self, logic_row: object):
+        logic_row.row_sets.rules_fired.add(self)
 
     def get_class_name(self, decl_meta: sqlalchemy.orm.DeclarativeMeta) -> str:
         """

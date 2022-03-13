@@ -21,6 +21,7 @@ class AbstractRowEvent(AbstractRule):
         return f'RowEvent Function: {str(self._function)} '
 
     def execute(self, logic_row: LogicRow):
+        AbstractRule.execute(self, logic_row)
         # logic_row.log(f'Event BEGIN {str(self)} on {str(logic_row)}')
         value = self._function(row=logic_row.row, old_row=logic_row.old_row, logic_row=logic_row)
         # print(f'Event END {str(self)} on {str(logic_row)}')
