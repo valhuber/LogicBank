@@ -4,7 +4,9 @@ from typing import List, TypeVar, Dict
 from sqlalchemy.engine import base
 from sqlalchemy.ext.declarative import declarative_base
 
+from logic_bank import logic_bank
 from logic_bank.exec_row_logic.logic_row import LogicRow
+import logic_bank
 
 
 class RowSets():
@@ -40,4 +42,14 @@ class RowSets():
     def remove_submitted(self, logic_row: LogicRow):
         if logic_row.row in self.submitted_row:
             self.submitted_row.remove(logic_row.row)
+
+    def print_used(self):
+        logic_bank.logic_logger.info(f'\nRules Fired:')
+        rule_num = 1
+        for each_rule in self.rules_fired:
+            logic_bank.logic_logger.info(
+                f'  {rule_num}. {str(each_rule)}')
+            rule_num += 1
+        logic_bank.logic_logger.info(f'\n')
+
 

@@ -80,6 +80,8 @@ def before_flush(a_session: session, a_flush_context, an_instances):
         for each_row_event in commit_row_events:
             each_logic_row.log("Commit Event")
             each_row_event.execute(each_logic_row)
+    row_sets.print_used()
+    """
     logic_bank.logic_logger.info(f'\nRules Fired:')
     rule_num = 1
     for each_rule in row_sets.rules_fired:
@@ -87,6 +89,7 @@ def before_flush(a_session: session, a_flush_context, an_instances):
             f'  {rule_num}. {str(each_rule)}')
         rule_num += 1
     logic_bank.logic_logger.info(f'\n')
+    """
 
     """
     Proceed with sqlalchemy flush processing

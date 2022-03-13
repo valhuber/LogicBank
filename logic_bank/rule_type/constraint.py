@@ -65,11 +65,13 @@ class Constraint(AbstractRule):
         if value:
             pass
         elif not value:
+            AbstractRule.execute(self, logic_row)
             row = logic_row.row
             msg = eval(f'f"""{self._error_msg}"""')
             from sqlalchemy import exc
             # exception = exc.DBAPIError(msg, None, None)  # 'statement', 'params', and 'orig'
             logic_row.log(f'Constraint Failure: {msg}')
+            logic_row.row_sets.print_used()
             ll = RuleBank()
             if ll.constraint_event:
                 ll.constraint_event(message=msg, logic_row=logic_row, constraint=self)
