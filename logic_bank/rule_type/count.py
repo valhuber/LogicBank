@@ -40,7 +40,7 @@ class Count(Aggregate):
             result = super().__str__() + f'Count({self._as_count_of})'
         return result
 
-    def adjust_parent(self, parent_adjustor: ParentRoleAdjuster):
+    def adjust_parent(self, parent_adjustor: ParentRoleAdjuster, do_not_adjust_list = None):
         """
         @see LogicRow.adjust_parent_aggregates
         Set parent_adjustor iff adjustment update is required for this aggregate
@@ -50,6 +50,7 @@ class Count(Aggregate):
         """
         self.adjust_parent_aggregate(parent_adjustor=parent_adjustor,
                                      get_summed_field=lambda: 1,
-                                     get_old_summed_field=lambda: 1
+                                     get_old_summed_field=lambda: 1,
+                                     do_not_adjust_list=do_not_adjust_list
                                      )
 

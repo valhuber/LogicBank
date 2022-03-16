@@ -329,7 +329,7 @@ class LogicRow:
 
         parent_mapper = object_mapper(self.row)
         my_relationships = parent_mapper.relationships
-        for each_relationship in my_relationships:  # eg, cust has child OrderDetail
+        for each_relationship in my_relationships:  # eg, order has child OrderDetail
             if each_relationship.direction == sqlalchemy.orm.interfaces.ONETOMANY:  # eg, OrderDetail
                 child_role_name = each_relationship.key  # eg, OrderList
                 if each_relationship.cascade.delete and each_relationship.passive_deletes:
@@ -342,7 +342,8 @@ class LogicRow:
                                                         nest_level=1 + self.nest_level,
                                                         a_session=self.session,
                                                         row_sets=self.row_sets)
-                        each_child_logic_row.delete(reason="Cascade Delete to run rules on - " + child_role_name)
+                        each_child_logic_row.delete(reason="Cascade Delete to run rules on - " + child_role_name,
+                                                    do_not_adjust=self)
                         self.session.delete(each_child_row)  # deletes in beforeFlush are not re-queued
         enforce_cascade = False
         if enforce_cascade:  # disabled - SQLAlchemy DOES enforce cascade delete/nullify; prevent way less important
@@ -724,7 +725,26 @@ class LogicRow:
                                     pass # if you don't care, I don't care
         return self
 
-    def adjust_parent_aggregates(self):
+    def is_in_list(self, logic_rows: List) -> bool:
+        """
+        e.g., for do_not_adjust_list, find out if logic_row is in it
+        """
+        result = False
+        if logic_rows is not None:
+            meta = self.table_meta
+            pkey_cols = meta.primary_key.columns
+            for each_logic_row in logic_rows:
+                same_row = True
+                for each_column in meta.primary_key.columns:
+                    col_name = each_column.name
+                    if getattr(self.row, col_name) != getattr(each_logic_row.row, col_name):
+                        same_row = False
+                        break
+                if same_row:
+                    result = True
+        return result
+
+    def adjust_parent_aggregates(self, do_not_adjust_list = None):
         """
         Chain to parents - adjust aggregates (sums, counts)
 
@@ -738,11 +758,10 @@ class LogicRow:
         # self.log("adjust_parent_aggregates")
         aggregate_rules = rule_bank_withdraw.aggregate_rules(child_logic_row=self)
         for each_parent_role, each_aggr_list in aggregate_rules.items():
-            # print(each_parent_role)
             parent_adjuster = ParentRoleAdjuster(child_logic_row=self,
                                                  parent_role_name=each_parent_role)
-            for each_aggregate in each_aggr_list:
-                each_aggregate.adjust_parent(parent_adjuster)  # adjusts each_parent iff req'd
+            for each_aggregate in each_aggr_list:  # adjusts each_parent iff req'd
+                each_aggregate.adjust_parent(parent_adjuster, do_not_adjust_list=do_not_adjust_list)
             parent_adjuster.save_altered_parents()  # iff req'd (altered only)
 
     def user_row_update(self, row: base, ins_upd_dlt: str) -> 'LogicRow':
@@ -841,7 +860,7 @@ class LogicRow:
             if self.row_sets is not None:  # eg, for debug as in upd_order_shipped test
                 self.row_sets.remove_submitted(logic_row=self)
 
-    def delete(self, reason: str = None, row: base = None):
+    def delete(self, reason: str = None, row: base = None, do_not_adjust_list = None):
         """
         make deletes - with logic - in events, for example
 
@@ -852,6 +871,8 @@ class LogicRow:
         Args:
             reason: message inserted to to logging
             row: either a LogicRow, or a SQLAlchemy row
+            base: unused
+            deleting_along: RelationshipProperty (=> bypass adjustments)
         """
         if row is not None:
             user_logic_row = self.user_row_update(row=row, ins_upd_dlt="ins")
@@ -861,7 +882,7 @@ class LogicRow:
             self.log("delete - " + reason)
             self.early_row_event_all_classes("Delete - " + reason)
             self.early_row_events()
-            self.adjust_parent_aggregates()
+            self.adjust_parent_aggregates(do_not_adjust_list=do_not_adjust_list)
             self.constraints()
             self.cascade_delete_children()
 

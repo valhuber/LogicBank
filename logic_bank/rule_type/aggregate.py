@@ -34,7 +34,8 @@ class Aggregate(Derivation):
     def adjust_parent_aggregate(self,
                                 parent_adjustor: ParentRoleAdjuster,
                                 get_summed_field: Callable,
-                                get_old_summed_field: Callable):
+                                get_old_summed_field: Callable,
+                                do_not_adjust_list = None):
         """
         @see LogicRow.adjust_parent_aggregates
         Set parent_adjustor iff adjustment update is required for this aggregate
@@ -51,7 +52,8 @@ class Aggregate(Derivation):
         elif parent_adjustor.child_logic_row.ins_upd_dlt == "dlt":
             self.adjust_from_deleted_child(parent_adjustor,
                                            get_summed_field = get_summed_field,
-                                           get_old_summed_field = get_old_summed_field)
+                                           get_old_summed_field = get_old_summed_field,
+                                           do_not_adjust_list = do_not_adjust_list)
         elif parent_adjustor.child_logic_row.ins_upd_dlt == "upd":
             self.adjust_from_updated_child(parent_adjustor,
                                            get_summed_field = get_summed_field,
@@ -81,7 +83,8 @@ class Aggregate(Derivation):
     def adjust_from_deleted_child(self,
                                   parent_adjustor: ParentRoleAdjuster,
                                   get_summed_field: Callable,
-                                  get_old_summed_field: Callable):
+                                  get_old_summed_field: Callable,
+                                  do_not_adjust_list = None):
         where = self._where_cond(parent_adjustor.child_logic_row.row)
         delta = get_summed_field()
         if where and delta != 0.0:  # trigger update by setting parent_adjustor.parent_logic_row
@@ -92,9 +95,14 @@ class Aggregate(Derivation):
             if parent_adjustor.parent_logic_row is None:
                 parent_adjustor.parent_logic_row = \
                     parent_adjustor.child_logic_row.get_parent_logic_row(role_name=self._parent_role_name)
-            curr_value = get_summed_field()
-            setattr(parent_adjustor.parent_logic_row.row, self._column, curr_value - delta)
-            parent_adjustor.append_adjusting_attributes(self._column)
+            curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
+            is_do_not_adjust = parent_adjustor.parent_logic_row.is_in_list(do_not_adjust_list)
+            if is_do_not_adjust:
+                parent_adjustor.child_logic_row.log_engine("do not adjust deleted rows")
+                pass
+            else:
+                setattr(parent_adjustor.parent_logic_row.row, self._column, curr_value - delta)
+                parent_adjustor.append_adjusting_attributes(self._column)
             # print(f'adjust_from_deleted/abandoned_child adjusts {str(self)}')
 
     def adjust_from_updated_child(self,

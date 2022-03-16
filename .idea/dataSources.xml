@@ -11,7 +11,7 @@
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/nw/db/database-gold.db</jdbc-url>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/examples/nw/db/database-gold.db</jdbc-url>
     </data-source>
     <data-source source="LOCAL" name="banking" uuid="e70a9d8d-1c8a-40db-9c71-e5f28ff00bcd">
       <driver-ref>sqlite.xerial</driver-ref>

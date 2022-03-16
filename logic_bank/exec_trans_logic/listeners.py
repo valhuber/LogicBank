@@ -62,10 +62,12 @@ def before_flush(a_session: session, a_flush_context, an_instances):
 
     # if len(a_session.deleted) > 0:
         # print("deleting")
+    do_not_adjust_list = []
     for each_instance in a_session.deleted:
         logic_row = LogicRow(row=each_instance, old_row=None, ins_upd_dlt="dlt",
                              nest_level=0, a_session=a_session, row_sets=row_sets)
-        logic_row.delete(reason="client")
+        logic_row.delete(reason="client", do_not_adjust_list = do_not_adjust_list)
+        do_not_adjust_list.append(logic_row)
 
 
     """

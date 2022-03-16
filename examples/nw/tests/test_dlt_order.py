@@ -38,72 +38,34 @@ class Test(unittest.TestCase):
 
     def test_run(self):
 
-        self.toggle_order_shipped()
-        pre_adjusted_product = session.query(models.Product).filter(models.Product.Id == 58).one()
-        session.expunge(pre_adjusted_product)
-
-        print("\nNow delete the Customer...")
-        delete_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
-        session.delete(delete_cust)
-        session.commit()
-
-        post_adjusted_product = session.query(models.Product).filter(models.Product.Id == 58).one()
-        logic_row = LogicRow(row=post_adjusted_product, old_row=pre_adjusted_product, ins_upd_dlt="*", nest_level=0,
-                             a_session=session, row_sets=None)
-        if post_adjusted_product.UnitsShipped == pre_adjusted_product.UnitsShipped - 40:
-            logic_row.log("Product adjusted properly on delete customer")
-        else:
-            logic_row.log("Product adjusted improperly on delete customer")
-            assert False, "Product adjusted improperly on delete customer"
-
-        print("\nCustomer deleted - check log")
-        self.assertTrue(True)
-
-    def toggle_order_shipped(self):
-        """ toggle Shipped Date, to trigger balance adjustment """
-
         pre_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
-        pre_adjusted_product = session.query(models.Product).filter(models.Product.Id == 58).one()
         session.expunge(pre_cust)
+
+        pre_adjusted_product = session.query(models.Product).filter(models.Product.Id == 58).one()
         session.expunge(pre_adjusted_product)
 
-        print("")
-        test_order = session.query(models.Order).filter(models.Order.Id == 11011).join(models.Employee).one()
-        if test_order.ShippedDate is None or test_order.ShippedDate == "":
-            test_order.ShippedDate = str(datetime.now())
-            print(prt("Shipping order - ShippedDate: ['' -> " + test_order.ShippedDate + "]"))
-        else:
-            test_order.ShippedDate = None
-            print(prt("Returning order - ShippedDate: [ -> None]"))
+        print("\nNow delete the Order...")
+        delete_order = session.query(models.Order).filter(models.Order.Id == 11011).one()
+        session.delete(delete_order)
         session.commit()
 
-        print("")
         post_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
-        logic_row = LogicRow(row=post_cust, old_row=pre_cust, ins_upd_dlt="*", nest_level=0, a_session=session, row_sets=None)
-
-        if abs(post_cust.Balance - pre_cust.Balance) == 960:
-            logic_row.log("Correct adjusted Customer Result")
-            assert True
+        logic_row = LogicRow(row=post_cust, old_row=pre_cust, ins_upd_dlt="*", nest_level=0,
+                             a_session=session, row_sets=None)
+        if (pre_cust.Balance - 960) == post_cust.Balance:
+            logic_row.log(f'Customer adjusted properly on delete customer')
         else:
-            self.fail(logic_row.log("Incorrect adjusted Customer Result - expected 960 difference"))
-
-        if post_cust.Balance == 56:
-            pass
-        else:
-            self.fail(logic_row.log("ERROR - balance should be 56"))
-
-        if post_cust.UnpaidOrderCount == 3 and pre_cust.UnpaidOrderCount == 4:
-            pass
-        else:
-            self.fail(logic_row.log("Error - UnpaidOrderCount should be 2"))
-
+            msg = f'Customer adjusted improperly on delete order: {pre_cust.Balance} -> {post_cust.Balance}'
+            logic_row.log(msg)
+            assert False, msg
         post_adjusted_product = session.query(models.Product).filter(models.Product.Id == 58).one()
         logic_row = LogicRow(row=post_adjusted_product, old_row=pre_adjusted_product, ins_upd_dlt="*", nest_level=0,
                              a_session=session, row_sets=None)
-        if post_adjusted_product.UnitsShipped == pre_adjusted_product.UnitsShipped + 40:
-            logic_row.log("Product adjusted properly on ship order")
+        if post_adjusted_product.UnitsShipped == pre_adjusted_product.UnitsShipped:
+            logic_row.log("Product *not* adjusted properly on delete order")
         else:
-            self.fail(logic_row.log("Product adjusted improperly on ship order"))
+            logic_row.log("Product adjusted improperly on delete order")
+            assert False, "Product adjusted improperly on delete order"
 
-
-
+        print("\nOrder deleted - check log")
+        self.assertTrue(True)

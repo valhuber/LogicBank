@@ -42,7 +42,7 @@ class Sum(Aggregate):
         # result += "  (adjust using parent_role_name: " + self._parent_role_name + ")"
         return result
 
-    def adjust_parent(self, parent_adjustor: ParentRoleAdjuster):
+    def adjust_parent(self, parent_adjustor: ParentRoleAdjuster, do_not_adjust_list = None):
         """
         @see LogicRow.adjust_parent_aggregates - drives adjustments by calling this for each aggregate
         Set parent_adjustor iff adjustment update is required for this aggregate
@@ -52,6 +52,7 @@ class Sum(Aggregate):
         """
         self.adjust_parent_aggregate(parent_adjustor=parent_adjustor,
                                      get_summed_field=lambda: getattr(parent_adjustor.child_logic_row.row, self._child_summed_field),
-                                     get_old_summed_field=lambda: getattr(parent_adjustor.child_logic_row.old_row, self._child_summed_field)
+                                     get_old_summed_field=lambda: getattr(parent_adjustor.child_logic_row.old_row, self._child_summed_field),
+                                     do_not_adjust_list=do_not_adjust_list
                                      )
 

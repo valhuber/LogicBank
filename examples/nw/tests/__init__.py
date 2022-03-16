@@ -24,6 +24,8 @@ def copy_gold_over_db():
 
 
 def setUp(file: str):
+    """ copy gold over db
+    """
     copy_gold_over_db()
 
     print("\n")
