@@ -46,11 +46,18 @@ class RowSets():
     def print_used(self):
         """ logs all rules *used8 in the transaction (from self.rules_fired)
         """
-        logic_bank.logic_logger.info(f'\nRules Fired:')
+        def obj_name(obj):
+            return obj.table
+
+        sorted_used = sorted(self.rules_fired, key=obj_name)
+        logic_bank.logic_logger.info(f'\nRules Fired:\t\t##')
         rule_num = 1
-        for each_rule in self.rules_fired:
-            logic_bank.logic_logger.info(
-                f'  {rule_num}. {str(each_rule)}')
+        last_table = ""
+        for each_rule in sorted_used:
+            if each_rule.table != last_table:
+                last_table = each_rule.table
+                logic_bank.logic_logger.info(f'  {each_rule.table}\t\t##')
+            logic_bank.logic_logger.info(f'    {rule_num}. {str(each_rule)}\t\t##')
             rule_num += 1
         logic_bank.logic_logger.info(f'\n')
 

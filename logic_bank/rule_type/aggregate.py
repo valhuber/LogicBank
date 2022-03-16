@@ -98,11 +98,11 @@ class Aggregate(Derivation):
             curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
             is_do_not_adjust = parent_adjustor.parent_logic_row.is_in_list(do_not_adjust_list)
             if is_do_not_adjust:
-                parent_adjustor.child_logic_row.log("do not adjust deleted rows")
+                # parent_adjustor.child_logic_row.log("do not adjust deleted rows")
                 pass
             else:
                 setattr(parent_adjustor.parent_logic_row.row, self._column, curr_value - delta)
-                parent_adjustor.append_adjusting_attributes(self._column)
+            parent_adjustor.append_adjusting_attributes(self._column)
             # print(f'adjust_from_deleted/abandoned_child adjusts {str(self)}')
 
     def adjust_from_updated_child(self,

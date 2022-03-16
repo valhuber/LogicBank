@@ -18,7 +18,7 @@ class AbstractRowEvent(AbstractRule):
         ll.deposit_rule(self)
 
     def __str__(self):
-        return f'RowEvent Function: {str(self._function)} '
+        return f'RowEvent {self.table}.{self._function.__name__}() '
 
     def execute(self, logic_row: LogicRow):
         AbstractRule.execute(self, logic_row)
