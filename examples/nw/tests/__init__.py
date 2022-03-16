@@ -24,7 +24,7 @@ def copy_gold_over_db():
 
 
 def setUp(file: str):
-    """ copy gold over db
+    """ copy gold over db, setup-complete banner
     """
     copy_gold_over_db()
 

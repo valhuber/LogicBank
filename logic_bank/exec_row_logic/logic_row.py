@@ -879,7 +879,7 @@ class LogicRow:
             user_logic_row.insert(reason=reason)
         else:
             self.reason = reason
-            self.log("delete - " + reason)
+            self.log("Delete - " + reason)
             self.early_row_event_all_classes("Delete - " + reason)
             self.early_row_events()
             self.adjust_parent_aggregates(do_not_adjust_list=do_not_adjust_list)
@@ -937,7 +937,7 @@ class ParentRoleAdjuster:
             else:
                 is_do_not_adjust = self.parent_logic_row.is_in_list(do_not_adjust_list)
                 if is_do_not_adjust:
-                    self.child_logic_row.log_engine(f'do not adjust deleted parent row: {self.parent_role_name}')
+                    self.child_logic_row.log(f'No adjustment on deleted parent: {self.parent_role_name}')
                 else:
                     parent_logic_row.ins_upd_dlt = "upd"
                     parent_logic_row.update(reason="Adjusting " + self.parent_role_name + ": " + self.adjusting_attributes)

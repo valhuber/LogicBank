@@ -60,7 +60,7 @@ db = None
 if by_rules:
     LogicBank.activate(session=session, activator=declare_logic)
 else:
-    legacy_setup.setup(session)  # ignore test asserts that fail due to (unimplemenmted) counts (else ok)
+    legacy_setup.setup(session)  # ignore test asserts that fail due to (unimplemented) counts (else ok)
 
 print("\n")
 print("*********************")
