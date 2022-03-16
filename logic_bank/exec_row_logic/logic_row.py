@@ -762,7 +762,7 @@ class LogicRow:
                                                  parent_role_name=each_parent_role)
             for each_aggregate in each_aggr_list:  # adjusts each_parent iff req'd
                 each_aggregate.adjust_parent(parent_adjuster, do_not_adjust_list=do_not_adjust_list)
-            parent_adjuster.save_altered_parents()  # iff req'd (altered only)
+            parent_adjuster.save_altered_parents(do_not_adjust_list=do_not_adjust_list)  # iff req'd (altered only)
 
     def user_row_update(self, row: base, ins_upd_dlt: str) -> 'LogicRow':
         """
@@ -914,7 +914,7 @@ class ParentRoleAdjuster:
         else:
             self.adjusting_attributes += f', {attribute_name}'
 
-    def save_altered_parents(self):
+    def save_altered_parents(self, do_not_adjust_list: List = None):
         """
         Save (chain) parent iff parent_logic_row has been set by sum/count executor.
         This can update parent, and previous parent (ie, foreign key changed)
@@ -935,9 +935,13 @@ class ParentRoleAdjuster:
             if (parent_logic_row.row_sets.is_submitted(parent_logic_row.row)):  # see dragon alert, above
                 self.child_logic_row.log("Adjustment deferred for " + self.parent_role_name)
             else:
-                parent_logic_row.ins_upd_dlt = "upd"
-                parent_logic_row.update(reason="Adjusting " + self.parent_role_name + ": " + self.adjusting_attributes)
-                # no after_flush: https://stackoverflow.com/questions/63563680/sqlalchemy-changes-in-before-flush-not-triggering-before-flush
+                is_do_not_adjust = self.parent_logic_row.is_in_list(do_not_adjust_list)
+                if is_do_not_adjust:
+                    self.child_logic_row.log(f'do not adjust deleted parent rows: {self.parent_role_name}')
+                else:
+                    parent_logic_row.ins_upd_dlt = "upd"
+                    parent_logic_row.update(reason="Adjusting " + self.parent_role_name + ": " + self.adjusting_attributes)
+                    # no after_flush: https://stackoverflow.com/questions/63563680/sqlalchemy-changes-in-before-flush-not-triggering-before-flush
         if self.previous_parent_logic_row is None:
             pass
             # self.child_logic_row.log("save-adjusted not required for previous_parent_logic_row: " + str(self))
