@@ -149,6 +149,7 @@ class LogicRow:
                     result += str(value)
         result += f'  row: {str(hex(id(self.row)))}'
         result += f'  session: {str(hex(id(self.session)))}'
+        result += f'  ins_upd_dlt: {(self.ins_upd_dlt)}'
         return result  # str(my_dict)
 
     def log(self, msg: str) -> str:
@@ -241,7 +242,7 @@ class LogicRow:
             each_row_event.execute(self)
 
     def copy_rules(self):
-        """ runs copy rules (get parent values) """
+        """ runs copy rules (get parent values on insert, no action on parent update) """
         copy_rules = rule_bank_withdraw.copy_rules(self)
         for role_name, copy_rules_for_table in copy_rules.items():
             logic_row = self
@@ -302,6 +303,12 @@ class LogicRow:
                             to_parent.name +
                             "> to child Allocation: " + str(type(child)) + " of class: " + child.__class__.__name__)
         setattr(child, parent_role_name, to_parent.row)
+        child_mapper = object_mapper(self.row)
+        parent_role_def = child_mapper.relationships.get(parent_role_name)
+        for each_fk_attr in parent_role_def.local_columns:
+            if getattr(self.row, each_fk_attr.name) is not None:
+                self.log(f'warning: {parent_role_name} ({each_fk_attr.name} not None... fixing')
+            setattr(self.row, each_fk_attr.name, None)
         return True
 
     def get_child_role(self, parent_role_name) -> str:
@@ -450,6 +457,40 @@ class LogicRow:
                 changes.append(each_attr.key)
         return changes
 
+    def copy_children(self, copy_from: base, which_children: dict):
+        """
+        Event handler to copy multiple children types to self from copy_from children.
+
+        Eg. RowEvent on Order
+            which = dict(OrderDetailList = None)
+            logic_row.copy_children(copy_from=row.parent, which_children=which)
+
+        """
+        # self.log("copy_children")
+        for item in which_children.items():
+            copy_from_list_name = item[0]
+            copy_to_list_name = item[1] if item[1] else copy_from_list_name
+            copy_from_children = getattr(copy_from, copy_from_list_name)
+            child_count = 0
+            my_mapper = object_mapper(self.row)
+            copy_to_role_def = my_mapper.relationships.get(copy_to_list_name)
+            copy_to_class = copy_to_role_def.entity.class_
+            for each_from_row in copy_from_children:
+                # self.log(f'copy_children: {copy_from_list_name}[{child_count}] = {each_from_row}')
+                each_from_logic_row = LogicRow(row=each_from_row, old_row=each_from_row,
+                                                ins_upd_dlt="*", nest_level=0,
+                                                a_session=self.session,
+                                                row_sets=None)
+                new_copy_to_row = LogicRow(row=copy_to_class(), old_row=copy_to_class(),
+                                                ins_upd_dlt="ins",
+                                                nest_level=self.nest_level + 1,
+                                                a_session=self.session,
+                                                row_sets=self.row_sets)
+                new_copy_to_row.set_same_named_attributes(each_from_logic_row)
+                new_copy_to_row.link(to_parent=self)
+                new_copy_to_row.insert(reason="Copy Children " + copy_to_list_name)  # triggers rules...
+
+
     def set_same_named_attributes(self, from_logic_row: 'LogicRow'):
         """
         copy like-named values from from_logic_row -> self
@@ -478,6 +519,8 @@ class LogicRow:
             else:
                 if each_attr_name in self.table_meta.primary_key.columns.keys():
                     debug_skip_primary_key_columns = True
+                elif rule_bank_withdraw.is_attr_derived(class_name= self.row.__tablename__, attr_name=each_attr_name):
+                    debug_skip_derived_columns = True
                 else:
                     if each_attr_name in from_attrs:
                         setattr(self.row, each_attr_name, getattr(from_logic_row.row, each_attr_name))
@@ -857,7 +900,8 @@ class LogicRow:
             self.formula_rules()
             self.adjust_parent_aggregates()
             self.constraints()
-            if self.row_sets is not None:  # eg, for debug as in upd_order_shipped test
+            self.row_events()
+        if self.row_sets is not None:  # eg, for debug as in upd_order_shipped test
                 self.row_sets.remove_submitted(logic_row=self)
 
     def delete(self, reason: str = None, row: base = None, do_not_adjust_list = None):
@@ -932,9 +976,16 @@ class ParentRoleAdjuster:
             # self.child_logic_row.log("adjust not required for parent_logic_row: " + str(self))
         else:
             parent_logic_row = self.parent_logic_row
-            if (parent_logic_row.row_sets.is_submitted(parent_logic_row.row)):  # see dragon alert, above
-                self.child_logic_row.log("Adjustment deferred for " + self.parent_role_name)
+            do_defer_adjustment = parent_logic_row.row_sets.is_submitted(parent_logic_row.row)
+            if parent_logic_row.row_sets.is_client_insert(parent_logic_row.row):
+                do_defer_adjustment = False
+                self.child_logic_row.log("Adjustment deferred DISABLED (DEBUG ONLY!!) for parent" + self.parent_role_name)
+            enable_deferred_adjusts = True
+            if do_defer_adjustment and enable_deferred_adjusts:  # see dragon alert, above
+                self.child_logic_row.log("Adjustment deferred to parent " + self.parent_role_name)
             else:
+                if do_defer_adjustment:
+                    self.child_logic_row.log("Adjustment deferred DISABLED (DEBUG ONLY!!) for parent" + self.parent_role_name)
                 is_do_not_adjust = self.parent_logic_row.is_in_list(do_not_adjust_list)
                 if is_do_not_adjust:
                     self.child_logic_row.log(f'No adjustment on deleted parent: {self.parent_role_name}')

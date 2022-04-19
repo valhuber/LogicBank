@@ -32,7 +32,6 @@ def before_flush(a_session: session, a_flush_context, an_instances):
     logic_bank.logic_logger.info(f'Logic Phase:\t\tROW LOGIC(session={str(hex(id(a_session)))}) (sqlalchemy before_flush)\t\t\t')
 
     row_sets = RowSets()  # type : RowSet
-    client_inserts = []
 
     for each_instance in a_session.dirty:
         row_sets.add_submitted(each_instance)
@@ -43,7 +42,7 @@ def before_flush(a_session: session, a_flush_context, an_instances):
             SQLAlchemy queues these on a_session.new (but *not* updates!)
             so, process the client changes, so that triggered inserts (eg. audit) aren't run twice
         """
-        client_inserts.append(each_instance)
+        row_sets.add_client_inserts(each_instance)
 
     bug_explore = None  # None to disable, [None, None] to enable
     if bug_explore is not None:  # temp hack - order rows to explore bug (upd_order_reuse)
@@ -55,7 +54,7 @@ def before_flush(a_session: session, a_flush_context, an_instances):
                                  nest_level=0, a_session=a_session, row_sets=row_sets)
             logic_row.update(reason="client")
 
-    for each_instance in client_inserts:  # a_session.new:
+    for each_instance in row_sets.client_inserts:  # a_session.new:
         logic_row = LogicRow(row=each_instance, old_row=None, ins_upd_dlt="ins",
                              nest_level=0, a_session=a_session, row_sets=row_sets)
         logic_row.insert(reason="client")

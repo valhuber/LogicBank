@@ -6,6 +6,7 @@ from sqlalchemy.orm import object_mapper
 from logic_bank.exec_row_logic.logic_row import LogicRow
 from logic_bank.rule_bank.rule_bank import RuleBank
 from logic_bank.rule_type.constraint import Constraint
+from logic_bank.rule_type.derivation import Derivation
 from logic_bank.rule_type.copy import Copy
 from logic_bank.rule_type.count import Count
 from logic_bank.rule_type.formula import Formula
@@ -120,6 +121,18 @@ def get_formula_rules(class_name: str) -> list:
         if isinstance(each_rule, Formula):
             rules_list.append(each_rule)
     return rules_list
+
+
+def is_attr_derived(class_name: str, attr_name: str) -> bool:
+    """ returns True if <class_name>.<attr_name> is derived
+    """
+    rule_bank = RuleBank()
+    if class_name in rule_bank.orm_objects:
+        for each_rule in rule_bank.orm_objects[class_name].rules:
+            if isinstance(each_rule, Derivation):
+                if each_rule._column == attr_name:
+                    return True
+    return False
 
 
 def generic_rules_of_class(a_class: (Formula, Constraint, EarlyRowEvent)) -> list:

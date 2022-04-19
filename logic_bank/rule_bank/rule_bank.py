@@ -57,7 +57,7 @@ class RuleBank(metaclass=Singleton):  # FIXME design review singleton
         engine_logger.debug(prt(str(a_rule)))
 
     def __str__(self):
-        result = f"AbstractRule Bank[{str(hex(id(self)))}] (loaded {self._at})"
+        result = f"Rule Bank[{str(hex(id(self)))}] (loaded {self._at})"
         for each_key in self.orm_objects:
             result += f"\nMapped Class[{each_key}] rules:"
             table_rules = self.orm_objects[each_key]

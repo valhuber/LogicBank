@@ -8,7 +8,8 @@ class CopyRow(RowEvent):
     """
     Copy copy_from -> copy_to (e.g., auditing).
     """
-    def __init__(self, copy_from: object,
+    def __init__(self,
+                 copy_from: object,
                  copy_to: object,  # eg, PaymentAllocation (junction)
                  copy_when: Callable = None,
                  initialize_target: Callable = None):
@@ -29,8 +30,6 @@ class CopyRow(RowEvent):
     def execute(self, logic_row: LogicRow):
         """
         Called by logic engine, overriding generic EarlyEvent rule.
-
-        Creates allocation row for each recipient until while_calling_allocator returns false
 
         :return:
         """

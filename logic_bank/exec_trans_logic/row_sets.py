@@ -24,6 +24,7 @@ class RowSets():
         self.processed_rows = {}  # type: Dict[base, 'LogicRow']
         self.submitted_row = set()
         self.rules_fired = set()
+        self.client_inserts = set()
 
     def add_processed(self, logic_row: 'LogicRow'):
         """
@@ -42,6 +43,13 @@ class RowSets():
     def remove_submitted(self, logic_row: LogicRow):
         if logic_row.row in self.submitted_row:
             self.submitted_row.remove(logic_row.row)
+
+    def add_client_inserts(self, row: base):
+        self.client_inserts.add(row)
+
+    def is_client_insert(self, row: base) -> bool:
+        result = row in self.client_inserts
+        return result
 
     def print_used(self):
         """ logs all rules *used8 in the transaction (from self.rules_fired)
