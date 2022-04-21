@@ -38,12 +38,12 @@ def before_flush(a_session: session, a_flush_context, an_instances):
 
     for each_instance in a_session.new:
         row_sets.add_submitted(each_instance)
-        """ inserts first...
-            SQLAlchemy queues these on a_session.new (but *not* updates!)
-            so, process the client changes, so that triggered inserts (eg. audit) aren't run twice
-        """
         row_sets.add_client_inserts(each_instance)
 
+    """ updates first, inserts second...
+        SQLAlchemy queues these on a_session.new (but *not* updates!)
+        so, process the client changes, so that triggered inserts (eg. audit) aren't run twice
+    """
     bug_explore = None  # None to disable, [None, None] to enable
     if bug_explore is not None:  # temp hack - order rows to explore bug (upd_order_reuse)
         temp_debug(a_session, bug_explore, row_sets)
@@ -73,7 +73,7 @@ def before_flush(a_session: session, a_flush_context, an_instances):
     Commit Logic Phase
     """
     logic_bank.logic_logger.info(f'Logic Phase:\t\tCOMMIT(session={str(hex(id(a_session)))})   \t\t\t\t\t\t\t\t\t\t')
-    processed_rows = dict.copy(row_sets.processed_rows)  # set in LogicRow ctor
+    processed_rows = dict.copy(row_sets.processed_logic_rows)  # set in LogicRow ctor
     for each_logic_row_key in processed_rows:
         each_logic_row = processed_rows[each_logic_row_key]
         logic_bank.engine_logger.debug("visit: " + each_logic_row.__str__())

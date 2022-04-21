@@ -1,6 +1,7 @@
 from typing import Callable
 from logic_bank.extensions.allocate import Allocate
 from logic_bank.extensions.copy_row import CopyRow
+from logic_bank.extensions.copy_children import CopyChildren
 
 """
 Logic Bank supports Rule Extensions, of Event Rules.
@@ -66,6 +67,22 @@ class RuleExtension:
 
         """
         return CopyRow(copy_from = copy_from,
+                       copy_to = copy_to,
+                       copy_when = copy_when,
+                       initialize_target = initialize_target)
+
+
+    @staticmethod
+    def copy_children(copy_from: object = None,
+                      copy_to: object = None,
+                      copy_when: Callable = None):
+        """
+        Event handler to copy multiple children types to self from copy_from children.
+
+        Eg. RowEvent on Order
+            which = dict(OrderDetailList = None)
+            logic_row.copy_children(copy_from=row.parent, which_children=which)
+        """
+        return CopyChildren(copy_from = copy_from,
                     copy_to = copy_to,
-                    copy_when = copy_when,
-                    initialize_target = initialize_target)
+                    copy_when = copy_when)  # constructs rule object

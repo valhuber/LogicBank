@@ -11,9 +11,11 @@ class CopyChildren(RowEvent):
     def __init__(self,
                  copy_from: object,
                  copy_to: object,  # eg, PaymentAllocation (junction)
-                 which_children: dict):
+                 which_children: dict,
+                 copy_when: Callable = None):
         self.copy_to = copy_to
         self.copy_from = copy_from
+        self.copy_when = copy_when
         self.which_children = which_children
         if copy_to is None:
             raise Exception("copy_to object is required")
@@ -34,6 +36,10 @@ class CopyChildren(RowEvent):
 
         :return:
         """
-        copy_to = logic_row
-        copy_to.copy_children(copy_from=self.copy_from, which_children=self.which_children)
-        return self
+        do_copy = self.copy_when(logic_row)
+        if not do_copy:
+            nothing_changed = True  # debug stop
+        else:
+            copy_to = logic_row
+            copy_to.copy_children(copy_from=self.copy_from, which_children=self.which_children)
+            return self

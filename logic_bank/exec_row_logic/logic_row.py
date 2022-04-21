@@ -58,8 +58,10 @@ class LogicRow:
         """ if starts with cascade, triggers cascade processing """
 
         self.row_sets = row_sets
-        if row_sets is not None:  # eg, for debug as in upd_order_shipped test
-            row_sets.add_processed(logic_row=self)  # used in commit logic
+        fixme_set_processed_in_init = False
+        if fixme_set_processed_in_init:  # ALS clone order - this makes order look processed (wrongly)
+            if row_sets is not None:  # eg, for debug as in upd_order_shipped test
+                row_sets.add_processed_logic(logic_row=self)  # used in commit logic
 
         rb = RuleBank()
         self.rb = rb
@@ -870,6 +872,8 @@ class LogicRow:
             self.constraints()
             self.parent_cascade_attribute_changes_to_children()  # child chaining (cascade changed parent references)
             self.parent_cascade_pk_change()  # actions - delete, nullify, prevent
+            if self.row_sets is not None:  # required for adjustment logic (see dragons)
+                self.row_sets.add_processed_logic(logic_row=self)  # used in commit logic
             self.row_events()
             if self.row_sets is not None:  # eg, for debug as in upd_order_shipped test
                 self.row_sets.remove_submitted(logic_row=self)
@@ -900,9 +904,12 @@ class LogicRow:
             self.formula_rules()
             self.adjust_parent_aggregates()
             self.constraints()
+        if self.row_sets is not None:  # required for adjustment logic (see dragons)
+            self.row_sets.add_processed_logic(logic_row=self)  # used in commit logic
             self.row_events()
         if self.row_sets is not None:  # eg, for debug as in upd_order_shipped test
-                self.row_sets.remove_submitted(logic_row=self)
+            self.row_sets.remove_submitted(logic_row=self)
+
 
     def delete(self, reason: str = None, row: base = None, do_not_adjust_list = None):
         """
@@ -929,6 +936,7 @@ class LogicRow:
             self.adjust_parent_aggregates(do_not_adjust_list=do_not_adjust_list)
             self.constraints()
             self.cascade_delete_children()
+            self.row_sets.add_processed_logic(logic_row=self)  # used in commit logic
 
 
 class ParentRoleAdjuster:
@@ -969,25 +977,49 @@ class ParentRoleAdjuster:
             listeners do not guarantee order
             Failures were seen for OrderDetail first
                 It adjusted to the New Customer
-            Fix is defer adjustment logic iff the parent row is in the submitted list
+            Fix is defer adjustment chaining logic iff the parent row is in the submitted list
+                That is, the adjustment is done, but we don't run chaining logic
+
+            Examples:
+                upd_order_reuse - occurs half time, see listeners-bug_explore to force
+                test_add_order
+                    first, note OrderDetails are **sometimes** processed before Order (it varies!)
+                    it's easy when the order is first
+                    if OrderDetail is first then "debug_info" will see....
+                        do_defer_adjustment: True, is_parent_submitted: True, is_parent_row_processed: False
+                            adjustment occurs, but *not* the update() logic (since will occur when processed)
+                ApiLogicServer - place_order.py, scenario: Clone Existing Order
+                    it works only when do_defer_adjustment is false, so...
+                    failing with: do_defer_adjustment: True, is_parent_submitted: True, is_parent_row_processed: True
         """
         if self.parent_logic_row is None:  # save *only altered* parents (often does nothing)
             pass
             # self.child_logic_row.log("adjust not required for parent_logic_row: " + str(self))
         else:
             parent_logic_row = self.parent_logic_row
-            do_defer_adjustment = parent_logic_row.row_sets.is_submitted(parent_logic_row.row)
-            if parent_logic_row.row_sets.is_client_insert(parent_logic_row.row):
-                do_defer_adjustment = False
-                self.child_logic_row.log("Adjustment deferred DISABLED (DEBUG ONLY!!) for parent" + self.parent_role_name)
+            row_sets = parent_logic_row.row_sets
+            parent_row_debug = self.parent_logic_row.row
+            is_parent_submitted = parent_logic_row.row in row_sets.submitted_row
+            is_parent_row_processed = parent_logic_row.row in row_sets.processed_rows
+            do_defer_adjustment = is_parent_submitted and not is_parent_row_processed
+            if self.child_logic_row.name == 'OrderDetail':
+                self.child_logic_row.log(f'do_defer_adjustment: {do_defer_adjustment}'
+                                         f', is_parent_submitted: {is_parent_submitted}'
+                                         f', is_parent_row_processed: {is_parent_row_processed}')
+                debug_info = "target child defer adjustment check..."
             enable_deferred_adjusts = True
             if do_defer_adjustment and enable_deferred_adjusts:  # see dragon alert, above
-                self.child_logic_row.log("Adjustment deferred to parent " + self.parent_role_name)
+                self.parent_logic_row.log(f'Adjustment logic chaining deferred for this parent parent '
+                                          f'do_defer_adjustment: {do_defer_adjustment}'
+                                          f', is_parent_submitted: {is_parent_submitted}'
+                                          f', is_parent_row_processed: {is_parent_row_processed}, ' +
+                                          self.parent_role_name)
+                debug_info = "target child defer adjustment!"
             else:
-                if do_defer_adjustment:
+                if do_defer_adjustment:   # just for debug when enable_deferred_adjusts is false
                     self.child_logic_row.log("Adjustment deferred DISABLED (DEBUG ONLY!!) for parent" + self.parent_role_name)
-                is_do_not_adjust = self.parent_logic_row.is_in_list(do_not_adjust_list)
-                if is_do_not_adjust:
+                is_do_not_adjust_deleted_parent = self.parent_logic_row.is_in_list(do_not_adjust_list)
+                if is_do_not_adjust_deleted_parent:
                     self.child_logic_row.log(f'No adjustment on deleted parent: {self.parent_role_name}')
                 else:
                     parent_logic_row.ins_upd_dlt = "upd"
@@ -999,7 +1031,7 @@ class ParentRoleAdjuster:
         else:
             previous_parent_logic_row = self.previous_parent_logic_row
             if (previous_parent_logic_row.row_sets.is_submitted(previous_parent_logic_row.row)):
-                self.child_logic_row.log("Adjustment deferred for " + self.parent_role_name)
+                self.child_logic_row.log("Adjustment deferred for previous parent:" + self.parent_role_name)
             else:
                 current_session = self.child_logic_row.session
                 previous_parent_logic_row.ins_upd_dlt = "upd"

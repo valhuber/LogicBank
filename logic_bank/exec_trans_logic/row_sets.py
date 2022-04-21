@@ -21,17 +21,20 @@ class RowSets():
     """
 
     def __init__(self):
-        self.processed_rows = {}  # type: Dict[base, 'LogicRow']
+        self.processed_logic_rows = {}  # type: Dict[base, 'LogicRow']
+        self.processed_rows = set()
         self.submitted_row = set()
         self.rules_fired = set()
         self.client_inserts = set()
 
-    def add_processed(self, logic_row: 'LogicRow'):
+    def add_processed_logic(self, logic_row: 'LogicRow'):
         """
         Denote row processed, for later commit events/constraints
+        See LogicRow.__init__
         """
-        if logic_row.row not in self.processed_rows:
-            self.processed_rows[logic_row.row] = logic_row
+        self.processed_rows.add(logic_row.row)
+        if logic_row.row not in self.processed_logic_rows:
+            self.processed_logic_rows[logic_row.row] = logic_row
 
     def add_submitted(self, row: base):
         self.submitted_row.add(row)
