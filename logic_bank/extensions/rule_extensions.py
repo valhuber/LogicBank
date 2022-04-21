@@ -71,7 +71,7 @@ class RuleExtension:
                        copy_when = copy_when,
                        initialize_target = initialize_target)
 
-
+''' considering this, but the copy_from would need to be a lambda...?
     @staticmethod
     def copy_children(copy_from: object = None,
                       copy_to: object = None,
@@ -84,5 +84,6 @@ class RuleExtension:
             logic_row.copy_children(copy_from=row.parent, which_children=which)
         """
         return CopyChildren(copy_from = copy_from,
-                    copy_to = copy_to,
-                    copy_when = copy_when)  # constructs rule object
+                            copy_to = copy_to,
+                            copy_when = copy_when)  # constructs rule object
+'''

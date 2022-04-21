@@ -3,6 +3,8 @@ from typing import Callable
 from logic_bank.exec_row_logic.logic_row import LogicRow
 from logic_bank.rule_type.row_event import EarlyRowEvent
 
+# see logicbank - examples/payment_allocation
+# not currently tested in ApiLogicServer...
 
 class Allocate(EarlyRowEvent):
     """

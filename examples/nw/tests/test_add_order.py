@@ -41,9 +41,9 @@ class Test(unittest.TestCase):
         session.expunge(pre_cust)
 
         # debug switches to bypass tests (normally all true)
-        test1 = False
-        test2 = False
-        test3 = False
+        test1 = True
+        test2 = True
+        test3 = True
         test4 = True
 
         """

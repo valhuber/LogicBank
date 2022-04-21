@@ -10,7 +10,7 @@ class CopyRow(RowEvent):
     """
     def __init__(self,
                  copy_from: object,
-                 copy_to: object,  # eg, PaymentAllocation (junction)
+                 copy_to: object,  # eg, EmployeeAudit
                  copy_when: Callable = None,
                  initialize_target: Callable = None):
         self.copy_to = copy_to

@@ -6,7 +6,8 @@ from logic_bank.rule_type.row_event import RowEvent
 
 class CopyChildren(RowEvent):
     """
-    Copy copy_from -> copy_to (e.g., auditing).
+        Called by logic engine, overriding generic EarlyEvent rule.
+        Tested in ApiLogicServer: place_order.py, scenario_name = "Clone Existing Order"
     """
     def __init__(self,
                  copy_from: object,
@@ -30,8 +31,6 @@ class CopyChildren(RowEvent):
 
     def execute(self, logic_row: LogicRow):
         """
-        Called by logic engine, overriding generic EarlyEvent rule.
-
         Delegates to LogicRow.copy_children
 
         :return:

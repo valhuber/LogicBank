@@ -989,8 +989,8 @@ class ParentRoleAdjuster:
                         do_defer_adjustment: True, is_parent_submitted: True, is_parent_row_processed: False
                             adjustment occurs, but *not* the update() logic (since will occur when processed)
                 ApiLogicServer - place_order.py, scenario: Clone Existing Order
-                    it works only when do_defer_adjustment is false, so...
-                    failing with: do_defer_adjustment: True, is_parent_submitted: True, is_parent_row_processed: True
+                    the order is first (only), so requires do_defer_adjustment is false, so...
+                    do_defer_adjustment: False, is_parent_submitted: True, is_parent_row_processed: True
         """
         if self.parent_logic_row is None:  # save *only altered* parents (often does nothing)
             pass
@@ -1002,7 +1002,7 @@ class ParentRoleAdjuster:
             is_parent_submitted = parent_logic_row.row in row_sets.submitted_row
             is_parent_row_processed = parent_logic_row.row in row_sets.processed_rows
             do_defer_adjustment = is_parent_submitted and not is_parent_row_processed
-            if self.child_logic_row.name == 'OrderDetail':
+            if self.child_logic_row.name == 'OrderDetailXX':
                 self.child_logic_row.log(f'do_defer_adjustment: {do_defer_adjustment}'
                                          f', is_parent_submitted: {is_parent_submitted}'
                                          f', is_parent_row_processed: {is_parent_row_processed}')
