@@ -60,7 +60,7 @@ class Allocate(EarlyRowEvent):
                                                                  provider)
             if not allocator:
                 break
-        provider.log(f'END {str(self)}')
+        provider.log(f'END {str(self)}')  # last log for payment_allo example
         return self
 
     def while_calling_allocator_default(self, allocation_logic_row, provider_logic_row) -> bool:
