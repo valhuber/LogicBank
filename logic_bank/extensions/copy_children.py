@@ -3,6 +3,7 @@ from typing import Callable
 from logic_bank.exec_row_logic.logic_row import LogicRow
 from logic_bank.rule_type.row_event import RowEvent
 
+# not used (LogicBank 1.0.5)
 
 class CopyChildren(RowEvent):
     """

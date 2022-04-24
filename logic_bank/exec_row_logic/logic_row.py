@@ -459,19 +459,45 @@ class LogicRow:
                 changes.append(each_attr.key)
         return changes
 
-    def copy_children(self, copy_from: base, which_children: dict):
+    def copy_children(self, copy_from: base, which_children: (dict or list)):
         """
         Event handler to copy multiple children types to self from copy_from children.
+
+        child-spec: := < ‘child - list - name’ | < ‘child-list-name = parent-list-name’ >
+        child-list-spec: := [child - spec | (child-spec, child-list-spec)]
 
         Eg. RowEvent on Order
             which = dict(OrderDetailList = None)
             logic_row.copy_children(copy_from=row.parent, which_children=which)
 
+        Eg, test/copy_children:
+            child_list_spec = [
+                ("MileStoneList",
+                    ["DeliverableList"]  # for each Milestone, get the Deliverables
+                ),
+                "StaffList"
+            ]
         """
-        # self.log("copy_children")
-        for item in which_children.items():
-            copy_from_list_name = item[0]
-            copy_to_list_name = item[1] if item[1] else copy_from_list_name
+        # self.log("copy_children")  # FIXME
+        which_children_list = which_children
+        if isinstance(which_children, dict):  # prefer lists, but handle dict (initial version)
+            which_children_list = []
+            for item in which_children.items():
+                child_spec = item[0]
+                if item[1]:
+                    child_spec += f' = {item[1]}'
+                which_children_list.append(child_spec)
+
+        for each_item in which_children_list:
+            child_spec = each_item
+            if type(each_item) is tuple:
+                child_spec = each_item[0]
+            copy_from_list_name = child_spec
+            copy_to_list_name = child_spec
+            equal_index = child_spec.find("=")
+            if equal_index > 0:
+                copy_to_list_name = child_spec[0, equal_index].strip()
+                copy_from_list_name = child_spec[equal_index:].strip()
             copy_from_children = getattr(copy_from, copy_from_list_name)
             child_count = 0
             my_mapper = object_mapper(self.row)
@@ -480,18 +506,19 @@ class LogicRow:
             for each_from_row in copy_from_children:
                 # self.log(f'copy_children: {copy_from_list_name}[{child_count}] = {each_from_row}')
                 each_from_logic_row = LogicRow(row=each_from_row, old_row=each_from_row,
-                                                ins_upd_dlt="*", nest_level=0,
-                                                a_session=self.session,
-                                                row_sets=None)
+                                               ins_upd_dlt="*", nest_level=0,
+                                               a_session=self.session,
+                                               row_sets=None)
                 new_copy_to_row = LogicRow(row=copy_to_class(), old_row=copy_to_class(),
-                                                ins_upd_dlt="ins",
-                                                nest_level=self.nest_level + 1,
-                                                a_session=self.session,
-                                                row_sets=self.row_sets)
+                                           ins_upd_dlt="ins",
+                                           nest_level=self.nest_level + 1,
+                                           a_session=self.session,
+                                           row_sets=self.row_sets)
                 new_copy_to_row.set_same_named_attributes(each_from_logic_row)
                 new_copy_to_row.link(to_parent=self)
                 new_copy_to_row.insert(reason="Copy Children " + copy_to_list_name)  # triggers rules...
-
+                if type(each_item) is tuple:
+                    new_copy_to_row.copy_children(each_from_row, each_item[1])
 
     def set_same_named_attributes(self, from_logic_row: 'LogicRow'):
         """

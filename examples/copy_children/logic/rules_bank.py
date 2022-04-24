@@ -16,7 +16,7 @@ def declare_logic():
             """
 
             child_list_spec = [
-                ("MilestoneList",
+                ("MileStoneList",
                     ["DeliverableList"]
                 ),
                 "StaffList"
