@@ -464,13 +464,13 @@ class LogicRow:
 
     def copy_children(self, copy_from: base, which_children: (dict or list)):
         """
-        Event handler to copy multiple children types to self from copy_from children.
+        Useful in row event handlers to copy multiple children types to self from copy_from children.
 
-        child-spec: := < ‘child - list - name’ | < ‘child-list-name = parent-list-name’ >
-        child-list-spec: := [child - spec | (child-spec, child-list-spec)]
+        child-spec := < ‘child-list-name’ | < ‘child-list-name = parent-list-name’ >
+        child-list-spec := [child-spec | (child-spec, child-list-spec)]
 
         Eg. RowEvent on Order
-            which = dict(OrderDetailList = None)
+            which = ["OrderDetailList"]
             logic_row.copy_children(copy_from=row.parent, which_children=which)
 
         Eg, test/copy_children:
