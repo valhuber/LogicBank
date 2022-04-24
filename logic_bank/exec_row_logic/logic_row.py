@@ -287,6 +287,7 @@ class LogicRow:
         parent_mapper = object_mapper(to_parent.row)
         parents_relationships = parent_mapper.relationships
         parent_role_name = None
+        parent_reln_to_child_db = None
         child = self.row
         for each_relationship in parents_relationships:  # eg, Payment has child PaymentAllocation
             if each_relationship.direction == sqlalchemy.orm.interfaces.ONETOMANY:  # PA
@@ -300,13 +301,15 @@ class LogicRow:
                                         to_parent.name +
                                         "> to Allocation: " + str(type(child)))
                     parent_role_name = parent_mapper.class_.__name__  # default TODO design review
+                    parent_role_name = each_relationship.back_populates
+                    parent_reln_to_child_db = each_relationship
         if parent_role_name is None:
             raise Exception("Missing relationship from Parent Provider: <"  +
                             to_parent.name +
                             "> to child Allocation: " + str(type(child)) + " of class: " + child.__class__.__name__)
         setattr(child, parent_role_name, to_parent.row)
         child_mapper = object_mapper(self.row)
-        parent_role_def = child_mapper.relationships.get(parent_role_name)
+        parent_role_def = child_mapper.relationships.get(parent_role_name)  # found Project, model has project
         for each_fk_attr in parent_role_def.local_columns:
             if getattr(self.row, each_fk_attr.name) is not None:
                 self.log(f'warning: {parent_role_name} ({each_fk_attr.name} not None... fixing')
