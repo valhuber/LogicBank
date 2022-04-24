@@ -36,7 +36,7 @@ def declare_logic():
                 "StaffList"
             ]
 
-        logic_row.copy_children(copy_from=row.project_,
-                                which_children=child_list_spec)
+            logic_row.copy_children(copy_from=row.project_,
+                                    which_children=child_list_spec)
 
     Rule.row_event(on_class=Project, calling=clone_project)
