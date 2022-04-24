@@ -8,9 +8,6 @@ from sqlalchemy.ext.declarative import declarative_base
 ########################################################################################################################
 # Classes describing database for SqlAlchemy ORM, initially created by schema introspection.
 #
-from safrs import SAFRSBase
-
-import safrs
 
 Base = declarative_base()
 metadata = Base.metadata
@@ -23,7 +20,7 @@ from sqlalchemy.dialects.mysql import *
 
 
 
-class Project(SAFRSBase, Base):
+class Project(Base):
     __tablename__ = 'Project'
 
     name = Column(String(16))
@@ -45,7 +42,7 @@ t_sqlite_sequence = Table(
 )
 
 
-class MileStone(SAFRSBase, Base):
+class MileStone(Base):
     __tablename__ = 'MileStone'
 
     milestone_name = Column(String(16))
@@ -58,7 +55,7 @@ class MileStone(SAFRSBase, Base):
     DeliverableList = relationship('Deliverable', cascade_backrefs=True, backref='milestone')
 
 
-class Staff(SAFRSBase, Base):
+class Staff(Base):
     __tablename__ = 'Staff'
 
     id = Column(Integer, primary_key=True)
@@ -68,7 +65,7 @@ class Staff(SAFRSBase, Base):
     # see backref on parent: project = relationship('Project', cascade_backrefs=True, backref='StaffList')
 
 
-class Deliverable(SAFRSBase, Base):
+class Deliverable(Base):
     __tablename__ = 'Deliverable'
 
     id = Column(Integer, primary_key=True)
@@ -78,4 +75,3 @@ class Deliverable(SAFRSBase, Base):
     # see backref on parent: milestone = relationship('MileStone', cascade_backrefs=True, backref='DeliverableList')
 
 
-from database import customize_models
