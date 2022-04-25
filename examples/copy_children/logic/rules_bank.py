@@ -4,7 +4,8 @@ from logic_bank.exec_row_logic.logic_row import LogicRow
 from logic_bank.extensions.rule_extensions import RuleExtension
 from logic_bank.logic_bank import Rule
 from examples.copy_children.db.models import Project
-
+from examples.copy_children.db.models import Staff
+from examples.copy_children.db.models import MileStone
 
 def declare_logic():
 
@@ -40,3 +41,8 @@ def declare_logic():
                                     which_children=child_list_spec)
 
     Rule.row_event(on_class=Project, calling=clone_project)
+
+    Rule.count(derive=Project.milestone_count, as_count_of=MileStone)
+
+    Rule.count(derive=Project.staff_count, as_count_of=Staff)
+

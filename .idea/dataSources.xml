@@ -65,5 +65,11 @@
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/examples/copy_children/db/database-gold.db</jdbc-url>
     </data-source>
+    <data-source source="LOCAL" name="copy_children" uuid="929b815d-5f0b-4922-a73c-3540514dbf99">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/examples/copy_children/db/database.db</jdbc-url>
+    </data-source>
   </component>
 </project>

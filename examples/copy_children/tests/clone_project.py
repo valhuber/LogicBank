@@ -84,6 +84,8 @@ print("\nadd_project, update completed\n\n")
 assert len(new_project.StaffList)==3, f'Expected 3 Staff, got {len(new_project.StaffList)}'
 assert len(new_project.MileStoneList)==4, f'Expected 4 MileStones, got {len(new_project.MileStoneList)}'
 
+assert new_project.staff_count == 3, f'Expected derived staff_count 3, got {new_project.staff_count == 3}'
+
 for each_milestone in new_project.MileStoneList:
     assert len(each_milestone.DeliverableList) > 0, f'Expected Deliverables, got {len(each_milestone.DeliverableList)}'
 
