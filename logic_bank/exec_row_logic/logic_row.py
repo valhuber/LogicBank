@@ -269,7 +269,7 @@ class LogicRow:
             raise Exception(f"FIXME invalid role name {parent_role_name}")
         return role_def
 
-    def link(self, to_parent: 'LogicRow'):
+    def link(self, to_parent: 'LogicRow', is_copy: bool = False):
         """
         set self.to_parent (parent_accessor) = to_parent
 
@@ -282,6 +282,7 @@ class LogicRow:
 
         Args:
             to_parent: mapped class that is parent to this logic_row
+            is_copy: optional, suppress FK not null (eg, copy_children)
 
         """
         parent_mapper = object_mapper(to_parent.row)
@@ -311,8 +312,8 @@ class LogicRow:
         child_mapper = object_mapper(self.row)
         parent_role_def = child_mapper.relationships.get(parent_role_name)  # found Project, model has project
         for each_fk_attr in parent_role_def.local_columns:
-            if getattr(self.row, each_fk_attr.name) is not None:
-                self.log(f'warning: {parent_role_name} ({each_fk_attr.name} not None... fixing')
+            if is_copy == False and getattr(self.row, each_fk_attr.name) is not None:
+                self.log(f'Note: link child to parent - {parent_role_name} ({each_fk_attr.name} not None... fixing')
             setattr(self.row, each_fk_attr.name, None)
         return True
 
@@ -481,7 +482,8 @@ class LogicRow:
                 "StaffList"
             ]
         """
-        # self.log("copy_children")  # FIXME
+        if self.nest_level == 0:
+            self.log("Begin copy_children")
         which_children_list = which_children
         if isinstance(which_children, dict):  # prefer lists, but handle dict (initial version)
             which_children_list = []
@@ -490,8 +492,9 @@ class LogicRow:
                 if item[1]:
                     child_spec += f' = {item[1]}'
                 which_children_list.append(child_spec)
-
+        copy_count = 0
         for each_item in which_children_list:
+            copy_count += 1
             child_spec = each_item
             if type(each_item) is tuple:
                 child_spec = each_item[0]
@@ -518,10 +521,12 @@ class LogicRow:
                                            a_session=self.session,
                                            row_sets=self.row_sets)
                 new_copy_to_row.set_same_named_attributes(each_from_logic_row)
-                new_copy_to_row.link(to_parent=self)
+                new_copy_to_row.link(to_parent=self, is_copy=True)
                 new_copy_to_row.insert(reason="Copy Children " + copy_to_list_name)  # triggers rules...
                 if type(each_item) is tuple:
                     new_copy_to_row.copy_children(each_from_row, each_item[1])
+        if self.nest_level == 0:
+            self.log(f'End copy_children - {copy_count} copied')
 
     def set_same_named_attributes(self, from_logic_row: 'LogicRow'):
         """
@@ -547,7 +552,7 @@ class LogicRow:
             is_hybrid = isinstance(each_attr, hybrid_property)
             each_attr_name = self.get_attr_name(mapper=row_mapper, attr=each_attr)
             if each_attr_name is None:  # parent or child-list
-                raise Exception("attr_name is None, should not occur for row_mapper.column_attrs")
+                raise Exception("Note; set_same_named_attributes -- attr_name is None, should not occur for row_mapper.column_attrs")
             else:
                 if each_attr_name in self.table_meta.primary_key.columns.keys():
                     debug_skip_primary_key_columns = True
@@ -1007,8 +1012,9 @@ class ParentRoleAdjuster:
             listeners do not guarantee order
             Failures were seen for OrderDetail first
                 It adjusted to the New Customer
-            Fix is defer adjustment chaining logic iff the parent row is in the submitted list
-                That is, the adjustment is done, but we don't run chaining logic
+            Fix is defer adjustment chaining logic iff the parent row is in the row_sets.submitted_row
+                That is, the adjustment is done, but we don't run chaining logic (parent_logic_row.update())
+                That's because the chaining logic will be run later in listeners (row_sets.submitted_row)
 
             Examples:
                 upd_order_reuse - occurs half time, see listeners-bug_explore to force
