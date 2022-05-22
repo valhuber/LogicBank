@@ -27,7 +27,7 @@ def declare_logic():
             logic_row.log("early_row_event_all_classes - handle_all sets 'Created_on"'')
 
         if logic_row.nest_level == 0:  # client updates should not alter derivations
-            derived_attributes = logic_row.get_derived_attributes()
+            derived_attributes = logic_row._get_derived_attributes()
             if logic_row.are_attributes_changed(derived_attributes):
                 # NOTE: this does not trigger constraint_event registered in activate
                 raise ConstraintException("One or more derived attributes are changed")

@@ -77,8 +77,8 @@ class LogicRow:
                 self.table_meta = inspect(self.row)
                 self.log_engine("Using Class Name (not Table Name): " + self.name)
 
-    def get_attr_name(self, mapper, attr)-> str:
-        """polymorhpism is for wimps - find the name
+    def _get_attr_name(self, mapper, attr)-> str:
+        """ polymorphism is for wimps - find the name
             returns None if bad name, or is collection, or is object
         """
         attr_name = None
@@ -128,7 +128,7 @@ class LogicRow:
             print("Debug Stop here")
         for each_attr in row_mapper.column_attrs:  # avoid parent objects, child collections
             is_hybrid = isinstance(each_attr, hybrid_property)
-            each_attr_name = self.get_attr_name(mapper=row_mapper, attr=each_attr)
+            each_attr_name = self._get_attr_name(mapper=row_mapper, attr=each_attr)
             if each_attr_name is None:  # parent or child-list
                 pass   # don't print, don't even call (avoid sql)
             else:
@@ -182,7 +182,7 @@ class LogicRow:
                           row_sets=self.row_sets)
         return result
 
-    def make_copy(self, a_row: base) -> base:
+    def _make_copy(self, a_row: base) -> base:
         """
         returns DotDict copy of row, or None
 
@@ -195,7 +195,7 @@ class LogicRow:
             result = DotDict({})
             row_mapper = object_mapper(a_row)
             for each_attr in row_mapper.column_attrs:  # all_orm_descriptors:
-                each_attr_name = self.get_attr_name(mapper=row_mapper, attr=each_attr)
+                each_attr_name = self._get_attr_name(mapper=row_mapper, attr=each_attr)
                 if each_attr_name is None:  # is parent or collection?
                     debug_stop_prove_parents_and_collections_skipped = True  # iff all_orm_descriptors
                     # print("make_copy NULL attr: " + str(result_class) + "." + str(each_attr))
@@ -204,7 +204,7 @@ class LogicRow:
                     result[each_attr_name] = getattr(a_row, each_attr_name)
         return result
 
-    def get_parent_logic_row(self, role_name: str, from_row: base = None) -> 'LogicRow':
+    def _get_parent_logic_row(self, role_name: str, from_row: base = None) -> 'LogicRow':
         """ get parent *and* set parent accessor """
         row = self.row
         if from_row is not None:
@@ -226,33 +226,33 @@ class LogicRow:
             parent_row = self.session.query(parent_class).get(parent_key)
             if self.ins_upd_dlt == "upd" or debug_set_parents_for_inserts:  # eg, add order - don't tell sqlalchemy to add cust
                 setattr(row, role_name, parent_row)
-        old_parent = self.make_copy(parent_row)
+        old_parent = self._make_copy(parent_row)
         parent_logic_row = LogicRow(row=parent_row, old_row=old_parent, ins_upd_dlt="*", nest_level=1 + self.nest_level,
                                     a_session=self.session, row_sets=self.row_sets)
         return parent_logic_row
 
-    def early_row_events(self):
+    def _early_row_events(self):
         self.log_engine("early_events")
         early_row_events = rule_bank_withdraw.rules_of_class(self, EarlyRowEvent)
         for each_row_event in early_row_events:
             each_row_event.execute(self)
 
-    def row_events(self):
+    def _row_events(self):
         self.log_engine("row_events")
         row_events = rule_bank_withdraw.rules_of_class(self, RowEvent)
         for each_row_event in row_events:
             each_row_event.execute(self)
 
-    def copy_rules(self):
+    def _copy_rules(self):
         """ runs copy rules (get parent values on insert, no action on parent update) """
         copy_rules = rule_bank_withdraw.copy_rules(self)
         for role_name, copy_rules_for_table in copy_rules.items():
             logic_row = self
             if logic_row.ins_upd_dlt == "ins" or \
-                    logic_row.is_different_parent(parent_role_name=role_name):
+                    logic_row._is_different_parent(parent_role_name=role_name):
                 # self.log("copy_rules for role: " + role_name)
                 attributes_copied = ""
-                parent_logic_row = logic_row.get_parent_logic_row(role_name)
+                parent_logic_row = logic_row._get_parent_logic_row(role_name)
                 for each_copy_rule in copy_rules_for_table:  # TODO consider orphans
                     if attributes_copied == "":
                         attributes_copied = each_copy_rule._column
@@ -261,7 +261,7 @@ class LogicRow:
                     each_copy_rule.execute(logic_row, parent_logic_row)
                 self.log(f'copy_rules for role: {role_name} - {attributes_copied}')
 
-    def get_parent_role_def(self, parent_role_name: str):
+    def _get_parent_role_def(self, parent_role_name: str):
         """ returns sqlalchemy role_def """
         my_mapper = object_mapper(self.row)
         role_def = my_mapper.relationships.get(parent_role_name)
@@ -317,7 +317,7 @@ class LogicRow:
             setattr(self.row, each_fk_attr.name, None)
         return True
 
-    def get_child_role(self, parent_role_name) -> str:
+    def _get_child_role(self, parent_role_name) -> str:
         """ given parent_role_name, return child_role_name """
         parent_mapper = object_mapper(self.row)  # , eg, Order cascades ShippedDate => OrderDetailList
         parent_relationships = parent_mapper.relationships
@@ -330,7 +330,7 @@ class LogicRow:
                     return child_role_name
         raise Exception("unable to find child role corresponding to: " + parent_role_name)
 
-    def cascade_delete_children(self):
+    def _cascade_delete_children(self):
         """
         This recursive descent is required to adjust dependent sums/counts on passive_deletes; ie,
 
@@ -348,7 +348,7 @@ class LogicRow:
                 if each_relationship.cascade.delete and each_relationship.passive_deletes:
                     child_rows = getattr(self.row, child_role_name)
                     for each_child_row in child_rows:
-                        old_child = self.make_copy(each_child_row)
+                        old_child = self._make_copy(each_child_row)
                         each_child_logic_row = LogicRow(row=each_child_row,
                                                         old_row=old_child,
                                                         ins_upd_dlt="dlt",
@@ -379,7 +379,7 @@ class LogicRow:
                         refinteg_action = defined_relns[each_child_role_name]._action
                     child_rows = getattr(self.row, each_child_role_name)
                     for each_child_row in child_rows:
-                        old_child = self.make_copy(each_child_row)
+                        old_child = self._make_copy(each_child_row)
                         each_child_logic_row = LogicRow(row=each_child_row,
                                                         old_row=old_child,
                                                         ins_upd_dlt="dlt",
@@ -404,7 +404,7 @@ class LogicRow:
                         else:
                             raise Exception("Invalid parent_cascade action: " + refinteg_action)
 
-    def is_primary_key_changed(self) -> bool:
+    def _is_primary_key_changed(self) -> bool:
         meta = self.table_meta
         if hasattr(meta, "primary_key"):
             pk_columns = meta.primary_key.columns
@@ -418,7 +418,7 @@ class LogicRow:
                 return True
         return False
 
-    def get_derived_attributes(self) -> List[InstrumentedAttribute]:
+    def _get_derived_attributes(self) -> List[InstrumentedAttribute]:
         """
             returns a list of derived attributes
 
@@ -550,7 +550,7 @@ class LogicRow:
         from_attrs = object_mapper(from_logic_row.row).column_attrs
         for each_attr in row_mapper.column_attrs:  # avoid parent objects, child collections
             is_hybrid = isinstance(each_attr, hybrid_property)
-            each_attr_name = self.get_attr_name(mapper=row_mapper, attr=each_attr)
+            each_attr_name = self._get_attr_name(mapper=row_mapper, attr=each_attr)
             if each_attr_name is None:  # parent or child-list
                 raise Exception("Note; set_same_named_attributes -- attr_name is None, should not occur for row_mapper.column_attrs")
             else:
@@ -563,7 +563,7 @@ class LogicRow:
                         setattr(self.row, each_attr_name, getattr(from_logic_row.row, each_attr_name))
         return
 
-    def get_old_child_rows(self, relationship: RelationshipProperty):
+    def _get_old_child_rows(self, relationship: RelationshipProperty):
         """
         result = getattr(self.old_row, role_name)  # even with util.use_transient, yields nothing, unsure why
         """
@@ -574,13 +574,13 @@ class LogicRow:
         result = self.session.query(relationship.mapper.entity).filter_by(**child_filter).all()
         return result
 
-    def parent_cascade_pk_change(self):  # ???
+    def _parent_cascade_pk_change(self):  # ???
         """
         cascade pk change (if any) to children, unconditionally.
 
         Presumption: children ref the same pKey (vs. some other "candidate key")
         """
-        if self.is_primary_key_changed():
+        if self._is_primary_key_changed():
             list_parent_cascade_rules = rule_bank_withdraw.rules_of_class(self, ParentCascade)
             defined_relns = {}
             for each_parent_cascade_rule in list_parent_cascade_rules:
@@ -592,9 +592,9 @@ class LogicRow:
                     reason = "Cascading PK change to: " +\
                              each_relationship.backref + "->" +\
                              each_relationship.key
-                    child_rows = self.get_old_child_rows(relationship = each_relationship)
+                    child_rows = self._get_old_child_rows(relationship = each_relationship)
                     for each_child_row in child_rows:
-                        old_child = self.make_copy(each_child_row)
+                        old_child = self._make_copy(each_child_row)
                         each_child_logic_row = LogicRow(row=each_child_row, old_row=old_child, ins_upd_dlt="upd",
                                                         nest_level=1 + self.nest_level,
                                                         a_session=self.session, row_sets=self.row_sets)
@@ -604,7 +604,7 @@ class LogicRow:
 
         return self
 
-    def parent_cascade_attribute_changes_to_children(self):
+    def _parent_cascade_attribute_changes_to_children(self):
         """
         Child Formulas can reference (my) Parent Attributes, so...
         If the *referenced* Parent Attributes are changed, cascade to child
@@ -627,18 +627,18 @@ class LogicRow:
                     cascading_attribute_name = each_parent_attribute
                     break
             if do_cascade:  # eg, Order cascades ShippedDate => OrderDetailList
-                child_role_name = self.get_child_role(each_parent_role_name)
+                child_role_name = self._get_child_role(each_parent_role_name)
                 reason = "Cascading " + each_parent_role_name + \
                          "." + cascading_attribute_name + " (,...)"
                 child_rows = getattr(self.row, child_role_name)
                 for each_child_row in child_rows:
-                    old_child = self.make_copy(each_child_row)
+                    old_child = self._make_copy(each_child_row)
                     each_logic_row = LogicRow(row=each_child_row, old_row=old_child, ins_upd_dlt="upd",
                                               nest_level=1 + self.nest_level,
                                               a_session=self.session, row_sets=self.row_sets)
                     each_logic_row.update(reason=reason)
 
-    def is_parent_cascading(self, parent_role_name: str):
+    def _is_parent_cascading(self, parent_role_name: str):
         """ if so (check self.reason), we must not prune referencing formulae """
         result = False
         update_reason = self.reason
@@ -650,9 +650,9 @@ class LogicRow:
                 result = True
         return result
 
-    def is_different_parent(self, parent_role_name: str) -> bool:
+    def _is_different_parent(self, parent_role_name: str) -> bool:
         """ return True if any changes to foreign key fields of parent_role_name"""
-        role_def = self.get_parent_role_def(parent_role_name=parent_role_name)
+        role_def = self._get_parent_role_def(parent_role_name=parent_role_name)
         row = self.row
         old_row = self.old_row
         if old_row is None:
@@ -664,7 +664,7 @@ class LogicRow:
                     return True
             return False
 
-    def is_formula_pruned(self, formula: Formula) -> bool:
+    def _is_formula_pruned(self, formula: Formula) -> bool:
         """
         Prune Conservatively:
          * if delete, or
@@ -685,10 +685,10 @@ class LogicRow:
                 column = each_dependency
                 if '.' in column:
                     role_name = column.split(".")[0]
-                    if self.is_different_parent(parent_role_name=role_name):
+                    if self._is_different_parent(parent_role_name=role_name):
                         is_parent_changed = True
                         break
-                    if self.is_parent_cascading(role_name):
+                    if self._is_parent_cascading(role_name):
                         is_parent_changed = True
                         break
                 else:
@@ -701,23 +701,23 @@ class LogicRow:
                      " [" + str(formula._dependencies) + "]")
         return result_prune
 
-    def formula_rules(self):
+    def _formula_rules(self):
         """ execute un-pruned formulae, in dependency order """
         self.log_engine("formula_rules")
         formula_rules = rule_bank_withdraw.rules_of_class(self, Formula)
         formula_rules.sort(key=lambda formula: formula._exec_order)
         for each_formula in formula_rules:
-            if not self.is_formula_pruned(each_formula):
+            if not self._is_formula_pruned(each_formula):
                 each_formula.execute(self)
 
-    def constraints(self):
+    def _constraints(self):
         """ execute constraints (throw error if one fails) """
         # self.log("constraints")
         constraint_rules = rule_bank_withdraw.rules_of_class(self, Constraint)
         for each_constraint in constraint_rules:
             each_constraint.execute(self)
 
-    def is_foreign_key_null(self, relationship: sqlalchemy.orm.relationships) -> bool:
+    def _is_foreign_key_null(self, relationship: sqlalchemy.orm.relationships) -> bool:
         child_columns = relationship.local_columns
         if len(child_columns) == 0:
             raise Exception("Malformed relationship has no foreign key: " +
@@ -728,7 +728,7 @@ class LogicRow:
                 return True
         return False
 
-    def load_parents_on_insert(self):
+    def _load_parents_on_insert(self):
         """ sqlalchemy lazy does not work for inserts... do it here because...
         1. RI would require the sql anyway
         2. Provide a consistent model - your parents are always there for you
@@ -745,9 +745,9 @@ class LogicRow:
         for each_relationship in my_relationships:  # eg, order has parents cust & emp, child orderdetail
             if each_relationship.direction == sqlalchemy.orm.interfaces.MANYTOONE:  # cust, emp
                 parent_role_name = each_relationship.key  # eg, OrderList
-                if self.is_foreign_key_null(each_relationship) is False:
+                if self._is_foreign_key_null(each_relationship) is False:
                     # continue - foreign key not null - parent *should* exist
-                    self.get_parent_logic_row(parent_role_name)  # sets the accessor
+                    self._get_parent_logic_row(parent_role_name)  # sets the accessor
                     does_parent_exist = getattr(self.row, parent_role_name)
                     if does_parent_exist:
                         pass  # yes, parent exists... it's all fine
@@ -763,7 +763,7 @@ class LogicRow:
                         pass # if you don't care, I don't care
         return self
 
-    def check_parents_on_update(self):
+    def _check_parents_on_update(self):
         """ per ParentCheck rule, verify parents exist.
 
         If disabled, ignore (with warning).
@@ -778,7 +778,7 @@ class LogicRow:
                 for each_relationship in my_relationships:  # eg, order has parents cust & emp, child orderdetail
                     if each_relationship.direction == sqlalchemy.orm.interfaces.MANYTOONE:  # cust, emp
                         parent_role_name = each_relationship.key  # eg, OrderList
-                        if not self.is_foreign_key_null(each_relationship):
+                        if not self._is_foreign_key_null(each_relationship):
                             # continue
                             reason = "Cascading PK change to: " + \
                                      each_relationship.key + "->" + \
@@ -791,7 +791,7 @@ class LogicRow:
                                 """
                                 pass
                             else:
-                                self.get_parent_logic_row(parent_role_name)  # sets the accessor
+                                self._get_parent_logic_row(parent_role_name)  # sets the accessor
                                 does_parent_exist = getattr(self.row, parent_role_name)
                                 if does_parent_exist is None and ref_integ_rule._enable == True:
                                     msg = "Missing Parent: " + parent_role_name
@@ -805,7 +805,7 @@ class LogicRow:
                                     pass # if you don't care, I don't care
         return self
 
-    def is_in_list(self, logic_rows: List) -> bool:
+    def _is_in_list(self, logic_rows: List) -> bool:
         """
         e.g., for do_not_adjust_list, find out if logic_row is in it
         """
@@ -824,7 +824,7 @@ class LogicRow:
                     result = True
         return result
 
-    def adjust_parent_aggregates(self, do_not_adjust_list = None):
+    def _adjust_parent_aggregates(self, do_not_adjust_list = None):
         """
         Chain to parents - adjust aggregates (sums, counts)
 
@@ -858,7 +858,7 @@ class LogicRow:
 
         """
         result_logic_row = LogicRow(row = row,
-                                    old_row = self.make_copy(row),
+                                    old_row = self._make_copy(row),
                                     nest_level=self.nest_level+1,
                                     a_session=self.session,
                                     row_sets=self.row_sets,
@@ -899,17 +899,17 @@ class LogicRow:
             self.reason = reason
             self.log("Update - " + reason)
             self.early_row_event_all_classes("Update - " + reason)
-            self.early_row_events()
-            self.check_parents_on_update()
-            self.copy_rules()
-            self.formula_rules()
-            self.adjust_parent_aggregates()  # parent chaining (sum / count adjustments)
-            self.constraints()
-            self.parent_cascade_attribute_changes_to_children()  # child chaining (cascade changed parent references)
-            self.parent_cascade_pk_change()  # actions - delete, nullify, prevent
+            self._early_row_events()
+            self._check_parents_on_update()
+            self._copy_rules()
+            self._formula_rules()
+            self._adjust_parent_aggregates()  # parent chaining (sum / count adjustments)
+            self._constraints()
+            self._parent_cascade_attribute_changes_to_children()  # child chaining (cascade changed parent references)
+            self._parent_cascade_pk_change()  # actions - delete, nullify, prevent
             if self.row_sets is not None:  # required for adjustment logic (see dragons)
                 self.row_sets.add_processed_logic(logic_row=self)  # used in commit logic
-            self.row_events()
+            self._row_events()
             if self.row_sets is not None:  # eg, for debug as in upd_order_shipped test
                 self.row_sets.remove_submitted(logic_row=self)
 
@@ -933,15 +933,15 @@ class LogicRow:
             self.reason = reason
             self.log("Insert - " + reason)
             self.early_row_event_all_classes("Insert - " + reason)
-            self.load_parents_on_insert()
-            self.early_row_events()
-            self.copy_rules()
-            self.formula_rules()
-            self.adjust_parent_aggregates()
-            self.constraints()
+            self._load_parents_on_insert()
+            self._early_row_events()
+            self._copy_rules()
+            self._formula_rules()
+            self._adjust_parent_aggregates()
+            self._constraints()
         if self.row_sets is not None:  # required for adjustment logic (see dragons)
             self.row_sets.add_processed_logic(logic_row=self)  # used in commit logic
-            self.row_events()
+            self._row_events()
         if self.row_sets is not None:  # eg, for debug as in upd_order_shipped test
             self.row_sets.remove_submitted(logic_row=self)
 
@@ -967,10 +967,10 @@ class LogicRow:
             self.reason = reason
             self.log("Delete - " + reason)
             self.early_row_event_all_classes("Delete - " + reason)
-            self.early_row_events()
-            self.adjust_parent_aggregates(do_not_adjust_list=do_not_adjust_list)
-            self.constraints()
-            self.cascade_delete_children()
+            self._early_row_events()
+            self._adjust_parent_aggregates(do_not_adjust_list=do_not_adjust_list)
+            self._constraints()
+            self._cascade_delete_children()
             self.row_sets.add_processed_logic(logic_row=self)  # used in commit logic
 
 
@@ -1054,7 +1054,7 @@ class ParentRoleAdjuster:
             else:
                 if do_defer_adjustment:   # just for debug when enable_deferred_adjusts is false
                     self.child_logic_row.log("Adjustment deferred DISABLED (DEBUG ONLY!!) for parent" + self.parent_role_name)
-                is_do_not_adjust_deleted_parent = self.parent_logic_row.is_in_list(do_not_adjust_list)
+                is_do_not_adjust_deleted_parent = self.parent_logic_row._is_in_list(do_not_adjust_list)
                 if is_do_not_adjust_deleted_parent:
                     self.child_logic_row.log(f'No adjustment on deleted parent: {self.parent_role_name}')
                 else:

@@ -72,7 +72,7 @@ class Aggregate(Derivation):
         if where and delta != 0.0:  # trigger update by setting parent_adjustor.parent_logic_row
             if parent_adjustor.parent_logic_row is None:
                 parent_adjustor.parent_logic_row = \
-                    parent_adjustor.child_logic_row.get_parent_logic_row(role_name=self._parent_role_name)
+                    parent_adjustor.child_logic_row._get_parent_logic_row(role_name=self._parent_role_name)
             curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
             if curr_value is None:
                 curr_value = 0
@@ -94,9 +94,9 @@ class Aggregate(Derivation):
             )
             if parent_adjustor.parent_logic_row is None:
                 parent_adjustor.parent_logic_row = \
-                    parent_adjustor.child_logic_row.get_parent_logic_row(role_name=self._parent_role_name)
+                    parent_adjustor.child_logic_row._get_parent_logic_row(role_name=self._parent_role_name)
             curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
-            is_do_not_adjust = parent_adjustor.parent_logic_row.is_in_list(do_not_adjust_list)
+            is_do_not_adjust = parent_adjustor.parent_logic_row._is_in_list(do_not_adjust_list)
             if is_do_not_adjust:
                 parent_adjustor.child_logic_row.log_engine("do not adjust deleted rows")
                 pass
@@ -110,7 +110,7 @@ class Aggregate(Derivation):
                                   get_summed_field: Callable,
                                   get_old_summed_field: Callable):
         parent_role_name = parent_adjustor.parent_role_name
-        is_different_parent = parent_adjustor.child_logic_row.is_different_parent(parent_role_name)
+        is_different_parent = parent_adjustor.child_logic_row._is_different_parent(parent_role_name)
         summed_field = get_summed_field()
         old_summed_field = get_old_summed_field()
         if old_summed_field is None:
@@ -139,7 +139,7 @@ class Aggregate(Derivation):
                 if delta is not None and delta != 0.0:  # FIXME
                     if parent_adjustor.parent_logic_row is None:
                         parent_adjustor.parent_logic_row = \
-                            parent_adjustor.child_logic_row.get_parent_logic_row(role_name=self._parent_role_name)
+                            parent_adjustor.child_logic_row._get_parent_logic_row(role_name=self._parent_role_name)
                 curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
                 setattr(parent_adjustor.parent_logic_row.row, self._column, curr_value + delta)
                 parent_adjustor.append_adjusting_attributes(self._column)
@@ -157,7 +157,7 @@ class Aggregate(Derivation):
         if where and delta != 0:  # trigger update by setting parent_adjustor.parent_logic_row
             if parent_adjustor.parent_logic_row is None:
                 parent_adjustor.parent_logic_row = \
-                    parent_adjustor.child_logic_row.get_parent_logic_row(
+                    parent_adjustor.child_logic_row._get_parent_logic_row(
                         role_name=self._parent_role_name)
                 if parent_adjustor.parent_logic_row.row is None:
                     msg = "Unable to Adjust Missing Parent: " + self._parent_role_name
@@ -171,7 +171,7 @@ class Aggregate(Derivation):
         if where and delta != 0:
             if parent_adjustor.previous_parent_logic_row is None:
                 parent_adjustor.previous_parent_logic_row = \
-                    parent_adjustor.child_logic_row.get_parent_logic_row(
+                    parent_adjustor.child_logic_row._get_parent_logic_row(
                         role_name=self._parent_role_name,
                         from_row=parent_adjustor.child_logic_row.old_row)
             curr_value = getattr(parent_adjustor.previous_parent_logic_row.row, self._column)
