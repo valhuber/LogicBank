@@ -89,7 +89,7 @@ class Rule:
         Derive parent column as sum of designated child column, optional where
 
         Example
-          Rule.sum(derive=Customer.Balance, as_sum_of=Order.AmountTotal,
+          Rule.sum(derive=models.Customer.Balance, as_sum_of=models.Order.AmountTotal,
                    where=Lambda row: row.ShippedDate is None)
 
         Optimized to eliminate / minimize SQLs: Pruning, Adjustment Logic
@@ -109,7 +109,7 @@ class Rule:
         Derive parent column as count of designated child rows
 
         Example
-          Rule.count(derive=Customer.UnPaidOrders, as_count_of=Order,
+          Rule.count(derive=models.Customer.UnPaidOrders, as_count_of=models.Order,
                    where=Lambda row: row.ShippedDate is None)
 
         Optimized to eliminate / minimize SQLs: Pruning, Adjustment Logic
@@ -131,7 +131,7 @@ class Rule:
         Constraints declare condition that must be true for all commits
 
         Example
-          Rule.constraint(validate=Customer,
+          Rule.constraint(validate=models.Customer,
                           as_condition=lambda row: row.Balance <= row.CreditLimit,
                           error_msg="balance ({row.Balance}) exceeds credit ({row.CreditLimit})")
 
@@ -165,7 +165,7 @@ class Rule:
         Parent Checks ensure that non-null foreign keys are present in parent class
 
         Example
-           Rule.parent_check(validate=Customer, enable=True, error_msg="Missing Parent")
+           Rule.parent_check(validate=models.Customer, enable=True, error_msg="Missing Parent")
 
         Parent_check failures raise ConstraintException, e.g.:
             try:
@@ -194,7 +194,7 @@ class Rule:
         Formulas declare column value, based on current and parent rows
 
         Example
-          Rule.formula(derive=OrderDetail.Amount,
+          Rule.formula(derive=models.OrderDetail.Amount,
                        as_expression=lambda row: row.UnitPrice * row.Quantity)
 
         Unlike Copy rules, Parent changes are propagated to child row(s)
@@ -216,7 +216,7 @@ class Rule:
         Copy declares child column copied from parent column
 
         Example
-          Rule.copy(derive=OrderDetail.UnitPrice, from_parent=Product.UnitPrice)
+          Rule.copy(derive=models.OrderDetail.UnitPrice, from_parent=models.Product.UnitPrice)
 
         Unlike formulas references, parent changes are *not* propagated to children
 
@@ -323,7 +323,7 @@ class DeclareRule(Rule):
 
         declare_logic():
 
-            DeclareRule.sum(derive=Order.AmountTotal, as_sum_of=OrderDetail.Amount)
+            DeclareRule.sum(derive=models.Order.AmountTotal, as_sum_of=OrderDetail.Amount)
 
     Activate them:
 
