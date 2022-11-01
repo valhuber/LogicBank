@@ -17,7 +17,7 @@
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/banking/db/database.db</jdbc-url>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/examples/banking/db/database.db</jdbc-url>
     </data-source>
     <data-source source="LOCAL" name="allocate-gold" uuid="809f3d5d-f1fc-4744-80d7-f40ba2feb1c2">
       <driver-ref>sqlite.xerial</driver-ref>
@@ -29,7 +29,7 @@
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/payment_allocation/db/database.db</jdbc-url>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/examples/payment_allocation/db/database.db</jdbc-url>
     </data-source>
     <data-source source="LOCAL" name="Ref-Integ-gold" uuid="4e276d76-0c8c-4f09-a208-6c34ad4b210b">
       <driver-ref>sqlite.xerial</driver-ref>
