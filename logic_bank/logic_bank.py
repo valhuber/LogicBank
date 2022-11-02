@@ -97,8 +97,8 @@ class Rule:
         Args:
             derive: name of parent <class.attribute> being derived
             as_sum_of: name of child <class.attribute> being summed
-            child_role_name: name of parent accessor for child list (required only for disambiguation)
-            where: optional where clause designated which child rows are summed
+            child_role_name: parent's child accessor attribute (required only for disambiguation)
+            where: optional where clause, designates which child rows are summed
 
 
         """
@@ -118,8 +118,8 @@ class Rule:
         Args:
             derive: name of parent <class.attribute> being derived
             as_sum_of: name of child <class> being counted
-            child_role_name: name of parent accessor for child list (required only for disambiguation)
-            where: optional where clause designated which child rows are counted
+            child_role_name: parent's child accessor attribute (required only for disambiguation)
+            where: optional where clause, designates which child rows are counted
         """
         return Count(derive, as_count_of, where, child_role_name)
 

@@ -179,6 +179,7 @@ class Aggregate(Derivation):
             parent_adjustor.append_adjusting_attributes(self._column)
 
     def get_child_role_name(self, child_attrs):
+        """ return parent.<attr-name> that returns list of children """
         found_attr = None
         for each_attr in child_attrs:
             if isinstance(each_attr, RelationshipProperty):
@@ -195,11 +196,11 @@ class Aggregate(Derivation):
                             break
                     found_attr = each_attr
         if found_attr is None:
-            raise Exception("Invalid 'as_sum_of' - has no relationship to: " + self.table +
+            raise Exception("Invalid sum/count - no relationship to: " + self.table +
                             " in " + self.__str__())
         child_role_name = found_attr.back_populates
         if child_role_name is None:
-            msg = "Invalid 'as_sum_of' - missing back_populates: " + self.table + " in " + self.__str__()
-            raise Exception("Invalid 'as_sum_of' - missing back_populates: " + self.table +
+            msg = "Invalid sum/count - missing back_populates: " + self.table + " in " + self.__str__()
+            raise Exception("Invalid sum/count - missing back_populates: " + self.table +
                             " in " + self.__str__())
         return child_role_name

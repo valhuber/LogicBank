@@ -43,7 +43,7 @@ def declare_logic():
     Rule.sum(derive=Customer.Balance, as_sum_of=Order.AmountTotal,
              where=lambda row: row.ShippedDate is None)  # *not* a sql select sum...
 #    Rule.sum(derive=Customer.Balance, as_sum_of=OrderDetail.Amount,
-#             where=lambda row: row.ShippedDate is None)  # *not* a sql select sum...
+#             where=lambda row: row.ShippedDate is None)  # test bad rule definition
 
     Rule.sum(derive=Order.AmountTotal, as_sum_of=OrderDetail.Amount)
 
