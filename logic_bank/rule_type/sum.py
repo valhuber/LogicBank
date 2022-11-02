@@ -20,8 +20,8 @@ class Sum(Aggregate):
 
     def __init__(self, derive: InstrumentedAttribute, as_sum_of: any, where: any, child_role_name: str = ""):
         import sqlalchemy.orm.attributes as attrs
-        from sqlalchemy.orm.attributes import Mapped
-        what_is = attrs.Mapped
+        # from sqlalchemy.orm.attributes import Mapped TODO - see why Pylance complains about rule defs
+        # what_is = attrs.Mapped -- this is a super of InstrumentedAttribute, but does not satisfy Pylance
         super(Sum, self).__init__(derive=derive, where=where, child_role_name=child_role_name)
         self._as_sum_of = as_sum_of  # could probably super-ize parent accessor
         if isinstance(as_sum_of, str):
