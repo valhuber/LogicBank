@@ -55,6 +55,8 @@ def declare_logic():
     Rule.formula(derive=OrderDetail.ShippedDate, as_exp="row.OrderHeader.ShippedDate")
 
     Rule.sum(derive=Department.SalaryTotal, as_sum_of=Employee.Salary, child_role_name="EmployeeWorksForList")
+    Rule.count(derive=Department.OnLoanCount, as_count_of=Employee, child_role_name="EmployeeOnLoanList")
+    Rule.count(derive=Department.WorksForCount, as_count_of=Employee, child_role_name="EmployeeWorksForList")
 
     def units_in_stock(row: Product, old_row: Product, logic_row: LogicRow):
         result = row.UnitsInStock - (row.UnitsShipped - old_row.UnitsShipped)

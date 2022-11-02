@@ -188,7 +188,7 @@ class Aggregate(Derivation):
                 if parent_class_name == self.table:
                     if self._child_role_name == "":     # no role name - ensure only 1 reln to parent
                         if found_attr is not None:
-                            raise Exception("TODO - disambiguate relationship")
+                            raise Exception(f"Ambiguous Relationship - add 'child_role_name' for {self}")
                     else:                               # role name
                         if each_attr.backref == self._child_role_name:
                             found_attr = each_attr

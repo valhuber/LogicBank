@@ -105,7 +105,7 @@ class Rule:
         return Sum(derive, as_sum_of, where, child_role_name)
 
     @staticmethod
-    def count(derive: InstrumentedAttribute, as_count_of: object, where: any = None):
+    def count(derive: InstrumentedAttribute, as_count_of: object, where: any = None, child_role_name: str = ""):
         """
         Derive parent column as count of designated child rows
 
@@ -118,9 +118,10 @@ class Rule:
         Args:
             derive: name of parent <class.attribute> being derived
             as_sum_of: name of child <class> being counted
+            child_role_name: name of parent accessor for child list (required only for disambiguation)
             where: optional where clause designated which child rows are counted
         """
-        return Count(derive, as_count_of, where)
+        return Count(derive, as_count_of, where, child_role_name)
 
     @staticmethod
     def constraint(validate: object,

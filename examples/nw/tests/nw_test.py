@@ -84,5 +84,9 @@ print("\nadd_employee, update completed\n\n")
 works_for = new_employee.Works_for_dept
 assert works_for.Name == "Sales", f'Expected Sales, got {works_for.Name}'
 assert works_for.SalaryTotal == 283000, f'Expected SalaryTotal 283000, got {works_for.SalaryTotal}'
+assert works_for.WorksForCount == 3, f'Expected WorksForCount == 3, got {works_for.WorksForCount}'
+
+on_loan = new_employee.On_loan_dept
+assert on_loan.OnLoanCount == 1, f'Expected OnLoanCount == 1, got {on_loan.OnLoanCount}'
 
 print("\n...new_employee, ran to completion\n\n")

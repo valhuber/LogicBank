@@ -87,12 +87,15 @@ class CustomerDemographic(Base):
     Id = Column(String(8000), primary_key=True)
     CustomerDesc = Column(String(8000))
 
+
 class Department(Base):
     __tablename__ = 'Department'
 
     Id = Column(Integer, primary_key=True)
     Name = Column(String(8000))
     SalaryTotal = Column(DECIMAL(10, 2))
+    WorksForCount = Column(Integer)
+    OnLoanCount = Column(Integer)
 
 
 class Employee(Base):
