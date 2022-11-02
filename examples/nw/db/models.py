@@ -87,6 +87,13 @@ class CustomerDemographic(Base):
     Id = Column(String(8000), primary_key=True)
     CustomerDesc = Column(String(8000))
 
+class Department(Base):
+    __tablename__ = 'Department'
+
+    Id = Column(Integer, primary_key=True)
+    Name = Column(String(8000))
+    SalaryTotal = Column(DECIMAL(10, 2))
+
 
 class Employee(Base):
     __tablename__ = 'Employee'
@@ -111,6 +118,8 @@ class Employee(Base):
     PhotoPath = Column(String(8000))
     IsCommissioned = Column(Integer)
     Salary = Column(DECIMAL(10, 2))
+    WorksFor = Column(ForeignKey('Department.Id'), nullable=False)
+    OnLoan = Column(ForeignKey('Department.Id'), nullable=False)
 
     OrderList = relationship("Order", cascade_backrefs=True, backref="SalesRep")
     # https://stackoverflow.com/questions/2638217/sqlalchemy-mapping-self-referential-relationship-as-one-to-many-declarative-f
@@ -120,11 +129,21 @@ class Employee(Base):
 
     EmployeeAuditList = relationship("EmployeeAudit", cascade_backrefs=True, backref="Employee")
 
+    Works_for_dept = relationship('Department', remote_side='Department.Id',
+                                  foreign_keys="Employee.WorksFor",
+                                  backref='EmployeeWorksForList')
+    On_loan_dept = relationship('Department', remote_side='Department.Id',
+                                foreign_keys="Employee.OnLoan",
+                                backref='EmployeeOnLoanList')
+
     @hybrid_property
     def order_count(self):
         if not hasattr(self, "_order_count"):
             self._order_count = self.order_count_sql
-        return self._order_count
+        result = self._order_count
+        if result is None:
+            result = 0
+        return result
 
     @order_count.setter
     def order_count(self, value):

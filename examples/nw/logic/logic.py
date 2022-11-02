@@ -4,7 +4,7 @@ from decimal import Decimal
 from logic_bank.exec_row_logic.logic_row import LogicRow
 from logic_bank.logic_bank import Rule
 
-from examples.nw.db.models import Customer, OrderDetail, Product, Order, OrderClass, Employee, EmployeeAudit
+from examples.nw.db.models import Customer, OrderDetail, Product, Order, OrderClass, Employee, EmployeeAudit, Department
 
 from examples.nw.logic.extensibility.nw_rule_extensions import NWRuleExtension
 
@@ -42,6 +42,8 @@ def declare_logic():
                     error_msg="balance ({row.Balance}) exceeds credit ({row.CreditLimit})")
     Rule.sum(derive=Customer.Balance, as_sum_of=Order.AmountTotal,
              where=lambda row: row.ShippedDate is None)  # *not* a sql select sum...
+#    Rule.sum(derive=Customer.Balance, as_sum_of=OrderDetail.Amount,
+#             where=lambda row: row.ShippedDate is None)  # *not* a sql select sum...
 
     Rule.sum(derive=Order.AmountTotal, as_sum_of=OrderDetail.Amount)
 
@@ -51,6 +53,8 @@ def declare_logic():
     Rule.commit_row_event(on_class=Order, calling=congratulate_sales_rep)
 
     Rule.formula(derive=OrderDetail.ShippedDate, as_exp="row.OrderHeader.ShippedDate")
+
+    Rule.sum(derive=Department.SalaryTotal, as_sum_of=Employee.Salary, child_role_name="EmployeeWorksForList")
 
     def units_in_stock(row: Product, old_row: Product, logic_row: LogicRow):
         result = row.UnitsInStock - (row.UnitsShipped - old_row.UnitsShipped)
@@ -70,7 +74,7 @@ def declare_logic():
 
     Rule.constraint(validate=Employee,
                     as_condition=lambda row: row.IsCommissioned == 1 or row.order_count == 0,
-                    error_msg="{row.LastName} is not commissioned - cannot have orders")
+                    error_msg="{row.LastName} is not commissioned ({row.IsCommissioned}) - cannot have orders ({row.order_count})")
 
     Rule.count(derive=Employee.order_count, as_count_of=Order)
 

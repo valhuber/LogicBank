@@ -84,7 +84,7 @@ class Rule:
     """
 
     @staticmethod
-    def sum(derive: InstrumentedAttribute, as_sum_of: any, where: any = None):
+    def sum(derive: InstrumentedAttribute, as_sum_of: any, where: any = None, child_role_name: str = ""):
         """
         Derive parent column as sum of designated child column, optional where
 
@@ -97,11 +97,12 @@ class Rule:
         Args:
             derive: name of parent <class.attribute> being derived
             as_sum_of: name of child <class.attribute> being summed
+            child_role_name: name of parent accessor for child list (required only for disambiguation)
             where: optional where clause designated which child rows are summed
 
 
         """
-        return Sum(derive, as_sum_of, where)
+        return Sum(derive, as_sum_of, where, child_role_name)
 
     @staticmethod
     def count(derive: InstrumentedAttribute, as_count_of: object, where: any = None):

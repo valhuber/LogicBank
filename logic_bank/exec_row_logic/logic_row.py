@@ -458,9 +458,10 @@ class LogicRow:
             attr_list: list of mapped attribute names (see example above)
         """
         changes = []
-        for each_attr in attr_list:
-            if getattr(self.row, each_attr.key) != getattr(self.old_row, each_attr.key):
-                changes.append(each_attr.key)
+        if self.ins_upd_dlt == "upd":
+            for each_attr in attr_list:
+                if getattr(self.row, each_attr.key) != getattr(self.old_row, each_attr.key):
+                    changes.append(each_attr.key)
         return changes
 
     def copy_children(self, copy_from: base, which_children: (dict or list)):

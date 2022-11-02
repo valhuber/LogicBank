@@ -10,6 +10,14 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal"
+        },
+        {
+            "name": "nw_test",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/examples/nw/tests/nw_test.py",
+            "redirectOutput": true,
+            "console": "integratedTerminal"
         }
     ]
 }

@@ -18,8 +18,11 @@ class Sum(Aggregate):
     Execute adjust_parent
     """
 
-    def __init__(self, derive: InstrumentedAttribute, as_sum_of: any, where: any):
-        super(Sum, self).__init__(derive=derive, where=where)
+    def __init__(self, derive: InstrumentedAttribute, as_sum_of: any, where: any, child_role_name: str = ""):
+        import sqlalchemy.orm.attributes as attrs
+        from sqlalchemy.orm.attributes import Mapped
+        what_is = attrs.Mapped
+        super(Sum, self).__init__(derive=derive, where=where, child_role_name=child_role_name)
         self._as_sum_of = as_sum_of  # could probably super-ize parent accessor
         if isinstance(as_sum_of, str):
             self._child_role_name = self._as_sum_of.split(".")[0]  # child role retrieves children

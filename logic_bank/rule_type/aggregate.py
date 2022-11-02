@@ -12,9 +12,9 @@ from logic_bank.util import ConstraintException
 
 class Aggregate(Derivation):
 
-    def __init__(self, derive: InstrumentedAttribute, where: any):
+    def __init__(self, derive: InstrumentedAttribute, where: any, child_role_name: str):
         super(Aggregate, self).__init__(derive)
-        self._child_role_name = "FIXME"
+        self._child_role_name = child_role_name
         self._where = where
         if where is None:
             self._where_cond = lambda row: True
@@ -186,11 +186,16 @@ class Aggregate(Derivation):
                 parent_class_nodal_name = each_attr.entity.class_
                 parent_class_name = self.get_class_name(parent_class_nodal_name)
                 if parent_class_name == self.table:
-                    if found_attr is not None:
-                        raise Exception("TODO - disambiguate relationship")
+                    if self._child_role_name == "":     # no role name - ensure only 1 reln to parent
+                        if found_attr is not None:
+                            raise Exception("TODO - disambiguate relationship")
+                    else:                               # role name
+                        if each_attr.backref == self._child_role_name:
+                            found_attr = each_attr
+                            break
                     found_attr = each_attr
         if found_attr is None:
-            raise Exception("Invalid 'as_sum_of' - not a reference to: " + self.table +
+            raise Exception("Invalid 'as_sum_of' - has no relationship to: " + self.table +
                             " in " + self.__str__())
         child_role_name = found_attr.back_populates
         if child_role_name is None:

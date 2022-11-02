@@ -16,8 +16,8 @@ class Count(Aggregate):
     Execute adjust_parent
     """
 
-    def __init__(self, derive: InstrumentedAttribute, as_count_of: object, where: any):
-        super(Count, self).__init__(derive=derive, where=where)
+    def __init__(self, derive: InstrumentedAttribute, as_count_of: object, where: any, child_role_name: str = ""):
+        super(Count, self).__init__(derive=derive, where=where, child_role_name=child_role_name)
 
         if not isinstance(as_count_of, sqlalchemy.orm.DeclarativeMeta):
             raise Exception("rule definition error, not mapped class: " + str(as_count_of))
