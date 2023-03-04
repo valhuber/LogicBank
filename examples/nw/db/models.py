@@ -5,8 +5,9 @@ WARNING: used in logic, but FAB uses version in basic_web_app/app
 The primary copy is here -- copy changes to basic_web_app/app.
 on relationships...
   * declare them in the parent (not child), eg, for Order:
-  *    OrderDetailList = relationship("OrderDetail", backref="OrderHeader", cascade_backrefs=True)
+  *    OrderDetailList = relationship("OrderDetail", backref="OrderHeader", cascade_backrefs=False)
 """
+import sqlalchemy
 
 from logic_bank import logic_bank  # import this first - import ordering
 
@@ -78,7 +79,7 @@ class Customer(Base):
                              cascade="all, delete",
                              # passive_deletes=True,  # means database RI will do the deleting... which SQLlite *never* does
                              # use this *only* when DBMS does cascade deletes, to run LogicBank delete logic
-                             cascade_backrefs=True)
+                             cascade_backrefs=False)
 
 
 class CustomerDemographic(Base):
@@ -124,13 +125,13 @@ class Employee(Base):
     WorksFor = Column(ForeignKey('Department.Id'), nullable=False)
     OnLoan = Column(ForeignKey('Department.Id'), nullable=False)
 
-    OrderList = relationship("Order", cascade_backrefs=True, backref="SalesRep")
+    OrderList = relationship("Order", cascade_backrefs=False, backref="SalesRep")
     # https://stackoverflow.com/questions/2638217/sqlalchemy-mapping-self-referential-relationship-as-one-to-many-declarative-f
     Manager = relationship('Employee', remote_side='Employee.Id',
                                       backref='Manages')  # parent Company
-    TerritoryList = relationship("EmployeeTerritory", cascade_backrefs=True, backref="Employee")
+    TerritoryList = relationship("EmployeeTerritory", cascade_backrefs=False, backref="Employee")
 
-    EmployeeAuditList = relationship("EmployeeAudit", cascade_backrefs=True, backref="Employee")
+    EmployeeAuditList = relationship("EmployeeAudit", cascade_backrefs=False, backref="Employee")
 
     Works_for_dept = relationship('Department', remote_side='Department.Id',
                                   foreign_keys="Employee.WorksFor",
@@ -178,7 +179,7 @@ class Product(Base):
     Discontinued = Column(Integer, nullable=False)
     UnitsShipped = Column(Integer, nullable=False)
 
-    OrderList = relationship("OrderDetail", cascade_backrefs=True, backref="ProductOrdered")
+    OrderList = relationship("OrderDetail", cascade_backrefs=False, backref="ProductOrdered")
 
 
 
@@ -221,7 +222,7 @@ class Territory(Base):
     TerritoryDescription = Column(String(8000))
     RegionId = Column(Integer, nullable=False)
 
-    EmployeeList = relationship("EmployeeTerritory", cascade_backrefs=True, backref="Territory")
+    EmployeeList = relationship("EmployeeTerritory", cascade_backrefs=False, backref="Territory")
 
 
 class CustomerCustomerDemo(Base):
@@ -283,18 +284,19 @@ class Order(Base):
                                    backref="OrderHeader",
                                    cascade="all, delete",
                                    # passive_deletes=True,  # means database RI will do the deleting (never for SqlLite)
-                                   cascade_backrefs=True)
+                                   cascade_backrefs=False)
 
 #  https://docs.sqlalchemy.org/en/13/orm/mapped_sql_expr.html
 
-
+"""
 Customer.total_ordered_sql = column_property(
-    select([func.sum(Order.AmountTotal)]). \
-    where(Order.CustomerId == Customer.Id))
+    select([sqlalchemy.sql.functions.sum(Order.AmountTotal)]).where(Order.CustomerId == Customer.Id))
+"""
+Customer.total_ordered_sql = column_property(
+    select(sqlalchemy.sql.functions.sum(Order.AmountTotal)).where(Order.CustomerId == Customer.Id))
 
 Employee.order_count_sql = column_property(
-    select([func.count(Order.Id)]). \
-    where(Order.Id == Order.EmployeeId))
+    select(sqlalchemy.sql.functions.count(Order.Id)).where(Order.Id == Order.EmployeeId))
 
 
 class OrderDetail(Base):

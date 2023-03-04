@@ -1,8 +1,7 @@
 from typing import Callable, Sequence
-
+from sqlalchemy import Column
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.orm import session
-
 from logic_bank.rule_bank import rule_bank_withdraw  # reduce circular imports
 import logic_bank.rule_bank.rule_bank_setup as rule_bank_setup
 from logic_bank.rule_type.constraint import Constraint
@@ -84,7 +83,7 @@ class Rule:
     """
 
     @staticmethod
-    def sum(derive: InstrumentedAttribute, as_sum_of: any, where: any = None, child_role_name: str = ""):
+    def sum(derive: Column, as_sum_of: any, where: any = None, child_role_name: str = ""):
         """
         Derive parent column as sum of designated child column, optional where
 
@@ -105,7 +104,7 @@ class Rule:
         return Sum(derive, as_sum_of, where, child_role_name)
 
     @staticmethod
-    def count(derive: InstrumentedAttribute, as_count_of: object, where: any = None, child_role_name: str = ""):
+    def count(derive: Column, as_count_of: object, where: any = None, child_role_name: str = ""):
         """
         Derive parent column as count of designated child rows
 
@@ -117,7 +116,7 @@ class Rule:
 
         Args:
             derive: name of parent <class.attribute> being derived
-            as_sum_of: name of child <class> being counted
+            as_count_of: name of child <class> being counted
             child_role_name: parent's child accessor attribute (required only for disambiguation)
             where: optional where clause, designates which child rows are counted
         """
@@ -187,7 +186,7 @@ class Rule:
         return ParentCheck(validate=validate, error_msg=error_msg, enable=enable)
 
     @staticmethod
-    def formula(derive: InstrumentedAttribute,
+    def formula(derive: Column,
                 as_exp: str = None,  # string (for very short expression)
                 as_expression: Callable = None,
                 calling: Callable = None,
@@ -213,7 +212,7 @@ class Rule:
                        no_prune=no_prune)
 
     @staticmethod
-    def copy(derive: InstrumentedAttribute, from_parent: any):
+    def copy(derive: Column, from_parent: any):
         """
         Copy declares child column copied from parent column
 

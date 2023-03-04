@@ -53,12 +53,16 @@ class Test(unittest.TestCase):
         Test 2 - alter Salary, ensure EmployeeAudit created
         """
 
-        print("\n\nTest 2 - alter Salary, ensure EmployeeAudit created")
+        print("\n\nTest 2 - alter Salary, ensure EmployeeAudit created (from NWRuleExtension.nw_copy_row)")
         test_emp = session.query(models.Employee).filter(models.Employee.Id == 1).one()
         test_emp.Salary = test_emp.Salary * Decimal(1.5)
         session.commit()
 
         print("")
-        test_emp_audit = session.query(models.EmployeeAudit).one()
+        # test_emp_audit = session.query(models.EmployeeAudit).one()
+        query = session.query(models.EmployeeAudit)
+        print(f"  .. test_emp_audit - did query, count = {query.count()}")
+        test_emp_audit = query.one()
+        print(f"  .. test_emp_audit {test_emp_audit.LastName}")
         if test_emp_audit is None:
             self.fail("Failure - audit row not created on Salary change")

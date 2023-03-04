@@ -9,7 +9,7 @@ from logic_bank.exec_trans_logic.listeners import before_flush, before_commit
 from sqlalchemy.orm import session
 import logging
 
-__version__ = "01.08.00"
+__version__ = "01.08.03"
 
 
 def setup(a_session: session):

@@ -1,5 +1,5 @@
 python-dateutil==2.8.1
 six==1.15.0
-SQLAlchemy>=1.4.29
+SQLAlchemy==1.4.29
 # SQLAlchemy-Utils==0.36.8
 LogicBankUtils
