@@ -131,7 +131,8 @@ class Employee(Base):
                                       backref='Manages')  # parent Company
     TerritoryList = relationship("EmployeeTerritory", cascade_backrefs=False, backref="Employee")
 
-    EmployeeAuditList = relationship("EmployeeAudit", cascade_backrefs=False, backref="Employee")
+    # TODO - resolve why cascade as False, revise to current SQLAlchemy standards
+    EmployeeAuditList = relationship("EmployeeAudit", cascade_backrefs=True, backref="Employee")
 
     Works_for_dept = relationship('Department', remote_side='Department.Id',
                                   foreign_keys="Employee.WorksFor",
