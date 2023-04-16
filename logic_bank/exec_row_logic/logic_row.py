@@ -30,6 +30,7 @@ class LogicRow:
     Passed to user logic, mainly to make updates - with logic, for example
 
         row = sqlalchemy read
+
         logic_row.update(row=row, msg="my log message")
 
     Additional instance variables: ins_upd_dlt, nest_level, session, etc.
@@ -52,6 +53,7 @@ class LogicRow:
         self.old_row = old_row
         """ old mapped row """
         self.ins_upd_dlt = ins_upd_dlt
+        """ values are 'ins', 'upd' or 'dlt' """
         self.ins_upd_dlt_initial = ins_upd_dlt  # order inserted, then adjusted
         self.nest_level = nest_level
         self.reason = "?"  # set by insert, update and delete
@@ -261,6 +263,18 @@ class LogicRow:
                     each_copy_rule.execute(logic_row, parent_logic_row)
                 self.log(f'copy_rules for role: {role_name} - {attributes_copied}')
 
+    def is_inserted(self) -> bool:
+        """ return True if self.ins_upd_dlt == "ins" else False """
+        return True if self.ins_upd_dlt == "ins" else False
+
+    def is_updated(self) -> bool:
+        """ return True if self.ins_upd_dlt == "upd" else False """
+        return True if self.ins_upd_dlt == "upd" else False
+
+    def is_deleted(self) -> bool:
+        """ return True if self.ins_upd_dlt == "dlt" else False """
+        return True if self.ins_upd_dlt == "dlt" else False
+    
     def _get_parent_role_def(self, parent_role_name: str):
         """ returns sqlalchemy role_def """
         my_mapper = object_mapper(self.row)

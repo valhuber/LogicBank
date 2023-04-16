@@ -30,6 +30,9 @@ class LogicBank:
         session.commit()  # LogicBank listeners execute rules relevant for submitted changes
 
     .. _Rule Summary:
+   
+   https://apilogicserver.github.io/Docs/Logic/
+   
    https://github.com/valhuber/LogicBank/wiki/Rule-Summary
 
     """
