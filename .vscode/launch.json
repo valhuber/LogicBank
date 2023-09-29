@@ -15,9 +15,66 @@
             "name": "nw_test",
             "type": "python",
             "request": "launch",
+            "program": "${workspaceFolder}/examples/nw/tests/test_add_emp.py",
+            "redirectOutput": true,
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "nw_test add emp",
+            "type": "python",
+            "request": "launch",
             "program": "${workspaceFolder}/examples/nw/tests/nw_test.py",
             "redirectOutput": true,
             "console": "integratedTerminal"
-        }
+        },
+        {
+            "name": "banking",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/examples/banking/tests/test_transfer_funds.py",
+            "redirectOutput": true,
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "copy_children_test",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/examples/copy_children/tests/test_clone_project.py",
+            "redirectOutput": true,
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "custom_exceptions",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/examples/custom_exceptions/tests/test_custom_constraints.py",
+            "redirectOutput": true,
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "payment_allocation",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/examples/payment_allocation/tests/test_payment_allocation.py",
+            "redirectOutput": true,
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "referential_integrity",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/examples/referential_integrity/tests/test_referential_integrity.py",
+            "redirectOutput": true,
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "tutorial - fails sqlalchemy_utils",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/examples/tutorial/tests/test_tutorial.py",
+            "redirectOutput": true,
+            "console": "integratedTerminal"
+        },
+
     ]
 }

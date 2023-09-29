@@ -10,7 +10,7 @@ if  __name__ == '__main__':
     sys.argv = [sys.argv[0]]
     unittest.main(module="examples.nw.tests.test_add_emp")
     exit(0)
-else:
+else:  # failing to find rules
     print("Started from unittest: " + __name__)
     from examples.nw import tests
 

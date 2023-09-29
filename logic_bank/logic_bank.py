@@ -203,6 +203,8 @@ class Rule:
 
         Unlike Copy rules, Parent changes are propagated to child row(s)
 
+        The `calling` function must return a value (else column is nullified)
+
         Args:
             derive: <class.attribute> being derived
             as_exp: string (for very short expressions - price * quantity)

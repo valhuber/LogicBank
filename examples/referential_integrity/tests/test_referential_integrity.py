@@ -6,11 +6,12 @@ import sqlalchemy
 
 from logic_bank_utils import util as logic_bank_utils
 
-from logic_bank.rule_bank import rule_bank_withdraw
-from logic_bank.rule_type.parent_check import ParentCheck
-
 (did_fix_path, sys_env_info) = \
     logic_bank_utils.add_python_path(project_dir="LogicBank", my_file=__file__)
+
+from logic_bank.rule_bank import rule_bank_withdraw  # TODO fails
+from logic_bank.rule_type.parent_check import ParentCheck
+
 print("\n" + did_fix_path + "\n\n" + sys_env_info + "\n\n")
 
 from logic_bank.logic_bank import LogicBank

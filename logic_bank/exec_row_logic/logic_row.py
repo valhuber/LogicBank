@@ -70,6 +70,19 @@ class LogicRow:
         self.session = a_session
         self.some_base = declarative_base()
 
+        
+        self.class_def = type(self.row)
+        self.name = type(self.row).__name__  # class name (not table name)
+        self.table_name = self.class_def.__tablename__
+        self.table_meta = None
+        if self.row is not None:
+            if self.name in row.metadata.tables:  # class Order, table Order
+                self.table_meta = row.metadata.tables[self.name]
+            else: # eg, nw OrderClass has table OrderZ ()
+                # self.table_meta_class = inspect(self.row)
+                self.table_meta = row.metadata.tables[type(self.row).__name__]  # self.table_name]
+                self.log_engine("Using Class Name (not Table Name): " + self.name)
+        '''
         self.name = type(self.row).__name__  # class name (not table name)
         self.table_meta = None
         if self.row is not None:
@@ -78,6 +91,7 @@ class LogicRow:
             else:
                 self.table_meta = inspect(self.row)
                 self.log_engine("Using Class Name (not Table Name): " + self.name)
+        '''
 
     def _get_attr_name(self, mapper, attr)-> str:
         """ polymorphism is for wimps - find the name
@@ -712,8 +726,11 @@ class LogicRow:
                         break
             result_prune = not (is_parent_changed or is_dependent_changed)
         if result_prune:
-            self.log("Prune Formula: " + formula._column +
-                     " [" + str(formula._dependencies) + "]")
+            log_text = "Prune Formula: " + formula._column + " [" + str(formula._dependencies) + "]"
+            if formula._no_prune:  # e.g., no attributes referenced, such as time/date stamp
+                result_prune = False
+                log_text = log_text.replace("Prune", "Pruned Formula retained per no_prune")
+            self.log(log_text)
         return result_prune
 
     def _formula_rules(self):
