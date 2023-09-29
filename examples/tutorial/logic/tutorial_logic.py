@@ -10,7 +10,7 @@ def declare_logic():
     automatically invoked, ordered and optimized
     """
 
-    explore_rules = False   # set True to explore rules
+    explore_rules = True   # set True to explore rules
     if explore_rules:
         Rule.constraint(validate=Customer,
                         error_msg="balance ({row.Balance}) exceeds 2000)",

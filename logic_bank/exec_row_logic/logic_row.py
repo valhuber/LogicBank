@@ -69,29 +69,36 @@ class LogicRow:
         self.rb = rb
         self.session = a_session
         self.some_base = declarative_base()
+        self.name = ""
+        """ class name """
+        self.table_meta = None
+        """ class definition """
+        self.table_name = ""
 
-        
-        self.class_def = type(self.row)
-        self.name = type(self.row).__name__  # class name (not table name)
-        self.table_name = self.class_def.__tablename__
-        self.table_meta = None
-        if self.row is not None:
-            if self.name in row.metadata.tables:  # class Order, table Order
-                self.table_meta = row.metadata.tables[self.name]
-            else: # eg, nw OrderClass has table OrderZ ()
-                # self.table_meta_class = inspect(self.row)
-                self.table_meta = row.metadata.tables[type(self.row).__name__]  # self.table_name]
-                self.log_engine("Using Class Name (not Table Name): " + self.name)
-        '''
-        self.name = type(self.row).__name__  # class name (not table name)
-        self.table_meta = None
-        if self.row is not None:
-            if type(self.row).__name__ in row.metadata.tables:
-                self.table_meta = row.metadata.tables[type(self.row).__name__]
-            else:
-                self.table_meta = inspect(self.row)
-                self.log_engine("Using Class Name (not Table Name): " + self.name)
-        '''
+        new_way = True
+        if new_way:
+            self.class_def = type(self.row)
+            self.name = type(self.row).__name__  # class name (not table name)
+            self.table_meta = None
+            self.table_name = "Empty Row - Unknown table_name"
+            if self.row is not None:
+                self.table_name = self.class_def.__tablename__
+                if self.name in row.metadata.tables:  # class Order, table Order
+                    self.table_meta = row.metadata.tables[self.name]
+                    self.log_engine("Using Class Name: " + self.name)
+                else: # eg, nw OrderClass has table OrderZ ()
+                    self.table_meta = row.metadata.tables[self.table_name]
+                    self.log_engine("Using Table Name (not Class Name): " + self.table_name)
+        else:
+            self.name = type(self.row).__name__  # class name (not table name)
+            self.table_meta = None
+            if self.row is not None:
+                if type(self.row).__name__ in row.metadata.tables:
+                    self.table_meta = row.metadata.tables[type(self.row).__name__]
+                else:
+                    self.table_meta = inspect(self.row)
+                    self.log_engine("Using Class Name (not Table Name): " + self.name)
+
 
     def _get_attr_name(self, mapper, attr)-> str:
         """ polymorphism is for wimps - find the name
