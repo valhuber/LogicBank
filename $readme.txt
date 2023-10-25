@@ -1,6 +1,8 @@
 FIXME design - search for these, which designate request for external review
 TODO major - designates significant unimplemented
 
+pytest is the test framework
+
 Major friction due to Python Path
     Pycharm sets it (thankyou), but cmd-line, vsc (etc) do not
     Run > Configurations, unset Source & Content Roots
