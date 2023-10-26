@@ -101,10 +101,10 @@ class LogicRow:
 
 
     def _get_attr_name(self, mapper, attr)-> str:
+        attr_name = None
         """ polymorphism is for wimps - find the name
             returns None if bad name, or is collection, or is object
         """
-        attr_name = None
         if hasattr(attr, "key"):
             attr_name = attr.key
         elif isinstance(attr, hybrid_property):
@@ -756,7 +756,55 @@ class LogicRow:
         for each_constraint in constraint_rules:
             each_constraint.execute(self)
 
+    def _is_inserted_parent(self, relationship: sqlalchemy.orm.relationships) -> bool:
+        """insert parent if any aggregate on this relationship has insert_parent
+
+        Invoked from _load_parents_on_insert() when parent is missing
+
+        Args:
+            relationship (sqlalchemy.orm.relationships): _description_
+        Returns:
+            True if parent inserted
+        """
+        has_inserted_parent = False
+        aggregate_rules = rule_bank_withdraw.aggregate_rules(child_logic_row=self)
+        for each_parent_role, each_aggr_list in aggregate_rules.items():
+            for each_aggregate in each_aggr_list:
+                if each_aggregate._parent_role_name == relationship.key and each_aggregate.insert_parent:
+                    has_inserted_parent = True   # ok, we create it...
+                    self.log(f'Insert Parent: {each_aggregate._parent_role_name}')
+                    local_remote_pairs = relationship.local_remote_pairs
+                    if len(local_remote_pairs) == 0:
+                        raise Exception("Malformed relationship has no foreign key: " +
+                                        str(relationship))
+                    copy_to_class = relationship.entity.class_
+                    inserted_parent_row = LogicRow(row=copy_to_class(), old_row=copy_to_class(),
+                                            ins_upd_dlt="ins",
+                                            nest_level=self.nest_level + 1,
+                                            a_session=self.session,
+                                            row_sets=self.row_sets)
+                    setattr(self.row, each_aggregate._parent_role_name, inserted_parent_row.row)  # parent setter
+                    # self.link(to_parent=inserted_parent_row.row, is_copy=True)
+                    for each_child_column, each_parent_column  in local_remote_pairs:
+                        val = getattr(self.row, each_child_column.name)
+                        setattr(inserted_parent_row.row, each_parent_column.name, val)
+                        pass
+                    break
+        return has_inserted_parent
+        
+
     def _is_foreign_key_null(self, relationship: sqlalchemy.orm.relationships) -> bool:
+        """
+
+        Args:
+            relationship (sqlalchemy.orm.relationships): _description_
+
+        Raises:
+            Exception: _description_
+
+        Returns:
+            bool: True if any fk attrs are null
+        """
         child_columns = relationship.local_columns
         if len(child_columns) == 0:
             raise Exception("Malformed relationship has no foreign key: " +
@@ -784,12 +832,18 @@ class LogicRow:
         for each_relationship in my_relationships:  # eg, order has parents cust & emp, child orderdetail
             if each_relationship.direction == sqlalchemy.orm.interfaces.MANYTOONE:  # cust, emp
                 parent_role_name = each_relationship.key  # eg, OrderList
-                if self._is_foreign_key_null(each_relationship) is False:
+                if self._is_foreign_key_null(each_relationship):
+                    pass  # 
+                else:
                     # continue - foreign key not null - parent *should* exist
                     self._get_parent_logic_row(parent_role_name)  # sets the accessor
                     does_parent_exist = getattr(self.row, parent_role_name)
                     if does_parent_exist:
-                        pass  # yes, parent exists... it's all fine
+                        pass    # yes, parent exists... it's all fine
+                    else:       # no, maybe we create it...
+                        does_parent_exist = self._is_inserted_parent(each_relationship)
+                    if does_parent_exist:
+                        pass    # exists (possibly created - all is fine)
                     elif ref_integ_enabled:
                         msg = "Missing Parent: " + parent_role_name
                         self.log(msg)
@@ -799,7 +853,7 @@ class LogicRow:
                         raise ConstraintException(msg)
                     else:
                         self.log("Warning: Missing Parent: " + parent_role_name)
-                        pass # if you don't care, I don't care
+                        pass # refinteg *should catch* - if not enabled you must not care
         return self
 
     def _check_parents_on_update(self):
@@ -841,7 +895,7 @@ class LogicRow:
                                     raise ConstraintException(msg)
                                 else:
                                     self.log("Warning: Missing Parent: " + parent_role_name)
-                                    pass # if you don't care, I don't care
+                                    pass # refinteg *should catch* - if not enabled you must not care
         return self
 
     def _is_in_list(self, logic_rows: List) -> bool:

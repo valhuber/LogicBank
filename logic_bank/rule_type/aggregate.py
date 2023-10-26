@@ -12,10 +12,11 @@ from logic_bank.util import ConstraintException
 
 class Aggregate(Derivation):
 
-    def __init__(self, derive: InstrumentedAttribute, where: any, child_role_name: str):
+    def __init__(self, derive: InstrumentedAttribute, where: any, child_role_name: str, insert_parent: bool=False):
         super(Aggregate, self).__init__(derive)
         self._child_role_name = child_role_name
         self._where = where
+        self.insert_parent = insert_parent
         if where is None:
             self._where_cond = lambda row: True
         elif isinstance(where, str):
@@ -160,7 +161,7 @@ class Aggregate(Derivation):
                     parent_adjustor.child_logic_row._get_parent_logic_row(
                         role_name=self._parent_role_name)
                 if parent_adjustor.parent_logic_row.row is None:
-                    msg = "Unable to Adjust Missing Parent: " + self._parent_role_name
+                    msg = "Unable to Adjust Missing Adopting Parent: " + self._parent_role_name
                     raise ConstraintException(msg)
                 curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
                 setattr(parent_adjustor.parent_logic_row.row, self._column, curr_value + delta)

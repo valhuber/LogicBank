@@ -13,7 +13,7 @@ from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 Base = declarative_base()
 metadata = Base.metadata
 
-
+print("hello")
 class Parent(Base):
     """
     https://docs.sqlalchemy.org/en/14/orm/cascades.html
@@ -35,6 +35,8 @@ class Parent(Base):
 
     parent_attr_1 = Column(String(16), primary_key=True)
     parent_attr_2 = Column(String(16), primary_key=True)
+    child_sum = Column(Integer)
+    child_count = Column(Integer)
 
     ChildList = relationship("Child"
                              , backref="Parent"
@@ -52,11 +54,12 @@ class Parent(Base):
 
 
 class Child(Base):
-    __tablename__ = 'Child'
+    __tablename__ = 'ChildTable'
 
     child_key = Column(String(16), primary_key=True)
     parent_1 = Column(String(16))
     parent_2 = Column(String(16))
+    summed = Column(Integer)
     __table_args__ = (ForeignKeyConstraint([parent_1, parent_2],
                                            [Parent.parent_attr_1, Parent.parent_attr_2]),
                       {})

@@ -18,11 +18,11 @@ class Sum(Aggregate):
     Execute adjust_parent
     """
 
-    def __init__(self, derive: InstrumentedAttribute, as_sum_of: any, where: any, child_role_name: str = ""):
+    def __init__(self, derive: InstrumentedAttribute, as_sum_of: any, where: any, child_role_name: str = "", insert_parent: bool=False):
         import sqlalchemy.orm.attributes as attrs
         # from sqlalchemy.orm.attributes import Mapped TODO - see why Pylance complains about rule defs
         # what_is = attrs.Mapped -- this is a super of InstrumentedAttribute, but does not satisfy Pylance
-        super(Sum, self).__init__(derive=derive, where=where, child_role_name=child_role_name)
+        super(Sum, self).__init__(derive=derive, where=where, child_role_name=child_role_name, insert_parent=insert_parent)
         self._as_sum_of = as_sum_of  # could probably super-ize parent accessor
         if isinstance(as_sum_of, str):
             self._child_role_name = self._as_sum_of.split(".")[0]  # child role retrieves children
@@ -43,6 +43,8 @@ class Sum(Aggregate):
         else:
             result = super().__str__() + f'Sum({self._as_sum_of})'
         # result += "  (adjust using parent_role_name: " + self._parent_role_name + ")"
+        if self.insert_parent:
+            result = result[0: len(result)-1] + ", insert_parent)"
         return result
 
     def adjust_parent(self, parent_adjustor: ParentRoleAdjuster, do_not_adjust_list = None):

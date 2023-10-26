@@ -68,6 +68,15 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "insert_parent",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/examples/insert_parent/tests/test_insert_parent.py",
+            "redirectOutput": true,
+            "console": "internalConsole",
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
             "name": "tutorial - fails sqlalchemy_utils",
             "type": "python",
             "request": "launch",

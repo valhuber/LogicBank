@@ -16,8 +16,8 @@ class Count(Aggregate):
     Execute adjust_parent
     """
 
-    def __init__(self, derive: InstrumentedAttribute, as_count_of: object, where: any, child_role_name: str = ""):
-        super(Count, self).__init__(derive=derive, where=where, child_role_name=child_role_name)
+    def __init__(self, derive: InstrumentedAttribute, as_count_of: object, where: any, child_role_name: str = "", insert_parent: bool=False):
+        super(Count, self).__init__(derive=derive, where=where, child_role_name=child_role_name, insert_parent=insert_parent)
 
         if not isinstance(as_count_of, sqlalchemy.orm.DeclarativeMeta):
             raise Exception("rule definition error, not mapped class: " + str(as_count_of))
@@ -38,6 +38,8 @@ class Count(Aggregate):
             result = super().__str__() + f'Count({self._as_count_of} Where {self._where})'
         else:
             result = super().__str__() + f'Count({self._as_count_of})'
+        if self.insert_parent:
+            result = result[0: len(result)-1] + ", insert_parent)"
         return result
 
     def adjust_parent(self, parent_adjustor: ParentRoleAdjuster, do_not_adjust_list = None):

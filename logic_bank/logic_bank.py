@@ -86,7 +86,7 @@ class Rule:
     """
 
     @staticmethod
-    def sum(derive: Column, as_sum_of: any, where: any = None, child_role_name: str = ""):
+    def sum(derive: Column, as_sum_of: any, where: any = None, child_role_name: str = "", insert_parent: bool=False):
         """
         Derive parent column as sum of designated child column, optional where
 
@@ -104,10 +104,10 @@ class Rule:
 
 
         """
-        return Sum(derive, as_sum_of, where, child_role_name)
+        return Sum(derive, as_sum_of, where, child_role_name, insert_parent)
 
     @staticmethod
-    def count(derive: Column, as_count_of: object, where: any = None, child_role_name: str = ""):
+    def count(derive: Column, as_count_of: object, where: any = None, child_role_name: str = "", insert_parent: bool=False):
         """
         Derive parent column as count of designated child rows
 
@@ -123,7 +123,7 @@ class Rule:
             child_role_name: parent's child accessor attribute (required only for disambiguation)
             where: optional where clause, designates which child rows are counted
         """
-        return Count(derive, as_count_of, where, child_role_name)
+        return Count(derive, as_count_of, where, child_role_name, insert_parent)
 
     @staticmethod
     def constraint(validate: object,
