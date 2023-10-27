@@ -9,6 +9,8 @@ from logic_bank.rule_type.abstractrule import AbstractRule
 from logic_bank.rule_type.derivation import Derivation
 from logic_bank.util import ConstraintException
 
+import decimal
+
 
 class Aggregate(Derivation):
 
@@ -155,6 +157,8 @@ class Aggregate(Derivation):
         """
         where = self._where_cond(parent_adjustor.child_logic_row.row)
         delta = get_summed_field()
+        if delta is None:
+            delta = 0
         if where and delta != 0:  # trigger update by setting parent_adjustor.parent_logic_row
             if parent_adjustor.parent_logic_row is None:
                 parent_adjustor.parent_logic_row = \
@@ -164,6 +168,8 @@ class Aggregate(Derivation):
                     msg = "Unable to Adjust Missing Adopting Parent: " + self._parent_role_name
                     raise ConstraintException(msg)
                 curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
+                if curr_value is None:
+                    curr_value = 0
                 setattr(parent_adjustor.parent_logic_row.row, self._column, curr_value + delta)
                 parent_adjustor.append_adjusting_attributes(self._column)
 
