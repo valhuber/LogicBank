@@ -888,7 +888,9 @@ class LogicRow:
                                 self._get_parent_logic_row(parent_role_name)  # sets the accessor
                                 does_parent_exist = getattr(self.row, parent_role_name)
                                 if does_parent_exist is None and ref_integ_rule._enable == True:
-                                    if self._is_inserted_parent(relationship=each_relationship) == False:
+                                    if self._is_inserted_parent(relationship=each_relationship):
+                                        pass  # inserted
+                                    else:
                                         msg = "Missing Parent: " + parent_role_name
                                         self.log(msg)
                                         ll = RuleBank()
