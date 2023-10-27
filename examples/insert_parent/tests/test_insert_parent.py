@@ -94,177 +94,15 @@ test5 = False
 test6 = False
 test7 = False
 test8 = True
+test9 = True
 
 
 """
-    Test 1 - insert child row with invalid key, verify fails
-"""
-if test1:
-    print("\nBegin Test 1 - insert child row with invalid key, verify fails")
-    new_child = models.Child(parent_1="xx", parent_2="yy", child_key="new child")
-
-    session.add(new_child)
-    did_fail_as_expected = False
-    try:
-        session.commit()
-    except ConstraintException as ce:
-        session.rollback()
-        assert ref_integ_rule._enable, "Ref Integ disabled, but raised"
-        did_fail_as_expected = True
-        print("Expected constraint caught: " + str(ce))
-    except:
-        session.rollback()
-        did_fail_as_expected = False
-        e = sys.exc_info()[0]
-        print(e)
-
-    if ref_integ_rule._enable:
-        assert did_fail_as_expected, "Test 1 failed: Ref Integ enabled, invalid FK did not raise ConstraintException"
-
-    print("\n" + prt("Invalid parent failed as expected.  Now trying update..."))
-else:
-    print("\nSKIPPED Test 1 Invalid parent failed as expected.  Now trying update....")
-
-
-"""
-    Test 2 - update child row with invalid key, verify fails
-"""
-if test2:
-    print("\nBegin Test 2 - update child row with invalid key, verify fails")
-    child = session.query(models.Child).filter(models.Child.child_key == "c1.1").one()
-    child.parent_1 = "Make Me Fail"
-    did_fail_as_expected = False
-    try:
-        session.commit()
-    except ConstraintException as ce:
-        session.rollback()
-        assert ref_integ_rule._enable, "Ref Integ disabled, but raised"
-        did_fail_as_expected = True
-        print("Expected constraint caught: " + str(ce))
-    except:
-        session.rollback()
-        did_fail_as_expected = False
-        e = sys.exc_info()[0]
-        print(e)
-
-    if ref_integ_rule._enable:
-        assert did_fail_as_expected, "Test 2 failed: Ref Integ enabled, invalid FK did not raise ConstraintException"
-
-    print("\n" + prt("Invalid parent failed as expected.  Now trying null..."))
-
-
-    print("\nref_integ_tests, update completed\n\n")
-else:
-    print("\nSKIPPED Test 2 - ef_integ_tests, update complete.")
-
-
-"""
-    Test 3 - update child row with null key, verify ok
-"""
-if test3:
-    print("\nBegin Test 3 - update child row with null key, verify ok")
-
-    child = session.query(models.Child).filter(models.Child.child_key == "c1.1").one()
-    child.parent_1 = None
-    session.commit()
-
-    print("\n" + prt("Null parent succeeded as expected."))
-
-    print("\nref_integ_tests, update completed\n\n")
-else:
-    print("\nSKIPPED Test 3 - Null parent succeeded as expected.")
-
-
-"""
-    Test 4 - update child row with new valid parent, verify ok
-"""
-if test4:
-    print("\nBegin Test 4 - update child row with new valid parent, verify ok")
-    child = session.query(models.Child).filter(models.Child.child_key == "c1.1").one()
-    child.parent_1 = "p2_1"
-    child.parent_2 = "p2_2"
-
-    child.parent_1 = "p1_1"
-    child.parent_2 = "p1_2"
-
-    session.commit()
-
-    print("\n" + prt("Null parent succeeded as expected."))
-
-    print("\nref_integ_tests, update completed\n\n")
-else:
-    print("\nSKIPPED Test 4 - update child row with new valid parent, verify ok")
-
-
-"""
-    Test 5 - update parent pk, verify cascade update
-"""
-if test5:
-    print("\nBegin Test 5 - update parent pk, verify cascade update")
-    parent = session.query(models.Parent).filter(models.Parent.parent_attr_1 == "p1_1",
-                                                 models.Parent.parent_attr_2 == "p1_2").one()
-    parent.parent_attr_1 = "new"
-    parent.parent_attr_2 = "parent"
-    session.commit()  # hmm.. even with cascade all, children orphaned (!!)
-    print(str(parent))
-
-    child = session.query(models.Child).filter(models.Child.child_key == "c1.1").one()
-
-    assert child.parent_1 == "new", "Cascade Update Failed"  # failing, pending Logic Bank RI support
-
-    print("\n" + prt("parent pk updated... cascade update worked"))
-
-    print("\nref_integ_tests, update completed\n\n")
-else:
-    print("\nSKIPPED Test 5 - update parent pk, verify cascade update")
-
-
-"""
-    Test 6 - delete parent row - cascade delete
-"""
-if test6:
-    print("\nBegin Test 6 - delete parent row - cascade delete")
-    parent = session.query(models.Parent).filter(models.Parent.parent_attr_1 == "p2_1",
-                                                 models.Parent.parent_attr_2 == "p2_2").one()
-    session.delete(parent)  # TODO - doc mass deletes don't work (query.delete())
-    session.commit()  # even with cascade all, children orphaned (!!!)
-    print(str(parent))
-
-    children = session.query(models.Child).filter(models.Child.child_key == "c2.2").all()
-
-    assert len(children)== 0, "Cascade Delete Failed"  # failing, pending Logic Bank RI support
-
-    print("\n" + prt("Cascade delete succeeded as expected."))
-
-    print("\nref_integ_tests, update completed\n\n")
-else:
-    print("\nSKIPPED Test 6 - delete parent row - cascade delete")
-
-"""
-    Test 7 - delete parent row - cascade nullify
-"""
-if test7:
-    print("\nBegin Test 7 - delete parent row - cascade nullify")
-
-    children_orphan = session.query(models.ChildOrphan).filter(models.ChildOrphan.child_key == "c2.2").all()
-
-    assert len(children_orphan) > 0, "Cascade Nullify Failed"  # failing, pending Logic Bank RI support
-
-    print("\n" + prt("Cascade nullify succeeded as expected."))
-
-    print("\nref_integ_tests, update completed\n\n")
-
-    print("\nref_integ_tests, ran to completion\n\n")
-else:
-    print("\nSKIPPED Test 7 - delete parent row - cascade nullify")
-
-
-"""
-    Test 8 - Insert Parent
+    Test 1 - Insert Parent from inserted child
 """
 if test8:
-    print("\nTest 8 - Insert Parent")
-    new_child = models.Child(parent_1="auto_inserted", parent_2="parent", summed = 2, child_key="new parent_ins child")
+    print("\nTest 1 - Insert Parent from inserted child")
+    new_child = models.Child(parent_1="auto_inserted", parent_2="parent", summed = 2, child_key="new insert_parent child")
 
     session.add(new_child)
     did_succeed_as_expected = True
@@ -286,8 +124,32 @@ if test8:
         print("UNEXPECTED constraint caught: " + str(e))
 
 
-    assert did_succeed_as_expected, "Test 8 failed: Insert Parent"
+    assert did_succeed_as_expected, "Test 8 failed: Insert Parent from inserted child"
 
-    print("\n" + prt("Test 8 - Insert Parent -- passes"))
+    print("\n" + prt("Test 1 - Insert Parent from inserted child -- passes"))
 else:
-    print("\nSKIPPED Test 8 insert child for missing parent")
+    print("\nSKIPPED Test 1 insert child for missing parent")
+
+
+"""
+    Test 2 - Insert Parent From Adopted Child
+"""
+if test9:
+    print("\nTest 2 - Insert Parent From Adopted Child")
+    did_succeed_as_expected = True
+    child = session.query(models.Child).filter(models.Child.child_key == "new insert_parent child").one()
+    child.parent_1 = "auto_adopted"
+    child.parent_2 = "parent"
+
+    try:
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        did_succeed_as_expected = False
+        e = sys.exc_info()[0]
+        print("\nUNEXPECTED constraint caught: " + str(e))
+
+    assert did_succeed_as_expected, "Test 2 - Insert Parent From Adopted Child -- FAILS"
+    print("\n" + prt("Test 2 - Insert Parent From Adopted Child -- passes"))
+else:
+    print("\nSKIPPED Test 2 - Insert Parent From Adopted Child")
