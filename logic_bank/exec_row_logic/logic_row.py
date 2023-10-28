@@ -7,6 +7,7 @@ from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import object_mapper, session, relationships, RelationshipProperty
 from sqlalchemy.orm.attributes import InstrumentedAttribute
+from sqlalchemy.sql.functions import Function
 
 import logic_bank
 from logic_bank.rule_bank.rule_bank import RuleBank
@@ -816,6 +817,21 @@ class LogicRow:
                 return True
         return False
 
+    def _eager_defaults(self):
+        mapper = inspect(self.row).mapper
+        defaults : dict = {}
+        for column in mapper.columns:
+            if column.name == 'defaulted_number_child':
+                debug_stop = "convenient break"
+            if column.default is not None:
+                if (default := getattr(column.server_default, "arg")) is not None:
+                    if not callable(default) and not isinstance(default, Function):
+                        attr = mapper.get_property_by_column(column)
+                        defaults[attr.key] = default
+        for attr, value in defaults.items():
+            if getattr(self.row, attr) is None:
+                setattr(self.row, attr, value)
+
     def _load_parents_on_insert(self):
         """ sqlalchemy lazy does not work for inserts... do it here because...
         1. RI would require the sql anyway
@@ -1030,6 +1046,7 @@ class LogicRow:
             self.reason = reason
             self.log("Insert - " + reason)
             self.early_row_event_all_classes("Insert - " + reason)
+            self._eager_defaults()
             self._load_parents_on_insert()
             self._early_row_events()
             self._copy_rules()

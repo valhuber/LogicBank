@@ -61,6 +61,7 @@ class Child(Base):
     parent_1 = Column(String(16))
     parent_2 = Column(String(16))
     summed = Column(Integer)
+    #defaulted_number_child = Column(Integer, server_default="0")
     defaulted_number_child = Column(Integer, server_default="0")
     __table_args__ = (ForeignKeyConstraint([parent_1, parent_2],
                                            [Parent.parent_attr_1, Parent.parent_attr_2]),
