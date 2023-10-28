@@ -818,19 +818,25 @@ class LogicRow:
         return False
 
     def _eager_defaults(self):
+        """called by insert() to set column server defaults for nulls, constants only
+        """
         mapper = inspect(self.row).mapper
         defaults : dict = {}
         for column in mapper.columns:
             if column.name == 'defaulted_number_child':
                 debug_stop = "convenient break"
-            if column.default is not None:
+            if column.server_default is not None:
                 if (default := getattr(column.server_default, "arg")) is not None:
                     if not callable(default) and not isinstance(default, Function):
                         attr = mapper.get_property_by_column(column)
                         defaults[attr.key] = default
+        defaults_applied = ""
         for attr, value in defaults.items():
             if getattr(self.row, attr) is None:
                 setattr(self.row, attr, value)
+                defaults_applied += "attr "
+        self.log(f'server_defaults: {defaults_applied}')
+        return
 
     def _load_parents_on_insert(self):
         """ sqlalchemy lazy does not work for inserts... do it here because...
