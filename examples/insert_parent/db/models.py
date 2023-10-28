@@ -35,9 +35,13 @@ class Parent(Base):
 
     parent_attr_1 = Column(String(16), primary_key=True)
     parent_attr_2 = Column(String(16), primary_key=True)
-    child_sum = Column(Integer)
-    child_count = Column(Integer)
-    defaulted_number = Column(Integer, server_default="0")
+    child_sum = Column(Integer, server_default="0")
+    child_count = Column(Integer, server_default="0")
+    defaulted_number = Column(Integer, server_default="1")
+    defaulted_date = Column(DateTime, server_default="datetime.now(timezone.utc)")
+    defaulted_decimal = Column(DECIMAL(7,2), server_default='1.50')
+    defaulted_float = Column(Float, server_default="1.333")
+    defaulted_boolean = Column(Boolean, server_default="False")
 
     ChildList = relationship("Child"
                              , backref="Parent"

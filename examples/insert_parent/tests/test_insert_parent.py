@@ -123,9 +123,18 @@ if test8:
         e = sys.exc_info()[0]
         print("UNEXPECTED constraint caught: " + str(e))
 
-
     assert did_succeed_as_expected, "Test 8 failed: Insert Parent from inserted child"
 
+    new_parent_check = session.query(models.Parent).filter(models.Parent.parent_attr_1 == "auto_inserted" and \
+                                                          models.Parent.parent_attr_2 == "parent").one()
+    assert new_parent_check.child_sum == 2, "Unexpected child_sum"
+    assert new_parent_check.child_count == 1, "Unexpected child_count"
+    assert new_parent_check.defaulted_number== 1, "Unexpected defaulted_number"
+    assert new_parent_check.defaulted_decimal == Decimal(1.50), "Unexpected defaulted_decimal"
+    assert new_parent_check.defaulted_float == float(1.333), "Unexpected defaulted_float"
+    # assert new_parent_check.defaulted_boolean == False, "Unexpected defaulted_boolean"
+
+    
     print("\n" + prt("Test 1 - Insert Parent from inserted child -- passes"))
 else:
     print("\nSKIPPED Test 1 insert child for missing parent")
@@ -149,7 +158,24 @@ if test9:
         e = sys.exc_info()[0]
         print("\nUNEXPECTED constraint caught: " + str(e))
 
+    new_parent_check = session.query(models.Parent).filter(models.Parent.parent_attr_1 == "auto_inserted" and \
+                                                          models.Parent.parent_attr_2 == "parent").one()
+    assert new_parent_check.child_sum == 0, "Unexpected child_sum"
+    assert new_parent_check.child_count == 0, "Unexpected child_count"
+    assert new_parent_check.defaulted_number== 1, "Unexpected defaulted_number"
+    assert new_parent_check.defaulted_decimal == Decimal(1.50), "Unexpected defaulted_decimal"
+    assert new_parent_check.defaulted_float == float(1.333), "Unexpected defaulted_float"
+
+    adopted_parent_check = session.query(models.Parent).filter(models.Parent.parent_attr_1 == "auto_adopted" and \
+                                                          models.Parent.parent_attr_2 == "parent").one()
+    assert adopted_parent_check.child_sum == 2, "Unexpected child_sum"
+    assert adopted_parent_check.child_count == 1, "Unexpected child_count"
+    assert adopted_parent_check.defaulted_number== 1, "Unexpected defaulted_number"
+    assert adopted_parent_check.defaulted_decimal == Decimal(1.50), "Unexpected defaulted_decimal"
+    assert adopted_parent_check.defaulted_float == float(1.333), "Unexpected defaulted_float"
+
     assert did_succeed_as_expected, "Test 2 - Insert Parent From Adopted Child -- FAILS"
+
     print("\n" + prt("Test 2 - Insert Parent From Adopted Child -- passes"))
 else:
     print("\nSKIPPED Test 2 - Insert Parent From Adopted Child")

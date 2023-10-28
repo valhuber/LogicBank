@@ -9,6 +9,10 @@ from sqlalchemy.orm import object_mapper, session, relationships, RelationshipPr
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.sql.functions import Function
 
+from datetime import datetime, timezone
+from decimal import Decimal
+
+
 import logic_bank
 from logic_bank.rule_bank.rule_bank import RuleBank
 from sqlalchemy.ext.declarative import declarative_base
@@ -552,7 +556,7 @@ class LogicRow:
                                                ins_upd_dlt="*", nest_level=0,
                                                a_session=self.session,
                                                row_sets=None)
-                new_copy_to_row = each_from_logic_row(row=copy_to_class(), old_row=copy_to_class(),
+                new_copy_to_row = LogicRow(row=copy_to_class(), old_row=copy_to_class(),
                                            ins_upd_dlt="ins",
                                            nest_level=self.nest_level + 1,
                                            a_session=self.session,
@@ -824,13 +828,35 @@ class LogicRow:
         """
         mapper = inspect(self.row).mapper
         defaults : dict = {}
-        for column in mapper.columns:
-            if column.name == 'defaulted_number_child':
+        for each_column in mapper.columns:
+            if each_column.name == 'milestone_count':
                 debug_stop = "convenient break"
-            if column.server_default is not None:
-                if (default := getattr(column.server_default, "arg")) is not None:
+            if each_column.server_default is not None:
+                if (default_str := getattr(each_column.server_default, "arg")) is not None:
+                    default = default_str  # but, need to convert for type...
                     if not callable(default) and not isinstance(default, Function):
-                        attr = mapper.get_property_by_column(column)
+                        attr = mapper.get_property_by_column(each_column)
+                        do_defaults = True  # for debug
+                        if do_defaults:
+                            if isinstance(each_column.type, sqlalchemy.sql.sqltypes.Integer):
+                                default = int(default_str)
+                            elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.String):
+                                default = default_str  # it's not quoted
+                            elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Float):
+                                default = float(default_str)
+                            elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.DECIMAL):
+                                default = Decimal(default)
+                            # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Boolean):
+                                # default = bool(default_str)
+                            # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.DateTime):
+                                # default = datetime.now(timezone.utc)
+                            # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Time):
+                                # default = default
+                            # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Binary):
+                            #    default = default
+                            else:
+                                default = None
+                                self.log(f'Warning - default ignored for {self.name}.{each_column.name}: {each_column.type}')
                         defaults[attr.key] = default
         defaults_applied = ""
         for attr, value in defaults.items():

@@ -24,10 +24,10 @@ class Project(Base):
     __tablename__ = 'Project'
 
     name = Column(String(16))
-    notes = Column(String(512))
+    notes = Column(String(512), server_default="not supplied")
     id = Column(Integer, primary_key=True)
     project_id = Column(ForeignKey('Project.id'))
-    milestone_count = Column(Integer)
+    milestone_count = Column(Integer, server_default="0")
     staff_count = Column(Integer)
 
     # see backref on parent: project_ = relationship('Project', remote_side=[id], cascade_backrefs=True, backref='ProjectList')
