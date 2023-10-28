@@ -164,14 +164,14 @@ class Aggregate(Derivation):
                 parent_adjustor.parent_logic_row = \
                     parent_adjustor.child_logic_row._get_parent_logic_row(
                         role_name=self._parent_role_name)
-                if parent_adjustor.parent_logic_row.row is None:
-                    msg = "Unable to Adjust Missing Adopting Parent: " + self._parent_role_name
-                    raise ConstraintException(msg)
-                curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
-                if curr_value is None:
-                    curr_value = 0
-                setattr(parent_adjustor.parent_logic_row.row, self._column, curr_value + delta)
-                parent_adjustor.append_adjusting_attributes(self._column)
+            if parent_adjustor.parent_logic_row.row is None:  # fix reparent count failure
+                msg = "Unable to Adjust Missing Adopting Parent: " + self._parent_role_name
+                raise ConstraintException(msg)
+            curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
+            if curr_value is None:
+                curr_value = 0
+            setattr(parent_adjustor.parent_logic_row.row, self._column, curr_value + delta)
+            parent_adjustor.append_adjusting_attributes(self._column)
 
         where = self._where_cond(parent_adjustor.child_logic_row.old_row)
         delta = get_old_summed_field()

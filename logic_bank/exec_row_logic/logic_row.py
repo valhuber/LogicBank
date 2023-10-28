@@ -831,38 +831,42 @@ class LogicRow:
         for each_column in mapper.columns:
             if each_column.name == 'milestone_count':
                 debug_stop = "convenient break"
-            if each_column.server_default is not None:
-                if (default_str := getattr(each_column.server_default, "arg")) is not None:
-                    default = default_str  # but, need to convert for type...
-                    if not callable(default) and not isinstance(default, Function):
-                        attr = mapper.get_property_by_column(each_column)
-                        do_defaults = True  # for debug
-                        if do_defaults:
-                            if isinstance(each_column.type, sqlalchemy.sql.sqltypes.Integer):
-                                default = int(default_str)
-                            elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.String):
-                                default = default_str  # it's not quoted
-                            elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Float):
-                                default = float(default_str)
-                            elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.DECIMAL):
-                                default = Decimal(default)
-                            # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Boolean):
-                                # default = bool(default_str)
-                            # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.DateTime):
-                                # default = datetime.now(timezone.utc)
-                            # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Time):
-                                # default = default
-                            # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Binary):
-                            #    default = default
-                            else:
-                                default = None
-                                self.log(f'Warning - default ignored for {self.name}.{each_column.name}: {each_column.type}')
-                        defaults[attr.key] = default
+            try:
+                if isinstance(each_column, sqlalchemy.sql.schema.Column) and each_column.server_default is not None:
+                    if (default_str := getattr(each_column.server_default, "arg")) is not None:
+                        default = default_str  # but, need to convert for type...
+                        if not callable(default) and not isinstance(default, Function):
+                            attr = mapper.get_property_by_column(each_column)
+                            do_defaults = True  # for debug
+                            if do_defaults:
+                                if isinstance(each_column.type, sqlalchemy.sql.sqltypes.Integer):
+                                    default = int(default_str)
+                                elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.String):
+                                    default = default_str  # it's not quoted
+                                elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Float):
+                                    default = float(default_str)
+                                elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.DECIMAL):
+                                    default = Decimal(default)
+                                # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Boolean):
+                                    # default = bool(default_str)
+                                # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.DateTime):
+                                    # default = datetime.now(timezone.utc)
+                                # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Time):
+                                    # default = default
+                                # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Binary):
+                                #    default = default
+                                else:
+                                    default = None
+                                    self.log(f'Warning - default ignored for {self.name}.{each_column.name}: {each_column.type}')
+                            defaults[attr.key] = default
+            except:
+                self.log(f'Warning - unexpected exception while defaulting ignored for {self.name}.{each_column.name}: {each_column.type}')
+
         defaults_applied = ""
         for attr, value in defaults.items():
             if getattr(self.row, attr) is None:
                 setattr(self.row, attr, value)
-                defaults_applied += "attr "
+                defaults_applied += f"{attr} "
         if defaults_applied != "":
             self.log(f'server_defaults: {defaults_applied}')
         return
