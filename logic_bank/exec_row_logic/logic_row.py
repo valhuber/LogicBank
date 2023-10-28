@@ -819,6 +819,8 @@ class LogicRow:
 
     def _eager_defaults(self):
         """called by insert() to set column server defaults for nulls, constants only
+
+        thanks to Elmer de Looff: https://variable-scope.com/posts/setting-eager-defaults-for-sqlalchemy-orm-models
         """
         mapper = inspect(self.row).mapper
         defaults : dict = {}
@@ -835,7 +837,8 @@ class LogicRow:
             if getattr(self.row, attr) is None:
                 setattr(self.row, attr, value)
                 defaults_applied += "attr "
-        self.log(f'server_defaults: {defaults_applied}')
+        if defaults_applied != "":
+            self.log(f'server_defaults: {defaults_applied}')
         return
 
     def _load_parents_on_insert(self):
