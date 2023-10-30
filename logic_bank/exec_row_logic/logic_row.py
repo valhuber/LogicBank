@@ -834,6 +834,8 @@ class LogicRow:
             try:
                 if isinstance(each_column, sqlalchemy.sql.schema.Column) and each_column.server_default is not None:
                     if (default_str := getattr(each_column.server_default, "arg")) is not None:
+                        if isinstance(default_str, sqlalchemy.sql.elements.TextClause):
+                            default_str = default_str.text
                         default = default_str  # but, need to convert for type...
                         if not callable(default) and not isinstance(default, Function):
                             attr = mapper.get_property_by_column(each_column)

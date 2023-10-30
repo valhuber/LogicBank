@@ -4,7 +4,7 @@ from logic_bank import logic_bank  # import this first - import ordering
 
 # import sqlalchemy_utils
 from sqlalchemy import Boolean, Column, DECIMAL, DateTime, Float, ForeignKey, Integer, LargeBinary, String, \
-    UniqueConstraint, select, func, ForeignKeyConstraint
+    UniqueConstraint, select, func, ForeignKeyConstraint, text
 from sqlalchemy.orm import relationship, column_property
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.testing import db
@@ -37,9 +37,9 @@ class Parent(Base):
     parent_attr_2 = Column(String(16), primary_key=True)
     child_sum = Column(Integer, server_default="0")
     child_count = Column(Integer, server_default="0")
-    defaulted_number = Column(Integer, server_default="1")
+    defaulted_number = Column(Integer, server_default=text("1"))
     defaulted_date = Column(DateTime, server_default="datetime.now(timezone.utc)")
-    defaulted_decimal = Column(DECIMAL(7,2), server_default='1.50')
+    defaulted_decimal = Column(DECIMAL(7,2), server_default=text('1.50'))
     defaulted_float = Column(Float, server_default="1.333")
     defaulted_boolean = Column(Boolean, server_default="False")
 
