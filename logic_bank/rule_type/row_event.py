@@ -49,3 +49,11 @@ class CommitRowEvent(AbstractRowEvent):
     def __init__(self, on_class: object,
                  calling: Callable = None):
         super(CommitRowEvent, self).__init__(on_class=on_class, calling=calling)
+
+
+class AfterFlushRowEvent(AbstractRowEvent):
+    _function = None
+
+    def __init__(self, on_class: object,
+                 calling: Callable = None):
+        super(AfterFlushRowEvent, self).__init__(on_class=on_class, calling=calling)

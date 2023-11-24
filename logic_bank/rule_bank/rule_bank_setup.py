@@ -5,11 +5,11 @@ from sqlalchemy.engine import Engine
 
 from logic_bank.rule_bank.rule_bank import RuleBank
 from logic_bank.rule_bank import rule_bank_withdraw
-from logic_bank.exec_trans_logic.listeners import before_flush, before_commit
+from logic_bank.exec_trans_logic.listeners import before_flush, before_commit, after_flush
 from sqlalchemy.orm import session
 import logging
 
-__version__ = "01.10.00"
+__version__ = "01.18.00"
 
 
 def setup(a_session: session):
@@ -22,6 +22,7 @@ def setup(a_session: session):
     rules_bank = RuleBank()
     event.listen(a_session, "before_flush", before_flush)
     event.listen(a_session, "before_commit", before_commit)
+    event.listen(a_session, "after_flush", after_flush)
 
     rules_bank.orm_objects = {}
     rules_bank._at = datetime.now()

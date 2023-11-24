@@ -10,7 +10,7 @@ from logic_bank.rule_type.count import Count
 from logic_bank.rule_type.formula import Formula
 from logic_bank.rule_type.parent_cascade import ParentCascade, ParentCascadeAction
 from logic_bank.rule_type.parent_check import ParentCheck
-from logic_bank.rule_type.row_event import EarlyRowEvent, RowEvent, CommitRowEvent
+from logic_bank.rule_type.row_event import EarlyRowEvent, RowEvent, CommitRowEvent, AfterFlushRowEvent
 from logic_bank.rule_type.sum import Sum
 
 
@@ -61,6 +61,8 @@ class LogicBank:
                 logic_row.log(exception_message)
                 raise MyConstraintException(exception_message)
 
+        activate is automatic for API Logic Server applications.
+
         Arguments:
             session: SQLAlchemy session
             activator: user function that declares rules (e.g., Rule.sum...)
@@ -91,10 +93,12 @@ class Rule:
         Derive parent column as sum of designated child column, optional where
 
         Example
-          Rule.sum(derive=models.Customer.Balance, as_sum_of=models.Order.AmountTotal,
-                   where=Lambda row: row.ShippedDate is None)
+            Rule.sum(derive=models.Customer.Balance, as_sum_of=models.Order.AmountTotal,
+                where=lambda row: row.ShippedDate is None)
 
         Optimized to eliminate / minimize SQLs: Pruning, Adjustment Logic
+
+        Automated dependency management: fires iff changes to pk, summed field, where
 
         Args:
             derive: name of parent <class.attribute> being derived
@@ -146,7 +150,7 @@ class Rule:
             except ConstraintException as ce:
                 print("Constraint raised: " + str(ce))
 
-        @see https://github.com/valhuber/LogicBank/wiki/Custom-Constraint-Handling
+        @see https://apilogicserver.github.io/Docs/Logic-Type-Constraint/
 
         Args:
             validate: name of mapped <class>
@@ -281,8 +285,7 @@ class Rule:
     @staticmethod
     def commit_row_event(on_class: object, calling: Callable = None):
         """
-        Row Events are Python functions called during logic
-            *after* all row' formulas/constraints
+        Commit Row Events are Python functions *after* all row logic formulas/constraints
 
         Example
             Rule.commit_row_event(on_class=Order, calling=congratulate_sales_rep)
@@ -296,6 +299,29 @@ class Rule:
             calling: function, passed row, old_row, logic_row
         """
         return CommitRowEvent(on_class, calling)  # --> load_logic
+
+    @staticmethod
+    def after_flush_row_event(on_class: object, calling: Callable = None):
+        """
+        After Flush Row Events are Python functions *after* all row logic formulas/constraints,
+        and after rows are flushed to disk.
+
+        Unlike commit row events, such rows will reflect DBMS-generated AutoNum values.
+
+        Updates during after_flush are undefined; use Commit Events if updates are required.
+
+        Example
+            Rule.after_flush_row_event(on_class=models.Order, calling=send_order_to_shipping)
+
+        1 call per row, per transaction
+
+        Example use: send mail/message including AutoNum values
+
+        Args:
+            on_class: <class> for event
+            calling: function, passed row, old_row, logic_row
+        """
+        return AfterFlushRowEvent(on_class, calling)  # --> load_logic
 
     '''
     disabled, per ORM support (retained in case of misunderstandings)

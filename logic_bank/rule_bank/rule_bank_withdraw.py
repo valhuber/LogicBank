@@ -105,7 +105,10 @@ def rules_of_class(logic_row: LogicRow, a_rule_class: (Formula, Constraint, Earl
     rules_list = []
     role_rules_list = {}  # dict of RoleRules
     if logic_row.name in rule_bank.orm_objects:
-        for each_rule in rule_bank.orm_objects[logic_row.name].rules:
+        rules_for_this_class = rule_bank.orm_objects[logic_row.name].rules
+        if logic_row.name.startswith("TRANFERFUND"):
+            debug = 'good breakpoint'
+        for each_rule in rules_for_this_class:
             if isinstance(each_rule, a_rule_class):
                 rules_list.append(each_rule)
     return rules_list

@@ -22,7 +22,7 @@ class RowSets():
 
     def __init__(self):
         self.processed_logic_rows = {}  # type: Dict[base, 'LogicRow']
-        self.processed_rows = set()
+        self.processed_rows = set()     # type: Dict[base, 'LogicRow']
         self.submitted_row = set()
         self.rules_fired = set()
         self.client_inserts = set()
@@ -70,6 +70,6 @@ class RowSets():
                 logic_bank.logic_logger.info(f'  {each_rule.table}\t\t##')
             logic_bank.logic_logger.info(f'    {rule_num}. {str(each_rule)}\t\t##')
             rule_num += 1
-        logic_bank.logic_logger.info(f'\n')
+        # logic_bank.logic_logger.info(f'\nEnd Rules Fired')
 
 

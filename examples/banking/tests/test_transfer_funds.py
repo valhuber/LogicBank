@@ -74,67 +74,76 @@ LogicBank.activate(session=session, activator=activate_basic_rules)
 pre_cust = session.query(models.CUSTOMER).filter(models.CUSTOMER.CustNum == 1).one()
 session.expunge(pre_cust)
 
+do_deposit = True
+do_transfer = True
+do_overdraft = True
+
 """
     ********* Customer Account Deposit Checking Setup - Deposit $100 to CHECKINGTRANS *********
 """
-
 trans_date = datetime(2020, 10, 1)
-deposit = models.CHECKINGTRANS(TransId=1, CustNum=1, AcctNum=1,
-                               DepositAmt=100, WithdrawlAmt=0, TransDate=trans_date)
-print("\n\nCustomer Account Deposit Checking Setup - Deposit $100 to CHECKINGTRANS ")
-session.add(deposit)
-session.commit()
+if do_deposit:
+    deposit = models.CHECKINGTRANS(TransId=1, CustNum=1, AcctNum=1,
+                                DepositAmt=100, WithdrawlAmt=0, TransDate=trans_date)
+    print("\n\nCustomer Account Deposit Checking Setup - Deposit $100 to CHECKINGTRANS ")
+    session.add(deposit)
+    session.commit()
 
-print("")
-verify_cust = session.query(models.CUSTOMER).filter(models.CUSTOMER.CustNum == 1).one()
-logic_row = LogicRow(row=verify_cust, old_row=pre_cust, ins_upd_dlt="*", nest_level=0, a_session=session, row_sets=None)
-if verify_cust.TotalBalance == 100.0:
-    logic_row.log("Customer Account Deposit Checking Setup OK - balance is 100")
-    assert True
+    print("")
+    verify_cust = session.query(models.CUSTOMER).filter(models.CUSTOMER.CustNum == 1).one()
+    logic_row = LogicRow(row=verify_cust, old_row=pre_cust, ins_upd_dlt="*", nest_level=0, a_session=session, row_sets=None)
+    if verify_cust.TotalBalance == 100.0:
+        logic_row.log("Customer Account Deposit Checking Setup OK - balance is 100")
+        assert True
+    else:
+        logic_row.log("Customer Account Deposit Checking Setup OK fails - balance not 100")
+        assert False
+    session.expunge(verify_cust)
 else:
-    logic_row.log("Customer Account Deposit Checking Setup OK fails - balance not 100")
-    assert False
-session.expunge(verify_cust)
+    print('\n\nDeposit Skipped')
 
 """
     ********* Transfer 10 from checking to savings (main test) *********
 """
-transfer = models.TRANSFERFUND(TransId=2, FromCustNum=1, FromAcct=1, ToCustNum=1, ToAcct=1, TransferAmt=10, TransDate=trans_date)
-print("\n\nTransfer 10 from checking to savings (main test) ")
-session.add(transfer)
-session.commit()
+if do_transfer:
+    transfer = models.TRANSFERFUND(TransId=2, FromCustNum=1, FromAcct=1, ToCustNum=1, ToAcct=1, TransferAmt=10, TransDate=trans_date)
+    print("\n\nTransfer 10 from checking to savings (main test) ")
+    session.add(transfer)
+    session.commit()
 
-print("")
-verify_cust = session.query(models.CUSTOMER).filter(models.CUSTOMER.CustNum == 1).one()
-logic_row = LogicRow(row=verify_cust, old_row=pre_cust, ins_upd_dlt="*", nest_level=0, a_session=session, row_sets=None)
-if verify_cust.TotalBalance == 100.0:
-    logic_row.log("Transfer 10 from checking to savings ok - balance is 100")
-    assert True
+    print("")
+    verify_cust = session.query(models.CUSTOMER).filter(models.CUSTOMER.CustNum == 1).one()
+    logic_row = LogicRow(row=verify_cust, old_row=pre_cust, ins_upd_dlt="*", nest_level=0, a_session=session, row_sets=None)
+    if verify_cust.TotalBalance == 100.0:
+        logic_row.log("Transfer 10 from checking to savings ok - balance is 100")
+        assert True
+    else:
+        logic_row.log("Transfer 10 from checking to savings fails - balance not 100")
+        assert False, "Transfer 10 from checking to savings fails - balance not 100"
+    session.expunge(verify_cust)
 else:
-    logic_row.log("Transfer 10 from checking to savings fails - balance not 100")
-    assert False
-session.expunge(verify_cust)
+    print('\n\nTransfer Skipped')
 
 """
     ********* Overdraft Funds Test *********
 """
+if do_overdraft:
+    print("\n\n********* Overdraft Funds Test ********* Verify constraint makes commit fail")
+    trasfer2 = models.TRANSFERFUND(TransId=3, FromCustNum=1, FromAcct=1, ToCustNum=1, ToAcct=1, TransferAmt=1000, TransDate=trans_date)
+    session.add(trasfer2)
+    did_fail_as_expected = False
+    try:
+        session.commit()
+    except:
+        session.rollback()
+        did_fail_as_expected = True
 
-print("\n\n********* Overdraft Funds Test ********* Verify constraint makes commit fail")
-trasfer2 = models.TRANSFERFUND(TransId=3, FromCustNum=1, FromAcct=1, ToCustNum=1, ToAcct=1, TransferAmt=1000, TransDate=trans_date)
-session.add(trasfer2)
-did_fail_as_expected = False
-try:
-    session.commit()
-except:
-    session.rollback()
-    did_fail_as_expected = True
+    print("")
+    verify_cust = session.query(models.CUSTOMER).filter(models.CUSTOMER.CustNum == 1).one()
+    logic_row = LogicRow(row=verify_cust, old_row=pre_cust, ins_upd_dlt="*", nest_level=0, a_session=session, row_sets=None)
 
-print("")
-verify_cust = session.query(models.CUSTOMER).filter(models.CUSTOMER.CustNum == 1).one()
-logic_row = LogicRow(row=verify_cust, old_row=pre_cust, ins_upd_dlt="*", nest_level=0, a_session=session, row_sets=None)
-
-if not did_fail_as_expected:
-    logic_row.log("ERROR -overdraft checking expected to fail, but succeeded")
-    assert False
-else:
-    logic_row.log("Overdraft Funds Test properly rolled back invalid transfer")
+    if not did_fail_as_expected:
+        logic_row.log("ERROR -overdraft checking expected to fail, but succeeded")
+        assert False, "ERROR -overdraft checking expected to fail, but succeeded"
+    else:
+        logic_row.log("Overdraft Funds Test properly rolled back invalid transfer")

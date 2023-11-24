@@ -36,9 +36,11 @@ def activate_basic_rules():
     Rule.sum(derive=CUSTOMER.CheckingAcctBal, as_sum_of=CHECKING.AvailableBalance)
     Rule.sum(derive=CUSTOMER.SavingsAcctBal, as_sum_of=SAVING.AvailableBalance)
     Rule.formula(derive=CUSTOMER.TotalBalance, as_expression=lambda row: row.CheckingAcctBal + row.SavingsAcctBal)
-    Rule.constraint(validate=CUSTOMER,
-                    as_condition=lambda row: row.CheckingAcctBal >= 0,
-                    error_msg="Your Checking balance of ({row.CheckingAcctBal}) is less than 0)")
+    allow_negative = False
+    if allow_negative is False:
+        Rule.constraint(validate=CUSTOMER,
+                        as_condition=lambda row: row.CheckingAcctBal >= 0,
+                        error_msg="Your Checking balance of ({row.CheckingAcctBal}) is less than 0)")
     Rule.constraint(validate=CUSTOMER,
                     as_condition=lambda row: row.SavingsAcctBal >= 0,
                     error_msg="Your Savings balance of ({row.SavingsAcctBal}) is less than 0)")
@@ -52,4 +54,8 @@ def activate_basic_rules():
     Rule.formula(derive=SAVINGSTRANS.Total, as_expression=lambda row: row.DepositAmt - row.WithdrawlAmt)
 
     Rule.commit_row_event(on_class=TRANSFERFUND, calling=transfer_funds)
+
+    def verify_after_flush(row: TRANSFERFUND, old_row: TRANSFERFUND, logic_row: LogicRow):
+        logic_row.log("after_flush handler")
+    Rule.after_flush_row_event(on_class=TRANSFERFUND, calling=verify_after_flush)
 
