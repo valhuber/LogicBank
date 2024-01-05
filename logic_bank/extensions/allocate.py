@@ -42,12 +42,16 @@ class Allocate(EarlyRowEvent):
         provider = logic_row
         to_recipients = self.recipients(provider)
         for each_recipient in to_recipients:
-            new_allocation = self.creating_allocation()
-            new_allocation_logic_row = LogicRow(row=new_allocation, old_row=new_allocation,
-                                                ins_upd_dlt="ins",
-                                                nest_level=provider.nest_level + 1,
-                                                a_session=provider.session,
-                                                row_sets=provider.row_sets)
+            old_way = False
+            if old_way:
+                new_allocation = self.creating_allocation()
+                new_allocation_logic_row = LogicRow(row=new_allocation, old_row=new_allocation,
+                                                    ins_upd_dlt="ins",
+                                                    nest_level=provider.nest_level + 1,
+                                                    a_session=provider.session,
+                                                    row_sets=provider.row_sets)
+            else:
+                new_allocation_logic_row = logic_row.new_logic_row(self.creating_allocation)
             new_allocation_logic_row.link(to_parent=provider)
             each_recipient_logic_row = LogicRow(row=each_recipient, old_row=each_recipient,
                                                 ins_upd_dlt="*", nest_level=0,

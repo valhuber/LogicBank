@@ -208,6 +208,7 @@ class LogicRow:
                           nest_level=self.nest_level + 1,
                           a_session=self.session,
                           row_sets=self.row_sets)
+        self.session.add(new_row)
         return result
 
     def _make_copy(self, a_row: base) -> base:
