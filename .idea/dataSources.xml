@@ -147,5 +147,11 @@
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/../ApiLogicServer/ApiLogicServer-dev/org_git/ApiLogicServer-src/api_logic_server_cli/database/authentication.sqlite</jdbc-url>
     </data-source>
+    <data-source source="LOCAL" name="nw-fk-getter-collision" uuid="7b42f94a-fc43-46d0-ba43-c3bf3143e40d">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/../ApiLogicServer/ApiLogicServer-dev/org_git/ApiLogicServer-src/tests/test_databases/sqlite-databases/nw-fk-getter-collision.sqlite</jdbc-url>
+    </data-source>
   </component>
 </project>
