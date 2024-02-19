@@ -1,0 +1,102 @@
+/Users/val/dev/LogicBank/venv/bin/python /Users/val/dev/LogicBank/examples/insert_parent/tests/test_insert_parent.py 
+
+NOT Fixing path (default PyCharm, set in VSC Launch Config)
+
+**************** add_python_path BEGIN		calling file: /Users/val/dev/LogicBank/examples/insert_parent/tests/test_insert_parent.py
+
+Run Environment info...
+
+Current Working Directory: /Users/val/dev/LogicBank/examples/referential_integrity/tests
+
+sys.path: (Python imports)
+/Users/val/dev/LogicBank/examples/insert_parent/tests
+/Users/val/dev/LogicBank
+/Applications/PyCharm.app/Contents/plugins/python/helpers/pycharm_display
+/Library/Frameworks/Python.framework/Versions/3.11/lib/python311.zip
+/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11
+/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/lib-dynload
+/Users/val/dev/LogicBank/venv/lib/python3.11/site-packages
+/Applications/PyCharm.app/Contents/plugins/python/helpers/pycharm_matplotlib_backend
+
+From: /Users/val/dev/LogicBank/examples/insert_parent/tests/test_insert_parent.py
+
+Using Python: 3.11.2 (v3.11.2:878ead1ac1, Feb  7 2023, 10:02:41) [Clang 13.0.0 (clang-1300.0.29.30)]
+
+At: 2024-02-18 17:44:26.399708
+
+fix path: NOT Fixing path (default PyCharm, set in VSC Launch Config)
+
+**************** add_python_path END
+
+
+hello
+
+tests/test_insert_parent.py#copy_db_from_gold(): restoring database-gold
+
+
+********************************
+  IMPORTANT - create database.db from database-gold.db in /Users/val/dev/LogicBank/examples/insert_parent/payment_allocation/db/
+            - from -- tests/test_insert_parent.py#copy_db_from_gold(): 
+********************************
+/Users/val/dev/LogicBank/examples/insert_parent/tests/test_insert_parent.py:77: SAWarning: Dialect sqlite+pysqlite does *not* support Decimal objects natively, and SQLAlchemy must convert from floating point - rounding errors and other issues may occur. Please consider storing Decimal numbers as strings or integers on this platform for lossless storage.
+  models.Parent.parent_attr_2 == "p1_2").one()
+
+The following rules have been activated
+ - 2024-02-18 17:44:26,477 - logic_logger - DEBUG
+Rule Bank[0x106c2a610] (loaded 2024-02-18 17:44:26.472836) - 2024-02-18 17:44:26,477 - logic_logger - DEBUG
+Mapped Class[Child] rules: - 2024-02-18 17:44:26,477 - logic_logger - DEBUG
+  ParentCheck: no parent  - 2024-02-18 17:44:26,477 - logic_logger - DEBUG
+Mapped Class[Parent] rules: - 2024-02-18 17:44:26,477 - logic_logger - DEBUG
+  Constraint Function: None  - 2024-02-18 17:44:26,477 - logic_logger - DEBUG
+  Derive Parent.child_sum as Sum(Child.summed Where None, insert_parent) - 2024-02-18 17:44:26,477 - logic_logger - DEBUG
+  Derive Parent.child_count as Count(<class 'examples.insert_parent.db.models.Child'> Where None, insert_parent) - 2024-02-18 17:44:26,477 - logic_logger - DEBUG
+Logic Bank 01.20.01 - 7 rules loaded - 2024-02-18 17:44:26,477 - logic_logger - INFO
+
+Test 1 - Insert Parent from inserted child
+
+Logic Phase:		ROW LOGIC		(session=0x106c29fd0) (sqlalchemy before_flush)			 - 2024-02-18 17:44:26,482 - logic_logger - INFO
+..Child[new insert_parent child] {Insert - client} child_key: new insert_parent child, parent_1: auto_inserted, parent_2: parent, summed: 2, defaulted_number_child: None  row: 0x106c9a150  session: 0x106c29fd0  ins_upd_dlt: ins - 2024-02-18 17:44:26,482 - logic_logger - INFO
+..Child[new insert_parent child] {server_defaults: defaulted_number_child } child_key: new insert_parent child, parent_1: auto_inserted, parent_2: parent, summed: 2, defaulted_number_child: 0  row: 0x106c9a150  session: 0x106c29fd0  ins_upd_dlt: ins - 2024-02-18 17:44:26,482 - logic_logger - INFO
+..Child[new insert_parent child] {Insert Parent: Parent} child_key: new insert_parent child, parent_1: auto_inserted, parent_2: parent, summed: 2, defaulted_number_child: 0  row: 0x106c9a150  session: 0x106c29fd0  ins_upd_dlt: ins - 2024-02-18 17:44:26,483 - logic_logger - INFO
+....Parent[auto_inserted | parent] {Insert - Insert Parent from Child} parent_attr_1:  [None-->] auto_inserted, parent_attr_2:  [None-->] parent, child_sum: None, child_count: None, defaulted_number: None, defaulted_date: None, defaulted_decimal: None, defaulted_float: None, defaulted_boolean: None  row: 0x106caa310  session: 0x106c29fd0  ins_upd_dlt: ins - 2024-02-18 17:44:26,483 - logic_logger - INFO
+....Parent[auto_inserted | parent] {Warning - default ignored for Parent.defaulted_date: DATETIME} parent_attr_1:  [None-->] auto_inserted, parent_attr_2:  [None-->] parent, child_sum: None, child_count: None, defaulted_number: None, defaulted_date: None, defaulted_decimal: None, defaulted_float: None, defaulted_boolean: None  row: 0x106caa310  session: 0x106c29fd0  ins_upd_dlt: ins - 2024-02-18 17:44:26,483 - logic_logger - INFO
+....Parent[auto_inserted | parent] {Warning - default ignored for Parent.defaulted_boolean: BOOLEAN} parent_attr_1:  [None-->] auto_inserted, parent_attr_2:  [None-->] parent, child_sum: None, child_count: None, defaulted_number: None, defaulted_date: None, defaulted_decimal: None, defaulted_float: None, defaulted_boolean: None  row: 0x106caa310  session: 0x106c29fd0  ins_upd_dlt: ins - 2024-02-18 17:44:26,483 - logic_logger - INFO
+....Parent[auto_inserted | parent] {server_defaults: child_sum child_count defaulted_number defaulted_date defaulted_decimal defaulted_float defaulted_boolean } parent_attr_1:  [None-->] auto_inserted, parent_attr_2:  [None-->] parent, child_sum:  [None-->] 0, child_count:  [None-->] 0, defaulted_number:  [None-->] 1, defaulted_date: None, defaulted_decimal:  [None-->] 1.50, defaulted_float:  [None-->] 1.333, defaulted_boolean: None  row: 0x106caa310  session: 0x106c29fd0  ins_upd_dlt: ins - 2024-02-18 17:44:26,483 - logic_logger - INFO
+....Parent[auto_inserted | parent] {Update - Adjusting Parent: child_sum, child_count} parent_attr_1: auto_inserted, parent_attr_2: parent, child_sum:  [0-->] 2, child_count:  [0-->] 1, defaulted_number: 1, defaulted_date: None, defaulted_decimal: 1.50, defaulted_float: 1.333, defaulted_boolean: None  row: 0x106caa310  session: 0x106c29fd0  ins_upd_dlt: upd - 2024-02-18 17:44:26,484 - logic_logger - INFO
+Logic Phase:		COMMIT LOGIC		(session=0x106c29fd0)   										 - 2024-02-18 17:44:26,484 - logic_logger - INFO
+Logic Phase:		AFTER_FLUSH LOGIC	(session=0x106c29fd0)   										 - 2024-02-18 17:44:26,485 - logic_logger - INFO
+
+Rules Fired:		## - 2024-02-18 17:44:26,485 - logic_logger - INFO
+  Parent		## - 2024-02-18 17:44:26,485 - logic_logger - INFO
+    1. Derive Parent.child_count as Count(<class 'examples.insert_parent.db.models.Child'> Where None, insert_parent)		## - 2024-02-18 17:44:26,485 - logic_logger - INFO
+    2. Derive Parent.child_sum as Sum(Child.summed Where None, insert_parent)		## - 2024-02-18 17:44:26,485 - logic_logger - INFO
+
+Logic Phase:		COMPLETE(session=0x106c29fd0))       	 - 2024-02-18 17:44:26,485 - logic_logger - INFO
+
+tests/test_insert_parent.py#<module>(): Test 1 - Insert Parent from inserted child -- passes
+
+Test 2 - Insert Parent From Adopted Child
+Logic Phase:		ROW LOGIC IGNORE RE-RAISE(session=0x106c29fd0) (sqlalchemy before_flush)			 - 2024-02-18 17:44:26,487 - logic_logger - DEBUG
+
+Logic Phase:		ROW LOGIC		(session=0x106c29fd0) (sqlalchemy before_flush)			 - 2024-02-18 17:44:26,487 - logic_logger - INFO
+..Child[new insert_parent child] {Update - client} child_key: new insert_parent child, parent_1:  [auto_inserted-->] auto_adopted, parent_2: parent, summed: 2, defaulted_number_child: 0  row: 0x106c9a150  session: 0x106c29fd0  ins_upd_dlt: upd - 2024-02-18 17:44:26,487 - logic_logger - INFO
+..Child[new insert_parent child] {Insert Parent: Parent} child_key: new insert_parent child, parent_1:  [auto_inserted-->] auto_adopted, parent_2: parent, summed: 2, defaulted_number_child: 0  row: 0x106c9a150  session: 0x106c29fd0  ins_upd_dlt: upd - 2024-02-18 17:44:26,488 - logic_logger - INFO
+....Parent[auto_adopted | parent] {Insert - Insert Parent from Child} parent_attr_1:  [None-->] auto_adopted, parent_attr_2:  [None-->] parent, child_sum: None, child_count: None, defaulted_number: None, defaulted_date: None, defaulted_decimal: None, defaulted_float: None, defaulted_boolean: None  row: 0x106cbfe10  session: 0x106c29fd0  ins_upd_dlt: ins - 2024-02-18 17:44:26,488 - logic_logger - INFO
+....Parent[auto_adopted | parent] {Warning - default ignored for Parent.defaulted_date: DATETIME} parent_attr_1:  [None-->] auto_adopted, parent_attr_2:  [None-->] parent, child_sum: None, child_count: None, defaulted_number: None, defaulted_date: None, defaulted_decimal: None, defaulted_float: None, defaulted_boolean: None  row: 0x106cbfe10  session: 0x106c29fd0  ins_upd_dlt: ins - 2024-02-18 17:44:26,488 - logic_logger - INFO
+....Parent[auto_adopted | parent] {Warning - default ignored for Parent.defaulted_boolean: BOOLEAN} parent_attr_1:  [None-->] auto_adopted, parent_attr_2:  [None-->] parent, child_sum: None, child_count: None, defaulted_number: None, defaulted_date: None, defaulted_decimal: None, defaulted_float: None, defaulted_boolean: None  row: 0x106cbfe10  session: 0x106c29fd0  ins_upd_dlt: ins - 2024-02-18 17:44:26,488 - logic_logger - INFO
+....Parent[auto_adopted | parent] {server_defaults: child_sum child_count defaulted_number defaulted_date defaulted_decimal defaulted_float defaulted_boolean } parent_attr_1:  [None-->] auto_adopted, parent_attr_2:  [None-->] parent, child_sum:  [None-->] 0, child_count:  [None-->] 0, defaulted_number:  [None-->] 1, defaulted_date: None, defaulted_decimal:  [None-->] 1.50, defaulted_float:  [None-->] 1.333, defaulted_boolean: None  row: 0x106cbfe10  session: 0x106c29fd0  ins_upd_dlt: ins - 2024-02-18 17:44:26,488 - logic_logger - INFO
+....Parent[auto_adopted | parent] {Update - Adjusting Parent: child_sum, child_sum, child_count, child_count} parent_attr_1: auto_adopted, parent_attr_2: parent, child_sum:  [0-->] 2, child_count:  [0-->] 1, defaulted_number: 1, defaulted_date: None, defaulted_decimal: 1.50, defaulted_float: 1.333, defaulted_boolean: None  row: 0x106cbfe10  session: 0x106c29fd0  ins_upd_dlt: upd - 2024-02-18 17:44:26,489 - logic_logger - INFO
+....Parent[auto_inserted | parent] {Update - Adjusting Old Parent} parent_attr_1: auto_inserted, parent_attr_2: parent, child_sum:  [2-->] 0, child_count:  [1-->] 0, defaulted_number: 1, defaulted_date: 2024-02-19 01:44:26, defaulted_decimal: 1.50, defaulted_float: 1.333, defaulted_boolean: False  row: 0x106caa310  session: 0x106c29fd0  ins_upd_dlt: upd - 2024-02-18 17:44:26,489 - logic_logger - INFO
+Logic Phase:		COMMIT LOGIC		(session=0x106c29fd0)   										 - 2024-02-18 17:44:26,489 - logic_logger - INFO
+Logic Phase:		AFTER_FLUSH LOGIC	(session=0x106c29fd0)   										 - 2024-02-18 17:44:26,491 - logic_logger - INFO
+
+Rules Fired:		## - 2024-02-18 17:44:26,491 - logic_logger - INFO
+  Parent		## - 2024-02-18 17:44:26,491 - logic_logger - INFO
+    1. Derive Parent.child_count as Count(<class 'examples.insert_parent.db.models.Child'> Where None, insert_parent)		## - 2024-02-18 17:44:26,491 - logic_logger - INFO
+    2. Derive Parent.child_sum as Sum(Child.summed Where None, insert_parent)		## - 2024-02-18 17:44:26,491 - logic_logger - INFO
+
+Logic Phase:		COMPLETE(session=0x106c29fd0))       	 - 2024-02-18 17:44:26,491 - logic_logger - INFO
+
+tests/test_insert_parent.py#<module>(): Test 2 - Insert Parent From Adopted Child -- passes
+
+Process finished with exit code 0

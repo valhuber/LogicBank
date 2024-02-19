@@ -19,6 +19,7 @@ from logic_bank.util import row_prt, prt, ConstraintException
 from logic_bank.exec_row_logic.logic_row import LogicRow
 
 import examples.insert_parent.db.models as models
+import traceback
 
 def copy_db_from_gold():
     """ copy db/database-gold.db over db/database.db"""
@@ -118,10 +119,12 @@ if test8:
             did_fail_as_expected = False
             print("But was expecting 'Missing Parent: Parent'")
     except Exception as e:
+        traceback.print_exception(*sys.exc_info())
         session.rollback()
         did_succeed_as_expected = False
-        e = sys.exc_info()[0]
-        print("UNEXPECTED constraint caught: " + str(e))
+        # msg = sys.exc_info()[0]
+        msg = e.args[0]
+        print("\n\nUNEXPECTED constraint caught: " + str(msg))
 
     assert did_succeed_as_expected, "Test 8 failed: Insert Parent from inserted child"
 

@@ -9,9 +9,8 @@ from sqlalchemy.orm import object_mapper, session, relationships, RelationshipPr
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.sql.functions import Function
 
-from datetime import datetime, timezone
+from datetime import datetime, date, timezone
 from decimal import Decimal
-
 
 import logic_bank
 from logic_bank.rule_bank.rule_bank import RuleBank
@@ -91,7 +90,7 @@ class LogicRow:
                 if self.name in row.metadata.tables:  # class Order, table Order
                     self.table_meta = row.metadata.tables[self.name]
                     self.log_engine("Using Class Name: " + self.name)
-                else: # eg, nw OrderClass has table OrderZ ()
+                else:  # eg, nw OrderClass has table OrderZ ()
                     self.table_meta = row.metadata.tables[self.table_name]
                     self.log_engine("Using Table Name (not Class Name): " + self.table_name)
         else:
@@ -104,8 +103,7 @@ class LogicRow:
                     self.table_meta = inspect(self.row)
                     self.log_engine("Using Class Name (not Table Name): " + self.name)
 
-
-    def _get_attr_name(self, mapper, attr)-> str:
+    def _get_attr_name(self, mapper, attr) -> str:
         attr_name = None
         """ polymorphism is for wimps - find the name
             returns None if bad name, or is collection, or is object
@@ -135,7 +133,7 @@ class LogicRow:
         my_meta = self.table_meta
         if not hasattr(my_meta, "primary_key"):
             result += "not available"
-        else:   # my_meta.primary_key.columns.keys()
+        else:  # my_meta.primary_key.columns.keys()
             key_cols = my_meta.primary_key.columns.keys()
             is_first = True
             for each_key_col in key_cols:
@@ -158,7 +156,7 @@ class LogicRow:
             is_hybrid = isinstance(each_attr, hybrid_property)
             each_attr_name = self._get_attr_name(mapper=row_mapper, attr=each_attr)
             if each_attr_name is None:  # parent or child-list
-                pass   # don't print, don't even call (avoid sql)
+                pass  # don't print, don't even call (avoid sql)
             else:
                 if not is_first:
                     result += ", "
@@ -200,7 +198,9 @@ class LogicRow:
         logic_bank.engine_logger.debug(output)
 
     def new_logic_row(self, new_row_class: sqlalchemy.orm.DeclarativeMeta) -> 'LogicRow':
-        """ creates a new row of type new_row_class """
+        """ creates a new row of type new_row_class
+            applies eager default
+        """
         new_row = new_row_class()
         result = LogicRow(row=new_row,
                           old_row=new_row,
@@ -209,6 +209,7 @@ class LogicRow:
                           a_session=self.session,
                           row_sets=self.row_sets)
         self.session.add(new_row)
+        result._eager_defaults()
         return result
 
     def _make_copy(self, a_row: base) -> base:
@@ -301,7 +302,7 @@ class LogicRow:
     def is_deleted(self) -> bool:
         """ return True if self.ins_upd_dlt == "dlt" else False """
         return True if self.ins_upd_dlt == "dlt" else False
-    
+
     def _get_parent_role_def(self, parent_role_name: str):
         """ returns sqlalchemy role_def """
         my_mapper = object_mapper(self.row)
@@ -335,7 +336,8 @@ class LogicRow:
             if each_relationship.direction == sqlalchemy.orm.interfaces.ONETOMANY:  # PA
                 each_parent_role_name = each_relationship.back_populates  # eg, AllocationList
                 child_row_class_name = str(child.__class__.__name__)  # eg, PaymentAllocation
-                child_reln_class_name = str(each_relationship.entity.class_.__name__)  # eg., <class 'models.PaymentAllocation'>
+                child_reln_class_name = str(
+                    each_relationship.entity.class_.__name__)  # eg., <class 'models.PaymentAllocation'>
                 # instance fails - see https://github.com/valhuber/LogicBank/issues/6
                 if child_row_class_name == child_reln_class_name:
                     if parent_role_name is not None:
@@ -346,7 +348,7 @@ class LogicRow:
                     parent_role_name = each_relationship.back_populates
                     parent_reln_to_child_db = each_relationship
         if parent_role_name is None:
-            raise Exception("Missing relationship from Parent Provider: <"  +
+            raise Exception("Missing relationship from Parent Provider: <" +
                             to_parent.name +
                             "> to child Allocation: " + str(type(child)) + " of class: " + child.__class__.__name__)
         setattr(child, parent_role_name, to_parent.row)
@@ -594,11 +596,12 @@ class LogicRow:
             is_hybrid = isinstance(each_attr, hybrid_property)
             each_attr_name = self._get_attr_name(mapper=row_mapper, attr=each_attr)
             if each_attr_name is None:  # parent or child-list
-                raise Exception("Note; set_same_named_attributes -- attr_name is None, should not occur for row_mapper.column_attrs")
+                raise Exception(
+                    "Note; set_same_named_attributes -- attr_name is None, should not occur for row_mapper.column_attrs")
             else:
                 if each_attr_name in self.table_meta.primary_key.columns.keys():
                     debug_skip_primary_key_columns = True
-                elif rule_bank_withdraw.is_attr_derived(class_name= self.row.__tablename__, attr_name=each_attr_name):
+                elif rule_bank_withdraw.is_attr_derived(class_name=self.row.__tablename__, attr_name=each_attr_name):
                     debug_skip_derived_columns = True
                 else:
                     if each_attr_name in from_attrs:
@@ -631,10 +634,10 @@ class LogicRow:
             my_relationships = parent_mapper.relationships
             for each_relationship in my_relationships:  # eg, order has parents cust & emp, child orderdetail
                 if each_relationship.direction == sqlalchemy.orm.interfaces.ONETOMANY:  # cust, emp
-                    reason = "Cascading PK change to: " +\
-                             each_relationship.backref + "->" +\
+                    reason = "Cascading PK change to: " + \
+                             each_relationship.backref + "->" + \
                              each_relationship.key
-                    child_rows = self._get_old_child_rows(relationship = each_relationship)
+                    child_rows = self._get_old_child_rows(relationship=each_relationship)
                     for each_child_row in child_rows:
                         old_child = self._make_copy(each_child_row)
                         each_child_logic_row = LogicRow(row=each_child_row, old_row=old_child, ins_upd_dlt="upd",
@@ -777,7 +780,7 @@ class LogicRow:
         for each_parent_role, each_aggr_list in aggregate_rules.items():
             for each_aggregate in each_aggr_list:
                 if each_aggregate._parent_role_name == relationship.key and each_aggregate.insert_parent:
-                    has_inserted_parent = True   # ok, we create it...
+                    has_inserted_parent = True  # ok, we create it...
                     self.log(f'Insert Parent: {each_aggregate._parent_role_name}')
                     local_remote_pairs = relationship.local_remote_pairs
                     if len(local_remote_pairs) == 0:
@@ -785,20 +788,19 @@ class LogicRow:
                                         str(relationship))
                     copy_to_class = relationship.entity.class_
                     inserted_parent_row = LogicRow(row=copy_to_class(), old_row=copy_to_class(),
-                                            ins_upd_dlt="ins",
-                                            nest_level=self.nest_level + 1,
-                                            a_session=self.session,
-                                            row_sets=self.row_sets)
+                                                   ins_upd_dlt="ins",
+                                                   nest_level=self.nest_level + 1,
+                                                   a_session=self.session,
+                                                   row_sets=self.row_sets)
                     setattr(self.row, each_aggregate._parent_role_name, inserted_parent_row.row)  # parent setter
                     # self.link(to_parent=inserted_parent_row.row, is_copy=True)
-                    for each_child_column, each_parent_column  in local_remote_pairs:
+                    for each_child_column, each_parent_column in local_remote_pairs:
                         val = getattr(self.row, each_child_column.name)
                         setattr(inserted_parent_row.row, each_parent_column.name, val)
                         pass
                     inserted_parent_row.insert(reason=f'Insert Parent from {self.name}')
                     break
         return has_inserted_parent
-        
 
     def _is_foreign_key_null(self, relationship: sqlalchemy.orm.relationships) -> bool:
         """
@@ -828,9 +830,10 @@ class LogicRow:
         thanks to Elmer de Looff: https://variable-scope.com/posts/setting-eager-defaults-for-sqlalchemy-orm-models
         """
         mapper = inspect(self.row).mapper
-        defaults : dict = {}
+        defaults: dict = {}
+        defaults_skipped = ""
         for each_column in mapper.columns:
-            if each_column.name == 'milestone_count':
+            if each_column.name == 'RegistrationDate':
                 debug_stop = "convenient break"
             try:
                 if isinstance(each_column, sqlalchemy.sql.schema.Column) and each_column.server_default is not None:
@@ -838,7 +841,7 @@ class LogicRow:
                         if isinstance(default_str, sqlalchemy.sql.elements.TextClause):
                             default_str = default_str.text
                         default = default_str  # but, need to convert for type...
-                        if not callable(default) and not isinstance(default, Function):
+                        if not callable(default) and not isinstance(default, Function) and default != 'NULL':
                             attr = mapper.get_property_by_column(each_column)
                             do_defaults = True  # for debug
                             if do_defaults:
@@ -851,27 +854,39 @@ class LogicRow:
                                 elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.DECIMAL):
                                     default = Decimal(default)
                                 # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Boolean):
-                                    # default = bool(default_str)
-                                # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.DateTime):
-                                    # default = datetime.now(timezone.utc)
-                                # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Time):
-                                    # default = default
+                                # default = bool(default_str)
+                                elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.DateTime):
+                                    if default == "CURRENT_TIMESTAMP":
+                                        default = date.today()
+                                    else:
+                                        defaults_skipped += f'{each_column.name}[{each_column.type} (unexpected default: {default})] '
+                                        default = None
+                                elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Date):
+                                    if default == "CURRENT_TIMESTAMP":
+                                        default = date.today()
+                                    else:
+                                        defaults_skipped += f'{each_column.name}[{each_column.type} (unexpected default: {default})] '
+                                        default = None
                                 # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Binary):
                                 #    default = default
                                 else:
                                     default = None
-                                    self.log(f'Warning - default ignored for {self.name}.{each_column.name}: {each_column.type}')
+                                    # self.log(f'Warning - default ignored for {self.name}.{each_column.name}: {each_column.type}')
+                                    defaults_skipped += f'{each_column.name}[{each_column.type} (not handled)] '
                             defaults[attr.key] = default
-            except:
-                self.log(f'Warning - unexpected exception while defaulting ignored for {self.name}.{each_column.name}: {each_column.type}')
+            except Exception as ex:
+                defaults_skipped += f'{each_column.name}[{each_column.type}] (ex: {ex}) '
 
         defaults_applied = ""
         for attr, value in defaults.items():
             if getattr(self.row, attr) is None:
                 setattr(self.row, attr, value)
                 defaults_applied += f"{attr} "
-        if defaults_applied != "":
-            self.log(f'server_defaults: {defaults_applied}')
+        if defaults_applied != "" or defaults_skipped != "":
+            default_msg = f'server_defaults: {defaults_applied}'
+            if defaults_skipped != "":
+                default_msg += f"-- skipped: {defaults_skipped}"
+            self.log(f'{default_msg}')
         return
 
     def _load_parents_on_insert(self):
@@ -898,11 +913,11 @@ class LogicRow:
                     self._get_parent_logic_row(parent_role_name)  # sets the accessor
                     does_parent_exist = getattr(self.row, parent_role_name)
                     if does_parent_exist:
-                        pass    # yes, parent exists... it's all fine
-                    else:       # no, maybe we create it...
+                        pass  # yes, parent exists... it's all fine
+                    else:  # no, maybe we create it...
                         does_parent_exist = self._is_inserted_parent(each_relationship)
                     if does_parent_exist:
-                        pass    # exists (possibly created - all is fine)
+                        pass  # exists (possibly created - all is fine)
                     elif ref_integ_enabled:
                         msg = "Missing Parent: " + parent_role_name
                         self.log(msg)
@@ -912,7 +927,7 @@ class LogicRow:
                         raise ConstraintException(msg)
                     else:
                         self.log("Warning: Missing Parent: " + parent_role_name)
-                        pass # refinteg *should catch* - if not enabled you must not care
+                        pass  # refinteg *should catch* - if not enabled you must not care
         return self
 
     def _check_parents_on_update(self):
@@ -957,7 +972,7 @@ class LogicRow:
                                         raise ConstraintException(msg)
                                 else:
                                     self.log("Warning: Missing Parent: " + parent_role_name)
-                                    pass # refinteg *should catch* - if not enabled you must not care
+                                    pass  # refinteg *should catch* - if not enabled you must not care
         return self
 
     def _is_in_list(self, logic_rows: List) -> bool:
@@ -979,7 +994,7 @@ class LogicRow:
                     result = True
         return result
 
-    def _adjust_parent_aggregates(self, do_not_adjust_list = None):
+    def _adjust_parent_aggregates(self, do_not_adjust_list=None):
         """
         Chain to parents - adjust aggregates (sums, counts)
 
@@ -1012,9 +1027,9 @@ class LogicRow:
             LogicRow
 
         """
-        result_logic_row = LogicRow(row = row,
-                                    old_row = self._make_copy(row),
-                                    nest_level=self.nest_level+1,
+        result_logic_row = LogicRow(row=row,
+                                    old_row=self._make_copy(row),
+                                    nest_level=self.nest_level + 1,
                                     a_session=self.session,
                                     row_sets=self.row_sets,
                                     ins_upd_dlt=ins_upd_dlt)
@@ -1101,8 +1116,7 @@ class LogicRow:
         if self.row_sets is not None:  # eg, for debug as in upd_order_shipped test
             self.row_sets.remove_submitted(logic_row=self)
 
-
-    def delete(self, reason: str = None, row: base = None, do_not_adjust_list = None):
+    def delete(self, reason: str = None, row: base = None, do_not_adjust_list=None):
         """
         make deletes - with logic - in events, for example
 
@@ -1208,14 +1222,16 @@ class ParentRoleAdjuster:
                                           self.parent_role_name)
                 debug_info = "target child defer adjustment!"
             else:
-                if do_defer_adjustment:   # just for debug when enable_deferred_adjusts is false
-                    self.child_logic_row.log("Adjustment deferred DISABLED (DEBUG ONLY!!) for parent" + self.parent_role_name)
+                if do_defer_adjustment:  # just for debug when enable_deferred_adjusts is false
+                    self.child_logic_row.log(
+                        "Adjustment deferred DISABLED (DEBUG ONLY!!) for parent" + self.parent_role_name)
                 is_do_not_adjust_deleted_parent = self.parent_logic_row._is_in_list(do_not_adjust_list)
                 if is_do_not_adjust_deleted_parent:
                     self.child_logic_row.log(f'No adjustment on deleted parent: {self.parent_role_name}')
                 else:
                     parent_logic_row.ins_upd_dlt = "upd"
-                    parent_logic_row.update(reason="Adjusting " + self.parent_role_name + ": " + self.adjusting_attributes)
+                    parent_logic_row.update(
+                        reason="Adjusting " + self.parent_role_name + ": " + self.adjusting_attributes)
                     # no after_flush: https://stackoverflow.com/questions/63563680/sqlalchemy-changes-in-before-flush-not-triggering-before-flush
         if self.previous_parent_logic_row is None:
             pass
