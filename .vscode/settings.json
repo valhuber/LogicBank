@@ -7,6 +7,7 @@
         "*test*.py"
     ],
     "python.testing.pytestEnabled": false,
+    "debug.console.wordWrap": false,    
     "python.testing.unittestEnabled": true,
     "python.testing.pytestArgs": [
         "examples"
