@@ -198,7 +198,8 @@ def get_referring_children(parent_logic_row: LogicRow) -> dict:
                             for each_word in rule_words:
                                 if each_word.startswith(search_for_rew_parent):
                                     rule_terms = each_word.split(".")
-                                    # if parent_role_name not in table_rules.referring_children:
-                                    #    table_rules.referring_children[parent_role_name] = ()
-                                    table_rules.referring_children[parent_role_name].append(rule_terms[2])
+                                    if len(rule_terms) == 3:               # eg, row.OrderHeader.ShippedDate
+                                        # if parent_role_name not in table_rules.referring_children:
+                                        #    table_rules.referring_children[parent_role_name] = ()
+                                        table_rules.referring_children[parent_role_name].append(rule_terms[2])
         return table_rules.referring_children
