@@ -847,6 +847,8 @@ class LogicRow:
                             if do_defaults:
                                 if isinstance(each_column.type, sqlalchemy.sql.sqltypes.Integer):
                                     default = int(default_str)
+                                    if isinstance(each_column.type, sqlalchemy.sql.sqltypes.Numeric):
+                                        default = int(default_str)
                                 elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.String):
                                     default = default_str  # it's not quoted
                                 elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Float):
