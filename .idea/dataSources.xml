@@ -97,7 +97,7 @@
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/examples/nw/db/database.db</jdbc-url>
     </data-source>
     <data-source source="LOCAL" name="insert_parent_database-gold" uuid="721716da-2fb5-4529-a6a9-51f99d568b3c">
-      <driver-ref>sqlite.xerial</driver-ref>
+      <driver-ref>6eb49300-663b-4013-a80c-5d8cc6060cc8</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/examples/insert_parent/db/database-gold.db</jdbc-url>
@@ -112,7 +112,7 @@
       </libraries>
     </data-source>
     <data-source source="LOCAL" name="insert_parent_database" uuid="3b16f05e-f192-4a90-8ad9-095927db4fb9">
-      <driver-ref>sqlite.xerial</driver-ref>
+      <driver-ref>6eb49300-663b-4013-a80c-5d8cc6060cc8</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/examples/insert_parent/db/database.db</jdbc-url>
@@ -127,7 +127,7 @@
       </libraries>
     </data-source>
     <data-source source="LOCAL" name="copy_children_gold" uuid="d6da7cc2-a3f9-4c5a-bc7f-ac947a921e54">
-      <driver-ref>sqlite.xerial</driver-ref>
+      <driver-ref>6eb49300-663b-4013-a80c-5d8cc6060cc8</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/examples/copy_children/db/database-gold.db</jdbc-url>
@@ -165,6 +165,20 @@
       <synchronize>true</synchronize>
       <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
       <jdbc-url>jdbc:mysql://localhost:3306</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+    <data-source source="LOCAL" name="courses" uuid="cfbcc172-375a-496f-a776-39114089c28b">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/../ApiLogicServer/ApiLogicServer-dev/org_git/ApiLogicServer-src/tests/test_databases/ai-created/sample_ai_courses/sample_ai_courses.sqlite</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+    <data-source source="LOCAL" name="SQLite - DND" uuid="bd529061-684a-4c96-b99d-c20874118102">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/../ApiLogicServer/ApiLogicServer-dev/build_and_test/ApiLogicServer/dnd/database/db.sqlite</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>

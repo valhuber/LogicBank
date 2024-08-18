@@ -93,6 +93,8 @@ class Rule:
         Derive parent column as sum of designated child column, optional where
 
         Example
+            # derive the customer balance as the sum of the unshipped order amounttotals
+
             Rule.sum(derive=models.Customer.Balance, as_sum_of=models.Order.AmountTotal,
                 where=lambda row: row.ShippedDate is None)
 
@@ -116,7 +118,9 @@ class Rule:
         Derive parent column as count of designated child rows
 
         Example
-          Rule.count(derive=models.Customer.UnPaidOrders, as_count_of=models.Order,
+            # derive the customer UnPaidOrders as the count of the unshipped orders
+
+            Rule.count(derive=models.Customer.UnPaidOrders, as_count_of=models.Order,
                    where=Lambda row: row.ShippedDate is None)
 
         Optimized to eliminate / minimize SQLs: Pruning, Adjustment Logic
@@ -139,7 +143,9 @@ class Rule:
         Constraints declare condition that must be true for all commits
 
         Example
-          Rule.constraint(validate=models.Customer,
+            # ensure the customer balance is less than or equal to the creditlimit
+
+            Rule.constraint(validate=models.Customer,
                           as_condition=lambda row: row.Balance <= row.CreditLimit,
                           error_msg="balance ({row.Balance}) exceeds credit ({row.CreditLimit})")
 
@@ -202,7 +208,8 @@ class Rule:
         Formulas declare column value, based on current and parent rows
 
         Example
-          Rule.formula(derive=models.OrderDetail.Amount,
+            # Items.Amount = Quantity * UnitPrice
+            Rule.formula(derive=models.OrderDetail.Amount,
                        as_expression=lambda row: row.UnitPrice * row.Quantity)
 
         Unlike Copy rules, Parent changes are propagated to child row(s)
@@ -226,7 +233,9 @@ class Rule:
         Copy declares child column copied from parent column
 
         Example
-          Rule.copy(derive=models.OrderDetail.UnitPrice, from_parent=models.Product.UnitPrice)
+            # Store the Items.UnitPrice as a copy from Product.UnitPrice
+
+            Rule.copy(derive=models.OrderDetail.UnitPrice, from_parent=models.Product.UnitPrice)
 
         Unlike formulas references, parent changes are *not* propagated to children
 

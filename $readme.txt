@@ -3,6 +3,11 @@ TODO major - designates significant unimplemented
 
 pytest is the test framework
 
+still on Python 3.11, so build is
+    pip install wheel twine
+    python setup.py sdist bdist_wheel
+    twine upload --repository codeartifact dist/*
+
 Major friction due to Python Path
     Pycharm sets it (thankyou), but cmd-line, vsc (etc) do not
     Run > Configurations, unset Source & Content Roots

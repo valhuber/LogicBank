@@ -9,7 +9,7 @@ from logic_bank.exec_trans_logic.listeners import before_flush, before_commit, a
 from sqlalchemy.orm import session
 import logging
 
-__version__ = "01.20.04"
+__version__ = "01.20.05"  # comments for GenAI in logic_bank/rule_bank/rule_bank.py
 
 
 def setup(a_session: session):
