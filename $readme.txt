@@ -1,7 +1,7 @@
 FIXME design - search for these, which designate request for external review
 TODO major - designates significant unimplemented
 
-pytest is the test framework
+test framework is PyUnit (Unittest) - but the tests are not tests, but ./examples/nw/tests
 
 still on Python 3.11, so build is
     pip install wheel twine
