@@ -53,7 +53,9 @@ class Test(unittest.TestCase):
         """
 
         pre_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
+        pre_product = session.query(models.Product).filter(models.Product.Id == 58).one()
         session.expunge(pre_cust)
+        session.expunge(pre_product)
 
         print("")
         test_order = session.query(models.Order).filter(models.Order.Id == 11011).\
@@ -69,6 +71,7 @@ class Test(unittest.TestCase):
 
         print("")
         post_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
+        post_product = session.query(models.Product).filter(models.Product.Id == 58).one()
         logic_row = LogicRow(row=post_cust, old_row=pre_cust, ins_upd_dlt="*", nest_level=0, a_session=session, row_sets=None)
 
         if abs(post_cust.Balance - pre_cust.Balance) == 960:
@@ -86,5 +89,10 @@ class Test(unittest.TestCase):
             pass
         else:
             self.fail(logic_row.log("Error - UnpaidOrderCount should be 3"))
+
+        if pre_product.UnitsShipped != post_product.UnitsShipped:
+            pass
+        else:
+            self.fail(logic_row.log("Error - Products.UnitsShipped unchanged"))
 
 

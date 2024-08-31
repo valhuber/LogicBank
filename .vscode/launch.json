@@ -6,22 +6,31 @@
     "configurations": [
         {
             "name": "Python: Current File",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal"
         },
         {
-            "name": "nw_test",
-            "type": "python",
+            "name": "nw_test add emp",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/examples/nw/tests/test_add_emp.py",
             "redirectOutput": true,
             "console": "integratedTerminal"
         },
         {
-            "name": "nw_test add emp",
-            "type": "python",
+            "name": "nw_test upd order shipped",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/examples/nw/tests/test_upd_order_shipped.py",
+            "redirectOutput": true,
+            "justMyCode": false,
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "nw_test",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/examples/nw/tests/nw_test.py",
             "redirectOutput": true,
@@ -29,7 +38,7 @@
         },
         {
             "name": "banking",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/examples/banking/tests/test_transfer_funds.py",
             "redirectOutput": true,
@@ -37,7 +46,7 @@
         },
         {
             "name": "copy_children_test",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/examples/copy_children/tests/test_clone_project.py",
             "redirectOutput": true,
@@ -45,7 +54,7 @@
         },
         {
             "name": "custom_exceptions",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/examples/custom_exceptions/tests/test_custom_constraints.py",
             "redirectOutput": true,
@@ -53,7 +62,7 @@
         },
         {
             "name": "payment_allocation",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/examples/payment_allocation/tests/test_payment_allocation.py",
             "redirectOutput": true,
@@ -61,7 +70,7 @@
         },
         {
             "name": "referential_integrity",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/examples/referential_integrity/tests/test_referential_integrity.py",
             "redirectOutput": true,
@@ -69,7 +78,7 @@
         },
         {
             "name": "insert_parent",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/examples/insert_parent/tests/test_insert_parent.py",
             "redirectOutput": true,
@@ -78,7 +87,7 @@
         },
         {
             "name": "tutorial - fails sqlalchemy_utils",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/examples/tutorial/tests/test_tutorial.py",
             "redirectOutput": true,
