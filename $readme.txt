@@ -2,8 +2,10 @@ FIXME design - search for these, which designate request for external review
 TODO major - designates significant unimplemented
 
 test framework is PyUnit (Unittest) - but the tests are not tests, but ./examples/nw/tests
+    tests run in vsc and Pycharm
+    note these are only the nw tests; others run manually
 
-still on Python 3.11, so build is
+still on Python 3.11, so build is (using LogicBank venv - 8/31/2024)
     pip install wheel twine
     python setup.py sdist bdist_wheel
     twine upload --repository codeartifact dist/*
