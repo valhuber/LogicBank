@@ -8,7 +8,8 @@ test framework is PyUnit (Unittest) - but the tests are not tests, but ./example
 still on Python 3.11, so build is (using LogicBank venv - 8/31/2024)
     pip install wheel twine
     python setup.py sdist bdist_wheel
-    twine upload --repository codeartifact dist/*
+    python3 -m twine upload  --skip-existing dist/*
+    NOT: twine upload --repository codeartifact dist/*
 
 Major friction due to Python Path
     Pycharm sets it (thankyou), but cmd-line, vsc (etc) do not

@@ -360,7 +360,7 @@ class LogicRow:
             setattr(self.row, each_fk_attr.name, None)
         return True
 
-    def _get_child_role(self, parent_role_name) -> str:
+    def _get_child_role(self, child_cass_name, parent_role_name) -> str:
         """ given parent_role_name, return child_role_name """
         parent_mapper = object_mapper(self.row)  # , eg, Order cascades ShippedDate => OrderDetailList
         parent_relationships = parent_mapper.relationships
@@ -368,7 +368,7 @@ class LogicRow:
         for each_parent_relationship in parent_relationships:  # eg, order has parents cust & emp, child orderdetail
             if each_parent_relationship.direction == sqlalchemy.orm.interfaces.ONETOMANY:  # cust, emp
                 each_parent_role_name = each_parent_relationship.back_populates  # eg, OrderList
-                if each_parent_role_name == parent_role_name:
+                if each_parent_role_name == parent_role_name and self.name == child_cass_name:
                     child_role_name = each_parent_relationship.key
                     return child_role_name
         raise Exception("unable to find child role corresponding to: " + parent_role_name)
@@ -652,37 +652,54 @@ class LogicRow:
     def _parent_cascade_attribute_changes_to_children(self):
         """
         Child Formulas can reference (my) Parent Attributes, so...
+
         If the *referenced* Parent Attributes are changed, cascade to child
+
         Setting update_msg to denote parent_role
+
         This will cause each child to recompute all formulas referencing that role
-        eg,
-          OrderDetail.ShippedDate = Order.ShippedDate, so....
-          Order cascades changed ShippedDate => OrderDetailList
+
+        eg, cascade from Order:
+        * OrderDetail.ShippedDate = Order.ShippedDate, so....
+        * Order cascades changed Order.ShippedDate => Order.OrderDetailList
+
+        Todo: test cascade to multiple children using same parent role name, in alternating order
         """
-        referring_children = rule_bank_withdraw.get_referring_children(parent_logic_row=self)
-        for each_parent_role_name in referring_children:  # children that reference me
-            parent_attributes = referring_children[each_parent_role_name]
-            do_cascade = False
-            cascading_attribute_name = ""
-            for each_parent_attribute in parent_attributes:
-                value = getattr(self.row, each_parent_attribute)
-                old_value = getattr(self.old_row, each_parent_attribute)
+
+        referring_children_dict = rule_bank_withdraw.get_referring_children(parent_logic_row=self)
+        ''' eg, { 'Order' : [ ( 'OrderDetail', 'OrderDetailList', 'ShippedDate', 'Order' ) ] } '''
+
+        referring_children = referring_children_dict.get(self.name)
+        """  eg, [ ( 'OrderDetail', 'OrderDetailList', 'ShippedDate', 'Order' ) ] """
+
+        if referring_children is None:
+            pass  # not referenced by child formulas, no rules, etc...
+        else:
+            cascade_dict = dict()
+            """ set of (child_role_name, attrname) (eg, OrderDetailList, ShippedDate) that we will cascade to """
+
+            for each_child_class_name, each_child_role_name, each_parent_attribute_name, each_parent_role_name in referring_children:  # children that reference me
+                value = getattr(self.row, each_parent_attribute_name)
+                old_value = getattr(self.old_row, each_parent_attribute_name)
                 if value != old_value:
-                    do_cascade = True
-                    cascading_attribute_name = each_parent_attribute
-                    break
-            if do_cascade:  # eg, Order cascades ShippedDate => OrderDetailList
-                child_role_name = self._get_child_role(each_parent_role_name)
-                reason = "Cascading " + each_parent_role_name + \
-                         "." + cascading_attribute_name + " (,...)"
-                child_rows = getattr(self.row, child_role_name)
+                    # child_role_name = self._get_child_role(each_parent_role_name[0], each_parent_role_name[1])
+                    if each_child_role_name not in cascade_dict:
+                        cascade_dict[each_child_role_name] = (each_child_role_name, each_parent_attribute_name, each_parent_role_name)
+
+            for each_child_role_name, each_parent_attribute_name, each_parent_role_name in cascade_dict.values():
+                reason = "Cascading " + each_parent_role_name + "." + each_parent_attribute_name + " (,...)"
+                """ this is *not* just text!  it drives is_parent_cascading.  LB test: OrderHeader (not Order) """
+                child_rows = getattr(self.row, each_child_role_name)
                 for each_child_row in child_rows:
                     old_child = self._make_copy(each_child_row)
                     each_logic_row = LogicRow(row=each_child_row, old_row=old_child, ins_upd_dlt="upd",
-                                              nest_level=1 + self.nest_level,
-                                              a_session=self.session, row_sets=self.row_sets)
+                                            nest_level=1 + self.nest_level,
+                                            a_session=self.session, row_sets=self.row_sets)
+                    # no need to set attrs - the child will do that
+                    # NB: the reason contains the parent_role_name, used to prevent pruning
                     each_logic_row.update(reason=reason)
-
+        pass
+        
     def _is_parent_cascading(self, parent_role_name: str):
         """ if so (check self.reason), we must not prune referencing formulae """
         result = False

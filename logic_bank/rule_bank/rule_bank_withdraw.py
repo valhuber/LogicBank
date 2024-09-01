@@ -165,22 +165,26 @@ def get_referring_children(parent_logic_row: LogicRow) -> dict:
     """
     return RulesBank[class_name].referring_children (create if None)
     referring_children is <parent_role_name>, parent_attribute_list()
+
+    returns dict{ parent_role_name : [ (child_class, child_role, parent_attr, parent_role) ] }
     """
     rule_bank = RuleBank()
     if parent_logic_row.name not in rule_bank.orm_objects:
        return {}
     else:
         # sigh, best to have built this in rule_bank_setup, but unable to get mapper
-        # FIXME design is this threadsafe?
-        table_rules = rule_bank.orm_objects[parent_logic_row.name]
-        result = table_rules.referring_children
-        table_rules.referring_children = {}
+        # FIXME verify threadsafe
+        parent_rules = rule_bank.orm_objects[parent_logic_row.name]
+        result = parent_rules.referring_children
+        parent_rules.referring_children = {}  # clear...?
         parent_mapper = object_mapper(parent_logic_row.row)
         parent_relationships = parent_mapper.relationships
+        if parent_logic_row.name == "Order":
+            debug = 'good breakpoint'
         for each_parent_relationship in parent_relationships:  # eg, order has parents cust & emp, child orderdetail
             if each_parent_relationship.direction == sqlalchemy.orm.interfaces.ONETOMANY:  # cust, emp
                 parent_role_name = each_parent_relationship.back_populates  # eg, OrderList
-                table_rules.referring_children[parent_role_name] = []
+                parent_rules.referring_children[parent_logic_row.name] = []
                 child_role_name = each_parent_relationship.key
                 child_class_name = get_child_class_name(each_parent_relationship)  # eg, OrderDetail
                 if child_class_name not in rule_bank.orm_objects:
@@ -194,12 +198,15 @@ def get_referring_children(parent_logic_row: LogicRow) -> dict:
                     for each_rule in child_table_rules:
                         if isinstance(each_rule, (Formula, Constraint)):  # eg, OrderDetail.ShippedDate
                             rule_text = each_rule.get_rule_text()  #        eg, row.OrderHeader.ShippedDate
+                            if rule_text == 'row.Order.ShippedDate':
+                                debug = 'good breakpoint'
                             rule_words = rule_text.split()
                             for each_word in rule_words:
                                 if each_word.startswith(search_for_rew_parent):
                                     rule_terms = each_word.split(".")
                                     if len(rule_terms) == 3:               # eg, row.OrderHeader.ShippedDate
-                                        # if parent_role_name not in table_rules.referring_children:
-                                        #    table_rules.referring_children[parent_role_name] = ()
-                                        table_rules.referring_children[parent_role_name].append(rule_terms[2])
-        return table_rules.referring_children
+                                        # if parent_role_name not in parent_rules.referring_children:
+                                        #    parent_rules.referring_children[parent_role_name] = ()
+                                        parent_rules.referring_children[parent_logic_row.name].append(
+                                            (child_class_name, child_role_name, rule_terms[2], parent_role_name))  # eg, OrderDetail, OrderDetailList ShippedDate
+        return parent_rules.referring_children
