@@ -1,3 +1,4 @@
+import inspect
 from typing import Callable
 
 from sqlalchemy.orm import object_mapper, RelationshipProperty
@@ -19,15 +20,33 @@ class Aggregate(Derivation):
         self._child_role_name = child_role_name
         self._where = where
         self.insert_parent = insert_parent
+        self._child_class = "subclass_responsibility"
         if where is None:
             self._where_cond = lambda row: True
         elif isinstance(where, str):
             self._where_cond = lambda row: eval(where)
+            self.parse_dependencies(where)
         elif isinstance(where, Callable):
             self._where_cond = where
+            where_str = self.get_where_text(where)
+            self.parse_dependencies(where_str)
         else:
             raise Exception("'where' must be string, or lambda: " + self.__str__())
         self._parent_role_name = "set in rule_blank_withdraw"
+
+    def get_aggregate_dependencies(self) -> list[str]:
+        """ list with aggregate derivation, where dependencies """
+        referenced_attributes = [self.get_derived_attribute_name() + ": aggregate derivation"]
+        for each_attr in self._dependencies:
+            referenced_attributes.append(f'{self._child_class}.{each_attr}: aggregate where clause')
+        return referenced_attributes
+
+    def get_where_text(self, where_arg) -> str:
+        if isinstance(self._where, str):
+            text = self._where
+        else:
+            text = inspect.getsource(self._where)
+        return text.strip()
 
     def get_parent_role_from_child_role_name(self,
                                              child_logic_row: LogicRow,

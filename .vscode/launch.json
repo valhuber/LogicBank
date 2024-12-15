@@ -63,6 +63,7 @@
         {
             "name": "payment_allocation",
             "type": "debugpy",
+            "justMyCode": false,
             "request": "launch",
             "program": "${workspaceFolder}/examples/payment_allocation/tests/test_payment_allocation.py",
             "redirectOutput": true,

@@ -28,7 +28,9 @@ class Sum(Aggregate):
             self._child_role_name = self._as_sum_of.split(".")[0]  # child role retrieves children
             self._child_summed_field = self._as_sum_of.split(".")[1]
         elif isinstance(as_sum_of, InstrumentedAttribute):
+            class_attr = str(self._as_sum_of).split(".")
             self._child_summed_field = as_sum_of.key
+            self._child_class = class_attr[0]
             child_attrs = as_sum_of.parent.attrs
             self._child_role_name = self.get_child_role_name(child_attrs=child_attrs)
         else:
@@ -46,6 +48,12 @@ class Sum(Aggregate):
         if self.insert_parent:
             result = result[0: len(result)-1] + ", insert_parent)"
         return result
+
+    def get_referenced_attributes(self) -> list[str]:
+        referenced_attributes = self.get_aggregate_dependencies()
+        referenced_attributes.append(self._child_class  + '.' + self._child_summed_field + ": sum derived from")
+        return referenced_attributes
+
 
     def adjust_parent(self, parent_adjustor: ParentRoleAdjuster, do_not_adjust_list = None):
         """

@@ -25,9 +25,10 @@ class TableRules(object):
 
     def __init__(self):
         self.rules = []  # type: List['AbstractRule']
-        self.referring_children = None  # type: Dict[str, List[str]]
+        self.referring_children = None  # type: None | Dict[str, List[str]]
         """ parent_role_name, parent_attribute_names[]
         set in rule_bank_withdraw """
+        self._decl_meta = None
 
 
 class RuleBank(metaclass=Singleton):  # FIXME design review singleton
@@ -47,14 +48,24 @@ class RuleBank(metaclass=Singleton):  # FIXME design review singleton
 
     def __init__(self):
         self._metadata = None
+        self._session = None
         self.constraint_event = None
 
     def deposit_rule(self, a_rule: 'AbstractRule'):
         if a_rule.table not in self.orm_objects:
             self.orm_objects[a_rule.table] = TableRules()
         table_rules = self.orm_objects[a_rule.table]
+        table_rules._decl_meta = a_rule._decl_meta
         table_rules.rules.append(a_rule)
         engine_logger.debug(prt(str(a_rule)))
+
+    def get_all_rules(self):
+        all_rules = []
+        for each_key in self.orm_objects:
+            table_rules = self.orm_objects[each_key]
+            for each_rule in table_rules.rules:
+               all_rules.append(each_rule)
+        return all_rules
 
     def __str__(self):
         result = f"Rule Bank[{str(hex(id(self)))}] (loaded {self._at})"

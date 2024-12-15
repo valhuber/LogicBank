@@ -16,10 +16,11 @@ class Copy(Derivation):
             names = from_parent.split('.')
             self._from_parent_role = names[0]
             self._from_column = names[1]
+            self._parent_class_name = names[2]  # TODO if role?
         elif isinstance(from_parent, InstrumentedAttribute):
             self._from_column = from_parent.key
             table_class = from_parent.class_
-            parent_class_name = self.get_class_name(table_class)
+            self._parent_class_name = self.get_class_name(table_class)  # aka parent_class_name
             pass
             attrs = self._derive.parent.attrs
             found_attr = None
@@ -27,7 +28,7 @@ class Copy(Derivation):
                 if isinstance(each_attr, RelationshipProperty):
                     each_parent_class_nodal_name = each_attr.entity.class_
                     each_parent_class_name = self.get_class_name(each_parent_class_nodal_name)
-                    if each_parent_class_name == parent_class_name:
+                    if each_parent_class_name == self._parent_class_name:
                         if found_attr is not None:
                             raise Exception("TODO / copy - disambiguate relationship")
                         found_attr = each_attr
@@ -41,6 +42,13 @@ class Copy(Derivation):
             pass
         rb = RuleBank()
         rb.deposit_rule(self)
+
+    def get_referenced_attributes(self) -> list[str]:
+        referenced_attributes = []
+        self.get_derived_attribute_name()
+        referenced_attributes.append(f'{self.get_derived_attribute_name()}: parent copy derivation')
+        referenced_attributes.append(f'{self._parent_class_name}.{self._from_column}: parent copy from')
+        return referenced_attributes
 
     def execute(self, child_logic_row: LogicRow, parent_logic_row: LogicRow):
         AbstractRule.execute(self, child_logic_row)

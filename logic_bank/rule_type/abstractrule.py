@@ -6,7 +6,7 @@ from sqlalchemy.orm import object_mapper
 from logic_bank import engine_logger
 # from logic_bank.exec_row_logic.logic_row import LogicRow
 from logic_bank.rule_bank import rule_bank_withdraw
-from sqlalchemy.orm import mapperlib
+# from sqlalchemy.orm import mapperlib
 
 # Circular imports prevent these (geesh ** 2):
 # https://stackoverflow.com/questions/33837918/type-hints-solve-circular-dependency
@@ -27,10 +27,15 @@ class AbstractRule(object):
         class_name = self.get_class_name(decl_meta)
         self.table = class_name
 
-        self._dependencies = ()
+        self._dependencies = []
         """
         list of attributes this rule refers to, including parent.attribute
         """
+
+    def get_referenced_attributes(self) -> list[str]:
+        referenced_attributes = []
+        return referenced_attributes
+
 
     def execute(self, logic_row: object):
         logic_row.row_sets.rules_fired.add(self)
@@ -57,6 +62,8 @@ class AbstractRule(object):
             if each_word.startswith("("):
                 the_word = each_word[1:]
             if the_word.endswith(")"):
+                the_word = each_word[0:len(the_word) - 1]
+            if the_word.endswith(","):
                 the_word = each_word[0:len(the_word) - 1]
             if the_word.startswith("row."):  # allow Cust.CreditLimit?
                 dependencies = the_word.split('.')

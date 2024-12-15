@@ -26,13 +26,13 @@ class Constraint(AbstractRule):
         self._calling = calling
         self.error_attributes = error_attributes
         if calling is None and as_condition is None:
-            msg = "Constraint " + str + " requires calling or as_expression"
+            msg = "Constraint " + str(self) + " requires calling or as_expression"
             ll = RuleBank()
             if ll.constraint_event:
                 ll.constraint_event(message=msg, logic_row=None, constraint=None)
             raise ConstraintException(msg)
         if calling is not None and as_condition is not None:
-            msg = "Constraint " + str + " either calling or as_expression"
+            msg = "Constraint " + str(self) + " either calling or as_expression"
             ll = RuleBank()
             if ll.constraint_event:
                 ll.constraint_event(message=msg, logic_row=None, constraint=None)
@@ -46,6 +46,14 @@ class Constraint(AbstractRule):
 
     def __str__(self):
         return f'Constraint Function: {str(self._function)} '
+
+    def get_referenced_attributes(self) -> list[str]:
+        referenced_attributes = list()
+        rule_text = self.get_rule_text()
+        self.parse_dependencies(rule_text)
+        for each_attribute in self._dependencies:
+            referenced_attributes.append(f'{self.table}.{each_attribute}: constraint')
+        return referenced_attributes
 
     def get_rule_text(self):
         text = self._as_condition

@@ -71,6 +71,14 @@ class Formula(Derivation):
             setattr(logic_row.row, self._column, value)
             logic_row.log(f'Formula {self._column}')
 
+
+    def get_referenced_attributes(self) -> list[str]:
+        referenced_attributes = []
+        self.get_derived_attribute_name()
+        for each_referenced_col_name in self._dependencies:
+            referenced_attributes.append(f'{self.table}.{each_referenced_col_name}: - formula')
+        return referenced_attributes
+
     def get_rule_text(self):
         if self._function is not None:
             text = inspect.getsource(self._function)

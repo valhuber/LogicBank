@@ -22,7 +22,8 @@ class Count(Aggregate):
         if not isinstance(as_count_of, sqlalchemy.orm.DeclarativeMeta):
             raise Exception("rule definition error, not mapped class: " + str(as_count_of))
         self._as_count_of = as_count_of
-        self._as_count_of_class_name = self.get_class_name(as_count_of)
+        self._child_class = self.get_class_name(as_count_of)
+
         local_attrs = as_count_of._sa_class_manager.local_attrs  # FIXME design
         for each_local_attr in local_attrs:
             random_attr = local_attrs[each_local_attr]
@@ -41,6 +42,10 @@ class Count(Aggregate):
         if self.insert_parent:
             result = result[0: len(result)-1] + ", insert_parent)"
         return result
+
+    def get_referenced_attributes(self) -> list[str]:
+        referenced_attributes = self.get_aggregate_dependencies()
+        return referenced_attributes
 
     def adjust_parent(self, parent_adjustor: ParentRoleAdjuster, do_not_adjust_list = None):
         """

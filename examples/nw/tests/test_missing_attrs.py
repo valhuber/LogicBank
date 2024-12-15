@@ -1,3 +1,4 @@
+import os
 import sys, unittest
 import logic_bank_utils.util as logic_bank_utils
 from datetime import datetime
@@ -8,7 +9,8 @@ from datetime import datetime
 if  __name__ == '__main__':
     print("\nStarted from cmd line - launch unittest and exit\n")
     sys.argv = [sys.argv[0]]
-    unittest.main(module="examples.nw.tests.test_add_cust")
+    os.environ['LOAD_BAD_RULES'] = 'True'
+    unittest.main(module="examples.nw.tests.test_missing_attrs")  # logic loaded here
     exit(0)
 else:
     print("Started from unittest: " + __name__)
@@ -27,8 +29,10 @@ else:
 class Test(unittest.TestCase):
 
     def setUp(self):  # banner
+        # set environment variable for deliberate logic loading failures
         self.started_at = str(datetime.now())
         tests.setUp(file=__file__)
+
 
     def tearDown(self):
         tests.tearDown(file=__file__, started_at=self.started_at, engine=engine, session=session)
