@@ -39,7 +39,7 @@ def failsafe(func):
             else:
                 logic_logger.error(f"Rule error in unknown file")
             logic_logger.error(f"LogicBank activate error occurred: {e}" )
-            if os.getenv("LOGICBANK_FAILSAFE"):
+            if os.getenv("LOGICBANK_FAILSAFE") == "true":
                 return None
             raise e
     return wrapper
