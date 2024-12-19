@@ -13,7 +13,7 @@ from logic_bank.rule_type import abstractrule
 from sqlalchemy.orm import session
 import logging
 
-__version__ = "01.20.10"  # add exception for missing attrs
+__version__ = "01.20.11"  # add exception for missing attrs
 
 
 def setup(a_session: session):
