@@ -11,6 +11,7 @@ from logic_bank.rule_bank import rule_bank_withdraw
 from logic_bank.exec_trans_logic.listeners import before_flush, before_commit, after_flush
 from logic_bank.rule_type import abstractrule
 from sqlalchemy.orm import session
+from sqlalchemy.orm import mapper
 import logging
 
 __version__ = "01.20.11"  # add exception for missing attrs
@@ -47,34 +48,49 @@ def find_referenced_attributes(rules_bank: RuleBank) -> list[str]:
     all_rules = rules_bank.get_all_rules()
     for each_rule in all_rules:
         debug_rule = str(each_rule)
-        if 'Constraint' in debug_rule:
-            pass  # good breakpoint
+        if 'parent copy' in debug_rule:
+            good_breakpoint = True
         referenced_attributes = each_rule.get_referenced_attributes()
         all_referenced_attributes.extend( referenced_attributes )
     return all_referenced_attributes
 
 def find_missing_attributes(all_attributes: list[str], rules_bank: RuleBank) -> list[str]:
     missing_attributes = list()
+    mapper_dict : dict[str, mapper] = None  # class_name -> mapper
     for each_attribute in all_attributes:
-        bad_attr = False
+        if 'Employee.order_count: constraint' in each_attribute:
+            good_breakpoint = True
         class_and_attr = each_attribute.split(':')[0]
         if len(class_and_attr.split('.')) > 2:
             pass  # FIXME - parent reference, need to decode the role name --> table name
         class_name = class_and_attr.split('.')[0]
         attr_name = class_and_attr.split('.')[1]
-        if class_name not in rules_bank.orm_objects:
-            bad_attr = True
-        else:
-            table_rules = rules_bank.orm_objects[class_name]
+        if attr_name == 'unit_price':
+            good_breakpoint = True
+        if mapper_dict is None:
+            ''' beware - very subtle case
+                referenced attrs may not have rules, so no entry in rules_bank.orm_objects
+                so, we have a use SQLAlchemy meta... to get the mapper
+                    from first each_attribute
+                    key assumption is 1st each_attribute (rule) will be for a class *with rules*
+            '''
+            mapper_dict = {}
+            table_rules = rules_bank.orm_objects[class_name]  # key assumption, above
             decl_meta = table_rules._decl_meta
-            inspector = inspect(decl_meta)  # type sqlalchemy.orm.mapper.Mapper
-            if hasattr(decl_meta, attr_name):
-                pass
-            else:
-                bad_attr = True
-        if bad_attr:
+            mappers = decl_meta.registry.mappers
+            for each_mapper in mappers:
+                each_class_name = each_mapper.class_.__name__
+                if each_class_name not in mapper_dict:
+                    mapper_dict[each_class_name] = each_mapper
+        if class_name not in mapper_dict:
             missing_attributes.append(each_attribute)
-        pass
+            continue
+        if 'unit_price' in each_attribute:
+            good_breakpoint = True
+        each_mapper = mapper_dict[class_name]
+        if attr_name not in each_mapper.all_orm_descriptors:
+            missing_attributes.append(each_attribute)
+    pass
     return missing_attributes
 
 
