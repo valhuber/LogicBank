@@ -15,6 +15,8 @@ from logic_bank.rule_type.sum import Sum
 import functools
 import logging
 import traceback
+import os
+
 
 logic_logger = logging.getLogger("logic_logger")
 
@@ -22,16 +24,26 @@ logic_logger = logging.getLogger("logic_logger")
 def failsafe(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
+        """
+            Wrapper for LoigcBank Rules
+            - report logicbank activation errors
+            - continue in case $LOGICBANK_FAILSAFE is set
+        """
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            tb = traceback.extract_tb(e.__traceback__)
-            frame = tb[0]
-            logic_logger.error(f"LogicBank activate error occurred: {frame.filename} {frame.lineno}" )
-            for frame in tb: 
-                logic_logger.error(f"File: {frame.filename}, Line: {frame.lineno}, Function: {frame.name}, Code: {frame.line}")
-            logic_logger.exception(e)
-            return None  
+            tb = traceback.extract_stack()
+            for frame in tb:
+                if '/logic/' in frame.filename: # project errors (typically in declare_logic.py)
+                    logic_logger.error(f"Rule error: {frame.filename}, Line: {frame.lineno}")
+                    break
+            else:
+                logic_logger.error(f"Rule error in unknown file")
+            logic_logger.error(f"LogicBank activate error occurred: {e}" )
+            if os.getenv("LOGICBANK_FAILSAFE") == "true":
+                return None
+            raise e
+
     return wrapper
 
 
