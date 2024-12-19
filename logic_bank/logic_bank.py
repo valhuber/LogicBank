@@ -25,12 +25,14 @@ def failsafe(func):
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            tb = traceback.extract_tb(e.__traceback__)
-            frame = tb[0]
-            logic_logger.error(f"LogicBank activate error occurred: {frame.filename} {frame.lineno}" )
-            for frame in tb: 
-                logic_logger.error(f"File: {frame.filename}, Line: {frame.lineno}, Function: {frame.name}, Code: {frame.line}")
-            logic_logger.exception(e)
+            tb = traceback.extract_stack()
+            for frame in tb:
+                if '/logic/' in frame.filename: # project errors (typically in declare_logic.py)
+                    logic_logger.error(f"Rule error: {frame.filename}, Line: {frame.lineno}")
+                    break
+            else:
+                logic_logger.error(f"Rule error in unknown file")
+            logic_logger.error(f"LogicBank activate error occurred: {e}" )
             return None  
     return wrapper
 
