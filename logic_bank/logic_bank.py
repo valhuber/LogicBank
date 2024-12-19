@@ -17,6 +17,7 @@ import logging
 import traceback
 import os
 
+
 logic_logger = logging.getLogger("logic_logger")
 
 
@@ -42,6 +43,7 @@ def failsafe(func):
             if os.getenv("LOGICBANK_FAILSAFE") == "true":
                 return None
             raise e
+
     return wrapper
 
 
