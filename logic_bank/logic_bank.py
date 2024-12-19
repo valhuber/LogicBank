@@ -12,6 +12,27 @@ from logic_bank.rule_type.parent_cascade import ParentCascade, ParentCascadeActi
 from logic_bank.rule_type.parent_check import ParentCheck
 from logic_bank.rule_type.row_event import EarlyRowEvent, RowEvent, CommitRowEvent, AfterFlushRowEvent
 from logic_bank.rule_type.sum import Sum
+import functools
+import logging
+import traceback
+
+logic_logger = logging.getLogger("logic_logger")
+
+
+def failsafe(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            tb = traceback.extract_tb(e.__traceback__)
+            frame = tb[0]
+            logic_logger.error(f"LogicBank activate error occurred: {frame.filename} {frame.lineno}" )
+            for frame in tb: 
+                logic_logger.error(f"File: {frame.filename}, Line: {frame.lineno}, Function: {frame.name}, Code: {frame.line}")
+            logic_logger.exception(e)
+            return None  
+    return wrapper
 
 
 class LogicBank:
@@ -87,6 +108,7 @@ class Rule:
     Use code completion to discover rules and their parameters.
     """
 
+    @failsafe
     @staticmethod
     def sum(derive: Column, as_sum_of: any, where: any = None, child_role_name: str = "", insert_parent: bool=False):
         """
@@ -112,6 +134,7 @@ class Rule:
         """
         return Sum(derive, as_sum_of, where, child_role_name, insert_parent)
 
+    @failsafe
     @staticmethod
     def count(derive: Column, as_count_of: object, where: any = None, child_role_name: str = "", insert_parent: bool=False):
         """
@@ -198,6 +221,7 @@ class Rule:
         """
         return ParentCheck(validate=validate, error_msg=error_msg, enable=enable)
 
+    @failsafe
     @staticmethod
     def formula(derive: Column,
                 as_exp: str = None,  # string (for very short expression)
@@ -227,6 +251,7 @@ class Rule:
                        calling=calling, as_exp=as_exp, as_expression=as_expression,
                        no_prune=no_prune)
 
+    @failsafe
     @staticmethod
     def copy(derive: Column, from_parent: any):
         """
