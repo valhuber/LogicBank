@@ -15,6 +15,7 @@ from logic_bank.rule_type.sum import Sum
 import functools
 import logging
 import traceback
+import os
 
 logic_logger = logging.getLogger("logic_logger")
 
@@ -22,6 +23,11 @@ logic_logger = logging.getLogger("logic_logger")
 def failsafe(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
+        """
+            Wrapper for LoigcBank Rules
+            - report logicbank activation errors
+            - continue in case $LOGICBANK_FAILSAFE is set
+        """
         try:
             return func(*args, **kwargs)
         except Exception as e:
@@ -33,7 +39,9 @@ def failsafe(func):
             else:
                 logic_logger.error(f"Rule error in unknown file")
             logic_logger.error(f"LogicBank activate error occurred: {e}" )
-            return None  
+            if os.getenv("LOGICBANK_FAILSAFE"):
+                return None
+            raise e
     return wrapper
 
 
