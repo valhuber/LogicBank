@@ -844,6 +844,10 @@ class LogicRow:
     def _eager_defaults(self):
         """called by insert() to set column server defaults for nulls, constants only
 
+        TODO - consider defaulting sums and counts to 0.
+        * Failure can make insert Fail (Airplane: row.passenger_count <= row.capacity)
+        * Seems pretty obvious, not sure why this was not done.
+
         thanks to Elmer de Looff: https://variable-scope.com/posts/setting-eager-defaults-for-sqlalchemy-orm-models
         """
         mapper = inspect(self.row).mapper
@@ -1111,11 +1115,11 @@ class LogicRow:
             logic_row.insert(row=row, msg="my log message")
 
         Args:
-            reason: message inserted to to logging
+            reason: message inserted to logging
             row: either a LogicRow, or a SQLAlchemy row
         """
 
-        if row is not None:
+        if row is not None:  # user inserting mapped class, not logic_row... make one.
             user_logic_row = self.user_row_update(row=row, ins_upd_dlt="ins")
             user_logic_row.insert(reason=reason)
         else:
