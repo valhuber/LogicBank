@@ -10,7 +10,8 @@ class Derivation(AbstractRule):
         # names = derive.split('.')
         if not isinstance(derive, InstrumentedAttribute) and \
                 not isinstance(derive.descriptor, hybrid_property):
-            raise Exception("'derive' attribute not a class.attribute: " + str(derive))
+            self._load_error = "'derive' attribute not a class.attribute: " + str(derive)
+            # raise Exception("'derive' attribute not a class.attribute: " + str(derive))
         super(Derivation, self).__init__(derive.class_)
         self._column = derive.key
         self._derive = derive

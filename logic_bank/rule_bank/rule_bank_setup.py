@@ -31,6 +31,7 @@ def setup(a_session: session):
     event.listen(a_session, "after_flush", after_flush)
 
     rules_bank.orm_objects = {}
+    rules_bank.invalid_rules = []
     rules_bank._at = datetime.now()
     return rules_bank
 

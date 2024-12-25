@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import List, TypeVar, Dict
 from logic_bank import engine_logger
+from logic_bank.rule_type.abstractrule import AbstractRule
 from logic_bank.util import prt
 from datetime import datetime
 
@@ -50,8 +51,11 @@ class RuleBank(metaclass=Singleton):  # FIXME design review singleton
         self._metadata = None
         self._session = None
         self.constraint_event = None
+        self.invalid_rules : list[str] = []  # rule-load failures during activation
 
-    def deposit_rule(self, a_rule: 'AbstractRule'):
+    def deposit_rule(self, a_rule: 'AbstractRule', an_error: str):
+        if an_error is not None:
+            self.invalid_rules.append(an_error)
         if a_rule.table not in self.orm_objects:
             self.orm_objects[a_rule.table] = TableRules()
         table_rules = self.orm_objects[a_rule.table]

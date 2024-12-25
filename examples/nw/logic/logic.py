@@ -50,7 +50,7 @@ def declare_logic():
     Rule.constraint(validate=Customer,
                     as_condition=lambda row: row.Balance <= row.CreditLimit,
                     error_msg="balance ({row.Balance}) exceeds credit ({row.CreditLimit})")
-    Rule.sum(derive=Customer.Balance, as_sum_of=Order.AmountTotal,
+    Rule.sum(derive=Customer.BalanceX, as_sum_of=Order.AmountTotal,
              where=lambda row: row.ShippedDate is None)  # *not* a sql select sum...
 #    Rule.sum(derive=Customer.Balance, as_sum_of=OrderDetail.Amount,
 #             where=lambda row: row.ShippedDate is None)  # test bad rule definition

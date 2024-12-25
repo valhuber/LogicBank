@@ -8,7 +8,10 @@
     ],
     "python.testing.pytestEnabled": false,
     "debug.console.wordWrap": false,    
-    "python.testing.unittestEnabled": true,
+    "python.testing.nittestEnabled": true,
+    "editor.fontSize": 13,
+    "terminal.integrated.fontSize": 13,
+    "window.zoomLevel": 1.0,    
     "python.testing.pytestArgs": [
         "examples"
     ]

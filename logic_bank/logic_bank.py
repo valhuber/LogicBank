@@ -106,6 +106,8 @@ class LogicBank:
             rule_bank.constraint_event = constraint_event
         activator()
         rule_bank_setup.compute_formula_execution_order()
+        if len(rule_bank.invalid_rules) > 0:
+            raise Exception
 
 
 class Rule:

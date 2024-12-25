@@ -34,8 +34,8 @@ class Sum(Aggregate):
             child_attrs = as_sum_of.parent.attrs
             self._child_role_name = self.get_child_role_name(child_attrs=child_attrs)
         else:
-            raise Exception("as_sum_of must be either string, or <mapped-class.column>: " +
-                            str(as_sum_of))
+            self._load_error = "'derive' attribute not a class.attribute: " + str(derive)
+            # raise Exception("as_sum_of must be either string, or <mapped-class.column>: " + str(as_sum_of))
         rb = RuleBank()
         rb.deposit_rule(self)
 
