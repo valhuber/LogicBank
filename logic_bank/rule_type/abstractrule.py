@@ -27,6 +27,7 @@ class AbstractRule(object):
         class_name = self.get_class_name(decl_meta)
         self.table = class_name
         self._load_error = None # rule-load failures (detected during activation)
+        """ load error detected during activation (None means ok so far) """
 
         self._dependencies = []
         """

@@ -35,8 +35,8 @@ def declare_logic():
         Rule.constraint(validate=Customer,
                         as_condition=lambda row: row.Balance <= row.CreditLimitBadAttr,
                         error_msg="balance ({row.Balance}) exceeds credit ({row.CreditLimit})")
-        Rule.sum(derive=Customer.CreditLimit, as_sum_of=Order.AmountTotal, where=lambda row: row.WorseAttr is None)
-        Rule.count(derive=Customer.Id, as_count_of=Order, where=lambda row: row.WorstAttr is None)
+        Rule.sum(derive=Customer.CreditLimitYY, as_sum_of=Order.AmountTotal, where=lambda row: row.WorseAttr is None)
+        Rule.count(derive=Customer.IdX, as_count_of=Order, where=lambda row: row.WorstAttr is None)
 
 
     def congratulate_sales_rep(row: Order, old_row: Order, logic_row: LogicRow):

@@ -104,10 +104,13 @@ class LogicBank:
         rule_bank = rule_bank_setup.setup(session)
         if constraint_event is not None:
             rule_bank.constraint_event = constraint_event
-        activator()
+        activator()  # Rule.x ctors no longer raise, but append to rule_bank.invalid_rules
+        # fails to reach here:
+        # users logic has: Rule.sum(derive=Customer.CreditLimitYY
+        # throws excp during call before it ever reaches Sum ctor
         rule_bank_setup.compute_formula_execution_order()
         if len(rule_bank.invalid_rules) > 0:
-            raise Exception
+            raise Exception  # TODO make this proper
 
 
 class Rule:
