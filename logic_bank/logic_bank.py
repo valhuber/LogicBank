@@ -16,7 +16,7 @@ import functools
 import logging
 import traceback
 import os
-
+from .exceptions import LBActivateException
 
 logic_logger = logging.getLogger("logic_logger")
 
@@ -119,10 +119,7 @@ class LogicBank:
             rule_bank.invalid_rules.append(e)
         missing_attributes = rule_bank_setup.compute_formula_execution_order()
         if len(rule_bank.invalid_rules) > 0 or len(missing_attributes) > 0:
-            msg = "Invalid Rules: " + str(rule_bank.invalid_rules)
-            msg += "\nMissing Attributes: " + str(missing_attributes)
-
-            raise ValueError(msg)  # TODO review the error text
+            raise LBActivateException(rule_bank.invalid_rules, missing_attributes)
 
 
 class Rule:
