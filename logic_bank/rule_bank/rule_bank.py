@@ -56,12 +56,15 @@ class RuleBank(metaclass=Singleton):  # FIXME design review singleton
     def deposit_rule(self, a_rule: 'AbstractRule'):
         if a_rule._load_error is not None:
             self.invalid_rules.append(a_rule._load_error)
-        if a_rule.table not in self.orm_objects:
-            self.orm_objects[a_rule.table] = TableRules()
-        table_rules = self.orm_objects[a_rule.table]
-        table_rules._decl_meta = a_rule._decl_meta
-        table_rules.rules.append(a_rule)
-        engine_logger.debug(prt(str(a_rule)))
+        if hasattr(a_rule, "table"):
+            if a_rule.table not in self.orm_objects:
+                self.orm_objects[a_rule.table] = TableRules()
+            table_rules = self.orm_objects[a_rule.table]
+            table_rules._decl_meta = a_rule._decl_meta
+            table_rules.rules.append(a_rule)
+            engine_logger.debug(prt(str(a_rule)))
+        else:
+            pass # engine_logger.debug(prt(f"Invalid rule not loaded: {str(a_rule)}"))
 
     def get_all_rules(self):
         all_rules = []

@@ -20,16 +20,20 @@ class Count(Aggregate):
         super(Count, self).__init__(derive=derive, where=where, child_role_name=child_role_name, insert_parent=insert_parent)
 
         if not isinstance(as_count_of, sqlalchemy.orm.DeclarativeMeta):
-            raise Exception("rule definition error, not mapped class: " + str(as_count_of))
+            self._load_error = "rule definition error, not mapped class: " + str(as_count_of)
+            # raise Exception("rule definition error, not mapped class: " + str(as_count_of))
         self._as_count_of = as_count_of
         self._child_class = self.get_class_name(as_count_of)
 
-        local_attrs = as_count_of._sa_class_manager.local_attrs  # FIXME design
-        for each_local_attr in local_attrs:
-            random_attr = local_attrs[each_local_attr]
-            child_attrs = random_attr.parent.attrs
-            break
-        self._child_role_name = self.get_child_role_name(child_attrs=child_attrs)
+        if self._load_error:
+            pass  # FIXME log
+        else:
+            local_attrs = as_count_of._sa_class_manager.local_attrs  # FIXME design
+            for each_local_attr in local_attrs:
+                random_attr = local_attrs[each_local_attr]
+                child_attrs = random_attr.parent.attrs
+                break
+            self._child_role_name = self.get_child_role_name(child_attrs=child_attrs)
 
         rb = RuleBank()
         rb.deposit_rule(self)

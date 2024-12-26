@@ -73,16 +73,16 @@ class LogicBank:
     @staticmethod
     def activate(session: session, activator: callable, constraint_event: callable = None):
         """
-        Call after opening database to activate logic:
+        Call LogicBank.activate(activator) (this file: logic_bank.py), after opening database to activate logic :
 
-            - register SQLAlchemy listeners
+            - registers SQLAlchemy listeners
 
-            - create RuleBank, load rules - later executed on commit
+            - invokes your activator to load rules to create `RuleBank` (dict of `TableRules`)); later executed on commit
 
-            - raises exception if cycles detected
+            - raises exception if cycles detected, or invalid rules per rule references
 
         Use constraint_event to log / change class of constraints, for example
-
+            '''
             def constraint_handler(message: str, constraint: Constraint, logic_row: LogicRow):
                 error_attrs = ""
                 if constraint:
@@ -93,8 +93,20 @@ class LogicBank:
                                     ", error_attributes: " + error_attrs
                 logic_row.log(exception_message)
                 raise MyConstraintException(exception_message)
+            '''
+        
+        In API Logic Server (highly recommended): setup occurs in api_logic_server_run -> Config/server_setup:
 
-        activate is automatic for API Logic Server applications.
+                - `LogicBank.activate(session=session, activator=declare_logic.declare_logic, constraint_event=constraint_handler)`
+
+                - Rule Execution occurs in exec_row_logic/LogicRow.py on session.commit()
+                    
+                    - exec_trans_logic handles the SQLAlchemy events (after_flush etc)
+
+                    - it calls `exec_row_logic/LogicRow.py#update()` etc for each row,
+                    
+                    which executes the rule_type objects (in TableRules) 
+
 
         Arguments:
             session: SQLAlchemy session
@@ -104,13 +116,16 @@ class LogicBank:
         rule_bank = rule_bank_setup.setup(session)
         if constraint_event is not None:
             rule_bank.constraint_event = constraint_event
-        activator()  # Rule.x ctors no longer raise, but append to rule_bank.invalid_rules
-        # fails to reach here:
-        # users logic has: Rule.sum(derive=Customer.CreditLimitYY
-        # throws excp during call before it ever reaches Sum ctor
-        rule_bank_setup.compute_formula_execution_order()
-        if len(rule_bank.invalid_rules) > 0:
-            raise Exception  # TODO make this proper
+        try:
+            activator()  # in als, called from server_setup - this is logic/declare_logic.py#declare_logic()
+        except Exception as e:
+            rule_bank.invalid_rules.append(e)
+        missing_attributes = rule_bank_setup.compute_formula_execution_order()
+        if len(rule_bank.invalid_rules) > 0 or len(missing_attributes) > 0:
+            msg = "Invalid Rules: " + str(rule_bank.invalid_rules)
+            msg += "\nMissing Attributes: " + str(missing_attributes)
+
+            raise ValueError(msg)  # TODO review the error text
 
 
 class Rule:

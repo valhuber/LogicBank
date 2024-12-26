@@ -22,12 +22,13 @@ class AbstractRule(object):
     def __init__(self, decl_meta: sqlalchemy.orm.DeclarativeMeta):
         #  failed -- mapped_class = get_class_by_table(declarative_base(), a_table_name)  # User class
         if not isinstance(decl_meta, sqlalchemy.orm.DeclarativeMeta):
-            raise Exception("rule definition error, not mapped class: " + str(decl_meta))
-        self._decl_meta = decl_meta
-        class_name = self.get_class_name(decl_meta)
-        self.table = class_name
-        self._load_error = None # rule-load failures (detected during activation)
-        """ load error detected during activation (None means ok so far) """
+            self._load_error = "rule definition error, not mapped class: " + str(decl_meta)
+        else:
+            self._decl_meta = decl_meta
+            class_name = self.get_class_name(decl_meta)
+            self.table = class_name
+            self._load_error = None # rule-load failures (detected during activation)
+            """ load error detected during activation (None means ok so far) """
 
         self._dependencies = []
         """

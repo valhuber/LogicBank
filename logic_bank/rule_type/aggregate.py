@@ -16,7 +16,7 @@ import decimal
 class Aggregate(Derivation):
 
     def __init__(self, derive: InstrumentedAttribute, where: any, child_role_name: str, insert_parent: bool=False):
-        super(Aggregate, self).__init__(derive)
+        super(Aggregate, self).__init__(derive)  # got here for sum, but failed into derivation
         self._child_role_name = child_role_name
         self._where = where
         self.insert_parent = insert_parent

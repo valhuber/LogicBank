@@ -14,7 +14,7 @@ from sqlalchemy.orm import session
 from sqlalchemy.orm import mapper
 import logging
 
-__version__ = "01.20.12"  # missing attrs excp, fail-save rules
+__version__ = "01.20.12"  # missing attrs excp with all excps, fail-save rules
 
 
 def setup(a_session: session):
@@ -135,7 +135,7 @@ def compute_formula_execution_order_for_class(class_name: str):
             raise Exception("Mapped Class[" + class_name + "] blocked by circular dependencies:" + cycles)
 
 
-def compute_formula_execution_order() -> bool:
+def compute_formula_execution_order() -> list[str]:
     """
     Determine formula execution order based on "row.xx" references (dependencies),
     (or raise exception if cycles detected).
@@ -154,7 +154,8 @@ def compute_formula_execution_order() -> bool:
             logic_logger.debug(f'..{each_attribute}')
     missing_attributes = find_missing_attributes(all_attributes=all_referenced_attributes, rules_bank=rules_bank)
     if len(missing_attributes) > 0:
-        raise Exception("Missing attributes:" + str(missing_attributes))
+        # raise Exception("Missing attributes:" + str(missing_attributes))
+        return missing_attributes
 
     rule_count = 0
     logic_logger.debug(f'\nThe following rules have been activated\n')
@@ -164,4 +165,4 @@ def compute_formula_execution_order() -> bool:
         logic_logger.debug(each_rule)
         rule_count += 1
     logic_logger.info(f'Logic Bank {__version__} - {rule_count} rules loaded')
-    return True
+    return []

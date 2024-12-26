@@ -32,11 +32,18 @@ def declare_logic():
     test_bad_rules = os.getenv('LOAD_BAD_RULES')
     if test_bad_rules:
         print('loading bad rules')
-        Rule.constraint(validate=Customer,
-                        as_condition=lambda row: row.Balance <= row.CreditLimitBadAttr,
-                        error_msg="balance ({row.Balance}) exceeds credit ({row.CreditLimit})")
-        Rule.sum(derive=Customer.CreditLimitYY, as_sum_of=Order.AmountTotal, where=lambda row: row.WorseAttr is None)
-        Rule.count(derive=Customer.IdX, as_count_of=Order, where=lambda row: row.WorstAttr is None)
+        if use_strings := True:
+            Rule.constraint(validate='CustomerBadConstraint',
+                            as_condition=lambda row: row.Balance <= row.CreditLimitConstraintBadAttr,
+                            error_msg="balance ({row.Balance}) exceeds credit ({row.CreditLimit})")
+            Rule.sum(derive='Customer.CreditLimitYY', as_sum_of='Order.AmountTotalTT', where=lambda row: row.BalWhereWorseAttr is None)
+            Rule.count(derive='Customer.IdNoCount', as_count_of='OrderNoCount', where=lambda row: row.WorstAttr is None)
+        else:
+            Rule.constraint(validate=CustomerYY,
+                            as_condition=lambda row: row.Balance <= row.CreditLimitConstraintBadAttr,
+                            error_msg="balance ({row.Balance}) exceeds credit ({row.CreditLimit})")
+            Rule.sum(derive=Customer.CreditLimitYY, as_sum_of=Order.AmountTotal, where=lambda row: row.WorseAttr is None)
+            Rule.count(derive=Customer.IdX, as_count_of=Order, where=lambda row: row.WorstAttr is None)
 
 
     def congratulate_sales_rep(row: Order, old_row: Order, logic_row: LogicRow):
@@ -50,7 +57,7 @@ def declare_logic():
     Rule.constraint(validate=Customer,
                     as_condition=lambda row: row.Balance <= row.CreditLimit,
                     error_msg="balance ({row.Balance}) exceeds credit ({row.CreditLimit})")
-    Rule.sum(derive=Customer.BalanceX, as_sum_of=Order.AmountTotal,
+    Rule.sum(derive=Customer.Balance, as_sum_of=Order.AmountTotal,
              where=lambda row: row.ShippedDate is None)  # *not* a sql select sum...
 #    Rule.sum(derive=Customer.Balance, as_sum_of=OrderDetail.Amount,
 #             where=lambda row: row.ShippedDate is None)  # test bad rule definition
