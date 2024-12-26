@@ -77,7 +77,7 @@ class LogicBank:
 
             - registers SQLAlchemy listeners
 
-            - invokes your activator to load rules to create `RuleBank` (dict of `TableRules`)); later executed on commit
+            - invokes your activator to load rules to create `RuleBank` (dict of `TableRules`); later executed on commit
 
             - raises exception if cycles detected, or invalid rules per rule references
 
@@ -95,18 +95,15 @@ class LogicBank:
                 raise MyConstraintException(exception_message)
             '''
         
-        In API Logic Server (highly recommended): setup occurs in api_logic_server_run -> Config/server_setup:
+        In API Logic Server (highly recommended): setup occurs in `api_logic_server_run -> Config/server_setup`:
 
-                - `LogicBank.activate(session=session, activator=declare_logic.declare_logic, constraint_event=constraint_handler)`
+            - `LogicBank.activate(session=session, activator=declare_logic.declare_logic, constraint_event=constraint_handler)`
 
-                - Rule Execution occurs in exec_row_logic/LogicRow.py on session.commit()
+            - Rule Execution occurs in exec_row_logic/LogicRow.py on session.commit()
                     
-                    - exec_trans_logic handles the SQLAlchemy events (after_flush etc)
+                - exec_trans_logic handles the SQLAlchemy events (after_flush etc) to get changed rows; for each, it calls....
 
-                    - it calls `exec_row_logic/LogicRow.py#update()` etc for each row,
-                    
-                    which executes the rule_type objects (in TableRules) 
-
+                - `exec_row_logic/LogicRow.py#update()`, which executes the rule_type objects (in TableRules)
 
         Arguments:
             session: SQLAlchemy session
