@@ -33,11 +33,20 @@ def declare_logic():
     if test_bad_rules:
         print('loading bad rules')
         if use_strings := True:
+            '''
             Rule.constraint(validate='CustomerBadConstraint',
                             as_condition=lambda row: row.Balance <= row.CreditLimitConstraintBadAttr,
                             error_msg="balance ({row.Balance}) exceeds credit ({row.CreditLimit})")
-            Rule.sum(derive='Customer.CreditLimitYY', as_sum_of='Order.AmountTotalTT', where=lambda row: row.BalWhereWorseAttr is None)
-            Rule.count(derive='Customer.IdNoCount', as_count_of='OrderNoCount', where=lambda row: row.WorstAttr is None)
+            '''
+            # Rule.sum(derive='Customer.CreditLimitYY', as_sum_of='Order.AmountTotalTT', where=lambda row: row.BalWhereWorseAttr is None)
+            # Rule.count(derive='Customer.IdNoCount', as_count_of='OrderNoCount', where=lambda row: row.WorstAttr is None)
+
+            # missing attr tests
+            Rule.sum(derive='Customer.CreditLimit', as_sum_of='Order.AmountTotal', where=lambda row: row.BalWhereWorseAttr is None)
+            Rule.count(derive='Customer.Count', as_count_of='Order', where=lambda row: row.WorstAttr is None)
+            Rule.constraint(validate='Customer',
+                            as_condition=lambda row: row.Balance <= row.CreditLimitConstraintBadAttr,
+                            error_msg="balance ({row.Balance}) exceeds credit ({row.CreditLimit})")
         else:
             Rule.constraint(validate=CustomerYY,
                             as_condition=lambda row: row.Balance <= row.CreditLimitConstraintBadAttr,

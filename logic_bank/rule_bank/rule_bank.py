@@ -52,6 +52,9 @@ class RuleBank(metaclass=Singleton):  # FIXME design review singleton
         self._session = None
         self.constraint_event = None
         self.invalid_rules : list[str] = []  # rule-load failures during activation
+        self.map_name_to_mapper = None  # type: None | Dict[str, mapper]
+        """ mappers for each orm_object, key is class name """
+
 
     def deposit_rule(self, a_rule: 'AbstractRule'):
         if a_rule._load_error is not None:
@@ -60,7 +63,18 @@ class RuleBank(metaclass=Singleton):  # FIXME design review singleton
             if a_rule.table not in self.orm_objects:
                 self.orm_objects[a_rule.table] = TableRules()
             table_rules = self.orm_objects[a_rule.table]
-            table_rules._decl_meta = a_rule._decl_meta
+            #  a_rule._decl_meta = None  # huh??
+            if hasattr(a_rule, '_decl_meta'):
+                if a_rule._decl_meta is not None:
+                    if self.map_name_to_mapper is None:  # setup mappers for each orm_object
+                        self.map_name_to_mapper = {}
+                        table_rules._decl_meta = a_rule._decl_meta
+                        decl_meta = table_rules._decl_meta
+                        mappers = decl_meta.registry.mappers
+                        for each_mapper in mappers:
+                            each_class_name = each_mapper.class_.__name__
+                            if each_class_name not in self.map_name_to_mapper:
+                                self.map_name_to_mapper[each_class_name] = each_mapper
             table_rules.rules.append(a_rule)
             engine_logger.debug(prt(str(a_rule)))
         else:
@@ -74,6 +88,35 @@ class RuleBank(metaclass=Singleton):  # FIXME design review singleton
                all_rules.append(each_rule)
         return all_rules
 
+    def get_mapper_for_class_name(self, class_name: str):
+        """ return sqlalchemy mapper for class_name
+            beware - very subtle case
+                referenced attrs may not have rules, so no entry in rules_bank.orm_objects
+                so, we have to a use SQLAlchemy meta... to get the mapper
+                    from first each_attribute
+                    key assumption is 1st each_attribute (rule) will be for a class *with rules*
+
+        Args:
+            class_name (str): class name
+        """        
+
+        if self.map_name_to_mapper is None:  # setup mappers for each orm_object
+            self.map_name_to_mapper = {}
+            if class_name not in self.orm_objects:
+                engine_logger.info(f"uh oh, no rules for first referenced attribute: {class_name}")
+            else:
+                table_rules = self.orm_objects[class_name]  # key assumption, above
+                decl_meta = table_rules._decl_meta
+                mappers = decl_meta.registry.mappers
+                for each_mapper in mappers:
+                    each_class_name = each_mapper.class_.__name__
+                    if each_class_name not in self.map_name_to_mapper:
+                        self.map_name_to_mapper[each_class_name] = each_mapper
+
+        if class_name in self.map_name_to_mapper:
+            return self.map_name_to_mapper[class_name]
+        return None
+    
     def __str__(self):
         result = f"Rule Bank[{str(hex(id(self)))}] (loaded {self._at})"
         for each_key in self.orm_objects:

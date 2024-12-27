@@ -10,6 +10,8 @@ class Derivation(AbstractRule):
 
     def __init__(self, derive: InstrumentedAttribute):
         # names = derive.split('.')
+        self._derive = derive
+        self._column = ''
         if isinstance(derive, str):
             self._load_error = "'derive' attribute not a class.attribute: " + str(derive)
         else:
@@ -20,6 +22,7 @@ class Derivation(AbstractRule):
         if hasattr(derive, "class_") == True:
             wants_to_be_class = derive.class_
         else:
+            wants_to_be_class = derive
             pass # not a class, try to proceed to return all errors; AbsractRule logs self._load_error
         super(Derivation, self).__init__(wants_to_be_class)  # got here for sum
 
@@ -43,4 +46,13 @@ class Derivation(AbstractRule):
 
 
     def __str__(self):
-        return f'Derive {self.table}.{self._column} as '
+        invalid = ""
+        if self._load_error is not None:
+            invalid =  self._load_error + " "
+        wants_to_be_class = "Not a class"
+        if hasattr(self._derive, "class_") == True:
+            wants_to_be_class = self._derive.class_
+        else:
+            wants_to_be_class = self._derive
+            pass # not a class, try to proceed to return all errors; AbsractRule logs self._load_error
+        return f'{invalid}Derive {wants_to_be_class}.{self._column} as '

@@ -40,7 +40,7 @@ class Count(Aggregate):
 
     def __str__(self):
         if self._where != "":
-            result = super().__str__() + f'Count({self._as_count_of} Where {self._where})'
+            result = super().__str__() + f'Count({self._as_count_of} Where {self.get_where_text(self._where)} - {self._where})'
         else:
             result = super().__str__() + f'Count({self._as_count_of})'
         if self.insert_parent:

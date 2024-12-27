@@ -12,11 +12,13 @@ from logic_bank.rule_type.parent_cascade import ParentCascade, ParentCascadeActi
 from logic_bank.rule_type.parent_check import ParentCheck
 from logic_bank.rule_type.row_event import EarlyRowEvent, RowEvent, CommitRowEvent, AfterFlushRowEvent
 from logic_bank.rule_type.sum import Sum
+from logic_bank import engine_logger
 import functools
 import logging
 import traceback
 import os
 from .exceptions import LBActivateException
+from .rule_bank.rule_bank import RuleBank
 
 logic_logger = logging.getLogger("logic_logger")
 
@@ -73,13 +75,28 @@ class LogicBank:
     @staticmethod
     def activate(session: session, activator: callable, constraint_event: callable = None):
         """
-        Call LogicBank.activate(activator) (this file: logic_bank.py), after opening database to activate logic :
 
-            - registers SQLAlchemy listeners
+        #### Usage (e.g., als - highly recommended)
+        
+            Ooccurs in `api_logic_server_run -> Config/server_setup`, after opening database to activate logic:
 
-            - invokes your activator to load rules to create `RuleBank` (dict of `TableRules`); later executed on commit
+            `LogicBank.activate(session=session, activator=declare_logic.declare_logic, constraint_event=constraint_handler)`
 
-            - raises exception if cycles detected, or invalid rules per rule references
+        #### Operation (file: `logic_bank.py`):
+
+            - Calls `rule_bank_setup.setup(session)` to set up the `RuleBank` and register SQLAlchemy listeners
+
+            - Calls your activator to load rules into `RuleBank` (not executed yet)
+
+            - Calls `rule_bank_setup.compute_formula_execution_order()` for dependencies
+
+            - Raises exception if cycles detected, or invalid rules per missing attr references
+
+        #### Subsequent rule execution starts in `exec_row_logic/LogicRow.py on session.commit()`
+                
+            - `exec_trans_logic/listeners.py` handles the SQLAlchemy events (after_flush etc.) to get changed rows; for each, it calls....
+
+            - `exec_row_logic/LogicRow.py#update()`, which executes the rule_type objects (in TableRules)
 
         Use constraint_event to log / change class of constraints, for example
             '''
@@ -94,20 +111,10 @@ class LogicBank:
                 logic_row.log(exception_message)
                 raise MyConstraintException(exception_message)
             '''
-        
-        In API Logic Server (highly recommended): setup occurs in `api_logic_server_run -> Config/server_setup`:
-
-            - `LogicBank.activate(session=session, activator=declare_logic.declare_logic, constraint_event=constraint_handler)`
-
-            - Rule Execution occurs in exec_row_logic/LogicRow.py on session.commit()
-                    
-                - exec_trans_logic handles the SQLAlchemy events (after_flush etc) to get changed rows; for each, it calls....
-
-                - `exec_row_logic/LogicRow.py#update()`, which executes the rule_type objects (in TableRules)
 
         Arguments:
             session: SQLAlchemy session
-            activator: user function that declares rules (e.g., Rule.sum...)
+            activator: user function that declares rules (e.g., Rule.sum... in als `logic/declare_logic.py`)
             constraint_event: optional user function called on constraint exceptions
         """
         rule_bank = rule_bank_setup.setup(session)
@@ -117,9 +124,36 @@ class LogicBank:
             activator()  # in als, called from server_setup - this is logic/declare_logic.py#declare_logic()
         except Exception as e:
             rule_bank.invalid_rules.append(e)
+
+        if debug_show_attributes :=True:
+            rules_bank = RuleBank()
+            rule_count = 0
+            logic_logger.debug(f'\nThe following rules have been loaded')
+            list_rules = rules_bank.__str__()
+            loaded_rules = list(list_rules.split("\n"))
+            for each_rule in loaded_rules:  # rules with bad derive= etc not loaded - no TableRule to own them
+                logic_logger.debug(str(each_rule))
+                rule_count += 1
+
         missing_attributes = rule_bank_setup.compute_formula_execution_order()
         if len(rule_bank.invalid_rules) > 0 or len(missing_attributes) > 0:
+            #raise Exception(rule_bank.invalid_rules, missing_attributes)  # compare - this logs the errors
+            for each_invalid_rule in rule_bank.invalid_rules:
+                logic_logger.info(f'Invalid Rule: {each_invalid_rule}')
+            for each_missing_attribute in missing_attributes:
+                logic_logger.info(f'Missing Attribute: {each_missing_attribute}')
             raise LBActivateException(rule_bank.invalid_rules, missing_attributes)
+
+        rules_bank = RuleBank()
+        rule_count = 0
+        logic_logger.debug(f'\nThe following rules have been activated')
+        list_rules = rules_bank.__str__()
+        loaded_rules = list(list_rules.split("\n"))
+        for each_rule in loaded_rules:
+            logic_logger.debug(each_rule)
+            rule_count += 1
+
+        logic_logger.info(f'Logic Bank {rule_bank_setup.__version__} - {rule_count} rules loaded')
 
 
 class Rule:

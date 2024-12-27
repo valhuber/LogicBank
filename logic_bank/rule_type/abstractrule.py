@@ -21,15 +21,25 @@ class AbstractRule(object):
 
     def __init__(self, decl_meta: sqlalchemy.orm.DeclarativeMeta):
         #  failed -- mapped_class = get_class_by_table(declarative_base(), a_table_name)  # User class
-        if not isinstance(decl_meta, sqlalchemy.orm.DeclarativeMeta):
-            self._load_error = "rule definition error, not mapped class: " + str(decl_meta)
-        else:
+        if isinstance(decl_meta, sqlalchemy.orm.DeclarativeMeta):
             self._decl_meta = decl_meta
+            """ SQLAlchemy class definition """
             class_name = self.get_class_name(decl_meta)
             self.table = class_name
             self._load_error = None # rule-load failures (detected during activation)
             """ load error detected during activation (None means ok so far) """
-
+        elif isinstance(decl_meta, str):
+            rule_bank = RuleBank()
+            mapper = rule_bank.get_mapper_for_class_name(decl_meta)
+            if mapper is not None:
+                self._decl_meta = mapper.class_
+                self.table = decl_meta
+            else:
+                self._load_error = "rule definition error, not mapped class name: " + str(decl_meta) 
+                self.table = f"unknown name: {decl_meta}"           
+        else:
+            self._load_error = "rule definition error, not mapped class or class_name: " + str(decl_meta)
+            self.table = f"unknown object: {decl_meta}" 
         self._dependencies = []
         """
         list of attributes this rule refers to, including parent.attribute

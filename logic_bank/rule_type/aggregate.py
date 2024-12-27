@@ -42,7 +42,9 @@ class Aggregate(Derivation):
         return referenced_attributes
 
     def get_where_text(self, where_arg) -> str:
-        if isinstance(self._where, str):
+        if self._where is None:
+            text = ''
+        elif isinstance(self._where, str):
             text = self._where
         else:
             text = inspect.getsource(self._where)

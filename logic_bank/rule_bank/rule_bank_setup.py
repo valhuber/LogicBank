@@ -14,7 +14,7 @@ from sqlalchemy.orm import session
 from sqlalchemy.orm import mapper
 import logging
 
-__version__ = "01.20.14"  # missing attrs excp with all excps, fail-save rules
+__version__ = "01.20.15"  # missing attrs excp with all excps, fail-save rules, excp content
 
 
 def setup(a_session: session):
@@ -64,31 +64,38 @@ def find_missing_attributes(all_attributes: list[str], rules_bank: RuleBank) -> 
         class_and_attr = each_attribute.split(':')[0]
         if len(class_and_attr.split('.')) > 2:
             pass  # FIXME - parent reference, need to decode the role name --> table name
+        if len(class_and_attr.split('.')) < 2:
+            missing_attributes.append(each_attribute)
+            continue
         class_name = class_and_attr.split('.')[0]
         attr_name = class_and_attr.split('.')[1]
         if attr_name == 'unit_price':
             good_breakpoint = True
-        if mapper_dict is None:
-            ''' beware - very subtle case
-                referenced attrs may not have rules, so no entry in rules_bank.orm_objects
-                so, we have a use SQLAlchemy meta... to get the mapper
-                    from first each_attribute
-                    key assumption is 1st each_attribute (rule) will be for a class *with rules*
-            '''
-            mapper_dict = {}
-            table_rules = rules_bank.orm_objects[class_name]  # key assumption, above
-            decl_meta = table_rules._decl_meta
-            mappers = decl_meta.registry.mappers
-            for each_mapper in mappers:
-                each_class_name = each_mapper.class_.__name__
-                if each_class_name not in mapper_dict:
-                    mapper_dict[each_class_name] = each_mapper
-        if class_name not in mapper_dict:
+        each_mapper = rules_bank.get_mapper_for_class_name(class_name)
+        if each_mapper is None:
             missing_attributes.append(each_attribute)
             continue
+        if old_code := False:
+            if mapper_dict is None:
+                ''' beware - very subtle case
+                    referenced attrs may not have rules, so no entry in rules_bank.orm_objects
+                    so, we have a use SQLAlchemy meta... to get the mapper
+                        from first each_attribute
+                        key assumption is 1st each_attribute (rule) will be for a class *with rules*
+                '''
+                mapper_dict = {}
+                table_rules = rules_bank.orm_objects[class_name]  # key assumption, above
+                decl_meta = table_rules._decl_meta
+                mappers = decl_meta.registry.mappers
+                for each_mapper in mappers:
+                    each_class_name = each_mapper.class_.__name__
+                    if each_class_name not in mapper_dict:
+                        mapper_dict[each_class_name] = each_mapper
+            if class_name not in mapper_dict:
+                missing_attributes.append(each_attribute)
+                continue
         if 'unit_price' in each_attribute:
             good_breakpoint = True
-        each_mapper = mapper_dict[class_name]
         if attr_name not in each_mapper.all_orm_descriptors:
             missing_attributes.append(each_attribute)
     pass
@@ -136,9 +143,10 @@ def compute_formula_execution_order_for_class(class_name: str):
 
 
 def compute_formula_execution_order() -> list[str]:
-    """
-    Determine formula execution order based on "row.xx" references (dependencies),
-    (or raise exception if cycles detected).
+    """ Determine formula execution order based on "row.xx" references (dependencies).
+
+    Returns:
+        list[str]: list of attributes that are missing, have cyclic dependencies, or other issues  (not excp)
     """
     global version
     logic_logger = logging.getLogger("logic_logger")
@@ -147,22 +155,12 @@ def compute_formula_execution_order() -> list[str]:
     for each_key in rules_bank.orm_objects:
         compute_formula_execution_order_for_class(class_name=each_key)  # might raise excp
 
-    all_referenced_attributes = find_referenced_attributes(rules_bank)
-    if do_print_attribute := False:
+    all_referenced_attributes = find_referenced_attributes(rules_bank)  # now consider other rule attr references
+    if do_print_attribute := True:
         logic_logger.debug(f'\nThe following attributes have been referenced\n')
         for each_attribute in all_referenced_attributes:
             logic_logger.debug(f'..{each_attribute}')
     missing_attributes = find_missing_attributes(all_attributes=all_referenced_attributes, rules_bank=rules_bank)
     if len(missing_attributes) > 0:
-        # raise Exception("Missing attributes:" + str(missing_attributes))
-        return missing_attributes
-
-    rule_count = 0
-    logic_logger.debug(f'\nThe following rules have been activated\n')
-    list_rules = rules_bank.__str__()
-    loaded_rules = list(list_rules.split("\n"))
-    for each_rule in loaded_rules:
-        logic_logger.debug(each_rule)
-        rule_count += 1
-    logic_logger.info(f'Logic Bank {__version__} - {rule_count} rules loaded')
-    return []
+        pass # raise Exception("Missing attributes:" + str(missing_attributes))
+    return missing_attributes  # string array of missing attrs, hopefully empty

@@ -12,6 +12,14 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "nw_test test_missing_attrs",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/examples/nw/tests/test_missing_attrs.py",
+            "redirectOutput": true,
+            "console": "integratedTerminal"
+        },
+        {
             "name": "nw_test add emp",
             "type": "debugpy",
             "request": "launch",

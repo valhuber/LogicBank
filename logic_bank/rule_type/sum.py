@@ -36,12 +36,14 @@ class Sum(Aggregate):
         else:
             self._load_error = "'derive' attribute not a class.attribute: " + str(derive)
             # raise Exception("as_sum_of must be either string, or <mapped-class.column>: " + str(as_sum_of))
+        if 'Customer.CreditLimitYY disabled' in self.get_where_text(self._where) or 'row.BalWhereWorseAttr' in self.get_where_text(self._where):
+            debug_stop = 'good breakpoint'
         rb = RuleBank()
         rb.deposit_rule(self)
 
     def __str__(self):
         if self._where != "":
-            result = super().__str__() + f'Sum({self._as_sum_of} Where {self._where})'
+            result = super().__str__() + f'Sum({self._as_sum_of} Where {self.get_where_text(self._where)} - {self._where})'
         else:
             result = super().__str__() + f'Sum({self._as_sum_of})'
         # result += "  (adjust using parent_role_name: " + self._parent_role_name + ")"
