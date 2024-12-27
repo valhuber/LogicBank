@@ -31,6 +31,8 @@ def failsafe(func):
             - report logicbank activation errors
             - continue in case $LOGICBANK_FAILSAFE is set
         """
+        if make_inactive := True:  # set to True to activate failsafe        
+            return func(*args, **kwargs)
         try:
             return func(*args, **kwargs)
         except Exception as e:
@@ -78,7 +80,7 @@ class LogicBank:
 
         #### Usage (e.g., als - highly recommended)
         
-            Ooccurs in `api_logic_server_run -> Config/server_setup`, after opening database to activate logic:
+            See `api_logic_server_run -> Config/server_setup -> activate_logicbank`,\n\t\t\tafter opening database to activate logic:
 
             `LogicBank.activate(session=session, activator=declare_logic.declare_logic, constraint_event=constraint_handler)`
 
