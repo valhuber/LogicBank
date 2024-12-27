@@ -140,10 +140,11 @@ class LogicBank:
         missing_attributes = rule_bank_setup.compute_formula_execution_order()
         if len(rule_bank.invalid_rules) > 0 or len(missing_attributes) > 0:
             #raise Exception(rule_bank.invalid_rules, missing_attributes)  # compare - this logs the errors
-            for each_invalid_rule in rule_bank.invalid_rules:
-                logic_logger.info(f'Invalid Rule: {each_invalid_rule}')
-            for each_missing_attribute in missing_attributes:
-                logic_logger.info(f'Missing Attribute: {each_missing_attribute}')
+            if more_debug := False:
+                for each_invalid_rule in rule_bank.invalid_rules:
+                    logic_logger.info(f'Invalid Rule: {each_invalid_rule}')
+                for each_missing_attribute in missing_attributes:
+                    logic_logger.info(f'Missing Attribute: {each_missing_attribute}')
             raise LBActivateException(rule_bank.invalid_rules, missing_attributes)
 
         rules_bank = RuleBank()
