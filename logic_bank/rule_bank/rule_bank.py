@@ -16,6 +16,12 @@ class Singleton(type):
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
+    @classmethod
+    def reset_instance(cls, singleton_class):
+        """Reset the singleton for a specific class."""
+        if singleton_class in cls._instances:
+            del cls._instances[singleton_class]
+
 
 class TableRules(object):
     """
