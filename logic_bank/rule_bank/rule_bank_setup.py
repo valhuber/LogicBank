@@ -14,7 +14,7 @@ from sqlalchemy.orm import session
 from sqlalchemy.orm import mapper
 import logging
 
-__version__ = "01.20.16"  # missing attrs excp with all excps, fail-save rules, full excp content
+__version__ = "01.20.17"  # missing attrs excp with all excps, fail-save rules, full excp content, w/ fix
 
 
 def setup(a_session: session):
