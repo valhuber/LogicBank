@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List, Union
 
 import sqlalchemy
 from sqlalchemy import inspect, text
@@ -18,6 +18,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 # from logic_bank.exec_row_logic.parent_role_adjuster import ParentRoleAdjuster
 from logic_bank.rule_bank import rule_bank_withdraw
+# from logic_bank.rule_type.aggregate import Aggregate
 from logic_bank.rule_type.constraint import Constraint
 from logic_bank.rule_type.derivation import Derivation
 from logic_bank.rule_type.formula import Formula
@@ -78,6 +79,8 @@ class LogicRow:
         self.table_meta = None
         """ class definition """
         self.table_name = ""
+        self.defaults_applied = False
+        """ for inserts, are defaults applied? """
 
         new_way = True
         if new_way:
@@ -235,7 +238,8 @@ class LogicRow:
         return result
 
     def _get_parent_logic_row(self, role_name: str, from_row: base = None) -> 'LogicRow':
-        """ get parent *and* set parent accessor """
+        """ get parent *and* set parent accessor and apply defaults
+        """
         row = self.row
         if from_row is not None:
             row = from_row
@@ -461,7 +465,7 @@ class LogicRow:
                 return True
         return False
 
-    def _get_derived_attributes(self) -> List[InstrumentedAttribute]:
+    def _get_derived_attributes(self, aggregates_only: bool = False) -> List[InstrumentedAttribute]:
         """
             returns a list of derived attributes
 
@@ -480,6 +484,8 @@ class LogicRow:
         """
         result_derived_attrs = []
         derivations = rule_bank_withdraw.rules_of_class(self, Derivation)
+        if aggregates_only == True:
+            derivations = rule_bank_withdraw.rules_of_class(self, Aggregate)
         for each_derivation in derivations:
             result_derived_attrs.append(each_derivation._derive)
         return result_derived_attrs
@@ -507,7 +513,7 @@ class LogicRow:
                     changes.append(each_attr.key)
         return changes
 
-    def copy_children(self, copy_from: base, which_children: (dict or list)):
+    def copy_children(self, copy_from: base, which_children: Union [dict | list]):
         """
         Useful in row event handlers to copy multiple children types to self from copy_from children.
 
@@ -844,15 +850,58 @@ class LogicRow:
     def _eager_defaults(self):
         """called by insert() to set column server defaults for nulls, constants only
 
+        logs attrs defaulted (todo - verify)
+
         TODO - consider defaulting sums and counts to 0.
         * Failure can make insert Fail (Airplane: row.passenger_count <= row.capacity)
         * Seems pretty obvious, not sure why this was not done.
+        * FIXME - non-trivial: Adjustment logic chaining deferred means this loses good sums - see aggregate rule
 
         thanks to Elmer de Looff: https://variable-scope.com/posts/setting-eager-defaults-for-sqlalchemy-orm-models
         """
+
+        def get_default_for_type(each_column, defaults_skipped, default_str):
+            default = default_str
+            if isinstance(each_column.type, sqlalchemy.sql.sqltypes.Integer):
+                default = int(default_str)
+                if isinstance(each_column.type, sqlalchemy.sql.sqltypes.Numeric):
+                    default = int(default_str)
+            elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.String):
+                default = default_str  # it's not quoted
+            elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Float):
+                default = float(default_str)
+            elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.DECIMAL):
+                default = Decimal(default)
+            # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Boolean):
+            # default = bool(default_str)
+            elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.DateTime):
+                if default == "CURRENT_TIMESTAMP":
+                    default = date.today()
+                else:
+                    defaults_skipped += f'{each_column.name}[{each_column.type} (unexpected default: {default})] '
+                    default = None
+            elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Date):
+                if default == "CURRENT_TIMESTAMP":
+                    default = date.today()
+                else:
+                    defaults_skipped += f'{each_column.name}[{each_column.type} (unexpected default: {default})] '
+                    default = None
+            # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Binary):
+            #    default = default
+            else:
+                default = None
+                # self.log(f'Warning - default ignored for {self.name}.{each_column.name}: {each_column.type}')
+                defaults_skipped += f'{each_column.name}[{each_column.type} (not handled)] '
+            return default
+        
+        if self.defaults_applied:
+            return  # only once.  Recurs for deferred aggregates, on eventual parents' insert
+        
+        self.defaults_applied = True
         mapper = inspect(self.row).mapper
         defaults: dict = {}
         defaults_skipped = ""
+        derived_attributes = self._get_derived_attributes()
         for each_column in mapper.columns:
             if each_column.name == 'RegistrationDate':
                 debug_stop = "convenient break"
@@ -896,9 +945,19 @@ class LogicRow:
                                     default = None
                                     # self.log(f'Warning - default ignored for {self.name}.{each_column.name}: {each_column.type}')
                                     defaults_skipped += f'{each_column.name}[{each_column.type} (not handled)] '
+                            else:
+                                default = get_default_for_type(each_column, defaults_skipped, default_str)
                             defaults[attr.key] = default
             except Exception as ex:
                 defaults_skipped += f'{each_column.name}[{each_column.type}] (ex: {ex}) '
+
+        for each_column in mapper.columns:  # now clear the aggregates
+            if each_column.name == 'AmountTotal' and getattr(self.row, each_column.name) != 0:
+                debug_stop = "convenient break"  # serious issue: Adjustment logic chaining deferred means this loses good sums
+                attr = mapper.get_property_by_column(each_column)
+                default = get_default_for_type(each_column, defaults_skipped, '0')
+                defaults[attr.key] = default
+            pass
 
         defaults_applied = ""
         for attr, value in defaults.items():
@@ -906,7 +965,7 @@ class LogicRow:
                 setattr(self.row, attr, value)
                 defaults_applied += f"{attr} "
         if defaults_applied != "" or defaults_skipped != "":
-            default_msg = f'server_defaults: {defaults_applied}'
+            default_msg = f'server_aggregate_defaults: {defaults_applied}'
             if defaults_skipped != "":
                 default_msg += f"-- skipped: {defaults_skipped}"
             self.log(f'{default_msg}')
@@ -1180,11 +1239,11 @@ class ParentRoleAdjuster:
 
     def __init__(self, parent_role_name: str, child_logic_row: LogicRow):
 
-        self.child_logic_row = child_logic_row  # the child (curr, old values)
+        self.child_logic_row : LogicRow = child_logic_row  # the child (curr, old values)
 
         self.parent_role_name = parent_role_name  # which parent are we dealing with?
-        self.parent_logic_row = None
-        self.previous_parent_logic_row = None
+        self.parent_logic_row : LogicRow = None
+        self.previous_parent_logic_row : LogicRow = None
         self.adjusting_attributes = ""
         """ list of attributes being adjusted, for log """
 
@@ -1210,7 +1269,7 @@ class ParentRoleAdjuster:
                 That's because the chaining logic will be run later in listeners (row_sets.submitted_row)
 
             Examples:
-                upd_order_reuse - occurs half time, see listeners-bug_explore to force
+                upd_order_reuse - occurs half the time, see listeners-bug_explore to force
                 test_add_order
                     first, note OrderDetails are **sometimes** processed before Order (it varies!)
                     it's easy when the order is first

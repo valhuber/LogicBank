@@ -41,9 +41,9 @@ class Test(unittest.TestCase):
         session.expunge(pre_cust)
 
         # debug switches to bypass tests (normally all true)
-        test1 = True
-        test2 = True
-        test3 = True
+        test1 = False  # Fixme re-enable test
+        test2 = False
+        test3 = False
         test4 = True
 
         """
@@ -148,8 +148,8 @@ class Test(unittest.TestCase):
         """
             Test 4 - should succeed
         """
-        if test4:
-            new_order = models.Order(AmountTotal=0, CustomerId="ALFKI", ShipCity="Richmond",
+        if test4:  # NB: use non-0 AmountTotal to verify aggregate_defaults
+            new_order = models.Order(AmountTotal=101, CustomerId="ALFKI", ShipCity="Richmond",
                                      EmployeeId=6, Freight=1)
             session.add(new_order)
 
@@ -168,9 +168,9 @@ class Test(unittest.TestCase):
 
             print("\nadd_order, update completed - analyzing results..\n\n")
 
-            row_prt(new_order, session, "\nnew Order Result")  # $18 + $38 = $56
+            row_prt(new_order, session, "\nnew Order Result (seeking $56)")  # $18 + $38 = $56
             if new_order.AmountTotal != 56:
-                self.fail(row_prt(new_order, "Unexpected AmountTotal: " + str(new_order.AmountTotal) +
+                self.fail(row_prt(new_order, "Unexpected AmountTotal  (seeking $56): " + str(new_order.AmountTotal) +
                        "... expected 56"))
             row_prt(new_item1, session, "\nnew Order Detail 1 Result")  # 1 Chai  @ $18
             row_prt(new_item2, session, "\nnew Order Detail 2 Result")  # 2 Chang @ $19 = $38

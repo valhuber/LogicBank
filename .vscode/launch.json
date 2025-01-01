@@ -12,6 +12,14 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "add_order",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/examples/nw/tests/test_add_order.py",
+            "redirectOutput": true,
+            "console": "integratedTerminal"
+        },
+        {
             "name": "nw_test test_missing_attrs",
             "type": "debugpy",
             "request": "launch",
