@@ -4,6 +4,7 @@ import sqlalchemy
 from sqlalchemy import inspect, text
 from sqlalchemy.orm import base
 from sqlalchemy.engine.reflection import Inspector
+from sqlalchemy import inspect
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import object_mapper, session, relationships, RelationshipProperty
 from sqlalchemy.orm.attributes import InstrumentedAttribute
@@ -58,8 +59,9 @@ class LogicRow:
         self.old_row = old_row
         """ old mapped row """
         self.ins_upd_dlt = ins_upd_dlt
-        """ values are 'ins', 'upd' or 'dlt' """
-        self.ins_upd_dlt_initial = ins_upd_dlt  # order inserted, then adjusted
+        """ values are 'ins', 'upd' or 'dlt'.  Sigh, or '*' which means 'read' (as in copy_children, _get_parent_logic_row) """
+        self.ins_upd_dlt_initial = ins_upd_dlt
+        """ eg, order inserted, then adjusted... values are 'ins', 'upd' or 'dlt' """
         self.nest_level = nest_level
         self.reason = "?"  # set by insert, update and delete
         """ if starts with cascade, triggers cascade processing """
@@ -180,7 +182,7 @@ class LogicRow:
                     result += str(value)
         result += f'  row: {str(hex(id(self.row)))}'
         result += f'  session: {str(hex(id(self.session)))}'
-        result += f'  ins_upd_dlt: {(self.ins_upd_dlt)}'
+        result += f'  ins_upd_dlt: {self.ins_upd_dlt}, initial: {self.ins_upd_dlt}'
         return result  # str(my_dict)
 
     def log(self, msg: str) -> str:
@@ -247,7 +249,9 @@ class LogicRow:
         parent_row = None
         if hasattr(row, role_name):  # for client updates, old is obj_view, not base
             parent_row = getattr(row, role_name)
-        if parent_row is None:
+        if self.name == "OrderDetail":  #  and role_name == "OrderHeader":
+            debug_stop = 'nice breakpoint'
+        if parent_row is None:  # e.g., get the Product for an Order
             my_mapper = object_mapper(self.row)
             role_def = my_mapper.relationships.get(role_name)
             if role_def is None:
@@ -263,6 +267,8 @@ class LogicRow:
         old_parent = self._make_copy(parent_row)
         parent_logic_row = LogicRow(row=parent_row, old_row=old_parent, ins_upd_dlt="*", nest_level=1 + self.nest_level,
                                     a_session=self.session, row_sets=self.row_sets)
+        if parent_row is not None and inspect(parent_row).persistent == False:  # in add_order, product is persistent, order is not
+            parent_logic_row._aggregate_defaults()
         return parent_logic_row
 
     def _early_row_events(self):
@@ -847,61 +853,103 @@ class LogicRow:
                 return True
         return False
 
-    def _eager_defaults(self):
-        """called by insert() to set column server defaults for nulls, constants only
+    @staticmethod
+    def get_default_for_type(each_column, defaults_skipped, default_str):
+        default = default_str
+        if isinstance(each_column.type, sqlalchemy.sql.sqltypes.Integer):
+            default = int(default_str)
+            if isinstance(each_column.type, sqlalchemy.sql.sqltypes.Numeric):
+                default = int(default_str)
+        elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.String):
+            default = default_str  # it's not quoted
+        elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Float):
+            default = float(default_str)
+        elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.DECIMAL):
+            default = Decimal(default)
+        # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Boolean):
+        # default = bool(default_str)
+        elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.DateTime):
+            if default == "CURRENT_TIMESTAMP":
+                default = date.today()
+            else:
+                defaults_skipped += f'{each_column.name}[{each_column.type} (unexpected default: {default})] '
+                default = None
+        elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Date):
+            if default == "CURRENT_TIMESTAMP":
+                default = date.today()
+            else:
+                defaults_skipped += f'{each_column.name}[{each_column.type} (unexpected default: {default})] '
+                default = None
+        # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Binary):
+        #    default = default
+        else:
+            default = None
+            # self.log(f'Warning - default ignored for {self.name}.{each_column.name}: {each_column.type}')
+            defaults_skipped += f'{each_column.name}[{each_column.type} (not handled)] '
+        return default
 
-        logs attrs defaulted (todo - verify)
 
+    def _aggregate_defaults(self):
+        """_summary_
         TODO - consider defaulting sums and counts to 0.
         * Failure can make insert Fail (Airplane: row.passenger_count <= row.capacity)
         * Seems pretty obvious, not sure why this was not done.
         * FIXME - non-trivial: Adjustment logic chaining deferred means this loses good sums - see aggregate rule
+        """
+        # https://docs.sqlalchemy.org/en/20/orm/session_state_management.html#getting-the-current-state-of-an-object
+        # pending and not persistent means inserted?
+        # NB: for add_order, the item may come first per deferred adjustments...
+        # default the Order.OrderTotal...  now!  Cannot wait until Order.insert() is run...
+        # FIXME - this occurs for Product too... how do see if parent is in insert mode
 
+        assert inspect(self.row).persistent == False, "Defaults apply only to new rows"
+        derived_attributes = self._get_derived_attributes()
+
+        # massive bug... we have 2 Order LogicRows for the same Order from the 2 items... first adjustment is therefore lost
+        if not hasattr(self.row, 'defaults_applied'):  # self.row.AmountTotal == Decimal('101'):
+            setattr(self.row, 'AmountTotal', Decimal('0'))
+            # parent_logic_row._eager_defaults()
+            setattr(self.row, 'defaults_applied', True)
+
+        """
+        for each_column in mapper.columns:  # now clear the aggregates
+            if each_column.name == 'AmountTotal' and getattr(self.row, each_column.name) != 0:
+                debug_stop = "convenient break"  # serious issue: Adjustment logic chaining deferred means this loses good sums
+                attr = mapper.get_property_by_column(each_column)
+                default = get_default_for_type(each_column, defaults_skipped, '0')
+                defaults[attr.key] = default
+            pass
+        for attr, value in defaults.items():
+            setattr(self.row, attr, value)
+            defaults_applied += f"{attr} "
+
+        defaults_applied = ""           # set defaults (for None values only)
+        for attr, value in defaults.items():
+            if getattr(self.row, attr) is None:
+                setattr(self.row, attr, value)
+                defaults_applied += f"{attr} "
+
+        if defaults_applied != "" or defaults_skipped != "":
+            default_msg = f'server_defaults: {defaults_applied}'
+            if defaults_skipped != "":
+                default_msg += f"-- skipped: {defaults_skipped}"
+            self.log(f'{default_msg}')
+        return
+
+        """
+        pass
+
+    def _eager_defaults(self):
+        """called by insert() to set column server defaults for nulls, constants only
+
+        logs attrs defaulted (todo - verify)
         thanks to Elmer de Looff: https://variable-scope.com/posts/setting-eager-defaults-for-sqlalchemy-orm-models
         """
 
-        def get_default_for_type(each_column, defaults_skipped, default_str):
-            default = default_str
-            if isinstance(each_column.type, sqlalchemy.sql.sqltypes.Integer):
-                default = int(default_str)
-                if isinstance(each_column.type, sqlalchemy.sql.sqltypes.Numeric):
-                    default = int(default_str)
-            elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.String):
-                default = default_str  # it's not quoted
-            elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Float):
-                default = float(default_str)
-            elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.DECIMAL):
-                default = Decimal(default)
-            # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Boolean):
-            # default = bool(default_str)
-            elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.DateTime):
-                if default == "CURRENT_TIMESTAMP":
-                    default = date.today()
-                else:
-                    defaults_skipped += f'{each_column.name}[{each_column.type} (unexpected default: {default})] '
-                    default = None
-            elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Date):
-                if default == "CURRENT_TIMESTAMP":
-                    default = date.today()
-                else:
-                    defaults_skipped += f'{each_column.name}[{each_column.type} (unexpected default: {default})] '
-                    default = None
-            # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Binary):
-            #    default = default
-            else:
-                default = None
-                # self.log(f'Warning - default ignored for {self.name}.{each_column.name}: {each_column.type}')
-                defaults_skipped += f'{each_column.name}[{each_column.type} (not handled)] '
-            return default
-        
-        if self.defaults_applied:
-            return  # only once.  Recurs for deferred aggregates, on eventual parents' insert
-        
         self.defaults_applied = True
         mapper = inspect(self.row).mapper
         defaults: dict = {}
         defaults_skipped = ""
-        derived_attributes = self._get_derived_attributes()
         for each_column in mapper.columns:
             if each_column.name == 'RegistrationDate':
                 debug_stop = "convenient break"
@@ -946,29 +994,25 @@ class LogicRow:
                                     # self.log(f'Warning - default ignored for {self.name}.{each_column.name}: {each_column.type}')
                                     defaults_skipped += f'{each_column.name}[{each_column.type} (not handled)] '
                             else:
-                                default = get_default_for_type(each_column, defaults_skipped, default_str)
+                                default = self.get_default_for_type(each_column, defaults_skipped, default_str)
                             defaults[attr.key] = default
             except Exception as ex:
                 defaults_skipped += f'{each_column.name}[{each_column.type}] (ex: {ex}) '
 
-        for each_column in mapper.columns:  # now clear the aggregates
-            if each_column.name == 'AmountTotal' and getattr(self.row, each_column.name) != 0:
-                debug_stop = "convenient break"  # serious issue: Adjustment logic chaining deferred means this loses good sums
-                attr = mapper.get_property_by_column(each_column)
-                default = get_default_for_type(each_column, defaults_skipped, '0')
-                defaults[attr.key] = default
-            pass
-
-        defaults_applied = ""
+        defaults_applied = ""           # set defaults (for None values only)
         for attr, value in defaults.items():
             if getattr(self.row, attr) is None:
                 setattr(self.row, attr, value)
                 defaults_applied += f"{attr} "
+
         if defaults_applied != "" or defaults_skipped != "":
-            default_msg = f'server_aggregate_defaults: {defaults_applied}'
+            default_msg = f'server_defaults: {defaults_applied}'
             if defaults_skipped != "":
                 default_msg += f"-- skipped: {defaults_skipped}"
             self.log(f'{default_msg}')
+
+        self._aggregate_defaults()
+
         return
 
     def _load_parents_on_insert(self):

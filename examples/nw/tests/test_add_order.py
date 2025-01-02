@@ -149,6 +149,10 @@ class Test(unittest.TestCase):
             Test 4 - should succeed
         """
         if test4:  # NB: use non-0 AmountTotal to verify aggregate_defaults
+
+            # dragon alert - this can process OrderHeader first in log, or OrderDetails.
+            # run by hand a few times to ensure both run
+
             new_order = models.Order(AmountTotal=101, CustomerId="ALFKI", ShipCity="Richmond",
                                      EmployeeId=6, Freight=1)
             session.add(new_order)
