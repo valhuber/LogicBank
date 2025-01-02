@@ -98,7 +98,7 @@ def aggregate_rules(child_logic_row: LogicRow) -> dict:
     return result_role_rules_list
 
 
-def rules_of_class(logic_row: LogicRow, a_rule_class: (Formula, Constraint, EarlyRowEvent, ParentCheck)) -> list:
+def rules_of_class(logic_row: LogicRow, a_rule_class: (Formula, Constraint, EarlyRowEvent, ParentCheck) = None) -> list:
     """withdraw rules of designated a_class
     """
     rule_bank = RuleBank()
@@ -109,8 +109,11 @@ def rules_of_class(logic_row: LogicRow, a_rule_class: (Formula, Constraint, Earl
         if logic_row.name.startswith("TRANFERFUND"):
             debug = 'good breakpoint'
         for each_rule in rules_for_this_class:
-            if isinstance(each_rule, a_rule_class):
+            if a_rule_class is None:
                 rules_list.append(each_rule)
+            else:
+                if isinstance(each_rule, a_rule_class):
+                    rules_list.append(each_rule)
     return rules_list
 
 

@@ -19,7 +19,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 # from logic_bank.exec_row_logic.parent_role_adjuster import ParentRoleAdjuster
 from logic_bank.rule_bank import rule_bank_withdraw
-# from logic_bank.rule_type.aggregate import Aggregate
+# from logic_bank.rule_type.aggregate import Aggregate  # circular import
 from logic_bank.rule_type.constraint import Constraint
 from logic_bank.rule_type.derivation import Derivation
 from logic_bank.rule_type.formula import Formula
@@ -268,7 +268,7 @@ class LogicRow:
         parent_logic_row = LogicRow(row=parent_row, old_row=old_parent, ins_upd_dlt="*", nest_level=1 + self.nest_level,
                                     a_session=self.session, row_sets=self.row_sets)
         if parent_row is not None and inspect(parent_row).persistent == False:  # in add_order, product is persistent, order is not
-            parent_logic_row._aggregate_defaults()
+            parent_logic_row._aggregate_defaults()  # default aggregates before adjusting them
         return parent_logic_row
 
     def _early_row_events(self):
@@ -903,41 +903,42 @@ class LogicRow:
         # FIXME - this occurs for Product too... how do see if parent is in insert mode
 
         assert inspect(self.row).persistent == False, "Defaults apply only to new rows"
-        derived_attributes = self._get_derived_attributes()
+        defaults: dict = {}
+        defaults_skipped = ""
+        mapper = inspect(self.row).mapper
+        class_rules = rule_bank_withdraw.rules_of_class(logic_row=self)
 
         # massive bug... we have 2 Order LogicRows for the same Order from the 2 items... first adjustment is therefore lost
         if not hasattr(self.row, 'defaults_applied'):  # self.row.AmountTotal == Decimal('101'):
-            setattr(self.row, 'AmountTotal', Decimal('0'))
-            # parent_logic_row._eager_defaults()
+            # setattr(self.row, 'AmountTotal', Decimal('0'))
             setattr(self.row, 'defaults_applied', True)
+            if self.name == "Order":
+                debug_string = 'good breakpoint'
+            for each_column in mapper.columns:  # now clear the aggregates
+                if each_column.name == 'AmountTotal':
+                    debug_string = 'good breakpoint'
+                for each_aggregate in class_rules:
+                    rule_class = each_aggregate.__class__.__name__
+                    if (rule_class == 'Sum' or rule_class == 'Count'):
+                        if each_column.name == each_aggregate._derive.name:
+                            default = self.get_default_for_type(each_column, defaults_skipped, '0')
+                            defaults[each_column.name] = default
+                if False and each_column.name == 'AmountTotal' and getattr(self.row, each_column.name) != 0:
+                    debug_stop = "convenient break"  # serious issue: Adjustment logic chaining deferred means this loses good sums
+                    attr = mapper.get_property_by_column(each_column)
+                    default = self.get_default_for_type(each_column, defaults_skipped, '0')
+                    defaults[attr.key] = default
+                pass
 
-        """
-        for each_column in mapper.columns:  # now clear the aggregates
-            if each_column.name == 'AmountTotal' and getattr(self.row, each_column.name) != 0:
-                debug_stop = "convenient break"  # serious issue: Adjustment logic chaining deferred means this loses good sums
-                attr = mapper.get_property_by_column(each_column)
-                default = get_default_for_type(each_column, defaults_skipped, '0')
-                defaults[attr.key] = default
-            pass
-        for attr, value in defaults.items():
-            setattr(self.row, attr, value)
-            defaults_applied += f"{attr} "
-
-        defaults_applied = ""           # set defaults (for None values only)
-        for attr, value in defaults.items():
-            if getattr(self.row, attr) is None:
+            defaults_applied = ""
+            for attr, value in defaults.items():
                 setattr(self.row, attr, value)
                 defaults_applied += f"{attr} "
 
-        if defaults_applied != "" or defaults_skipped != "":
-            default_msg = f'server_defaults: {defaults_applied}'
-            if defaults_skipped != "":
-                default_msg += f"-- skipped: {defaults_skipped}"
-            self.log(f'{default_msg}')
+            if defaults_applied != "":
+                default_msg = f'server_aggregate_defaults: {defaults_applied}'
+                self.log(f'{default_msg}')
         return
-
-        """
-        pass
 
     def _eager_defaults(self):
         """called by insert() to set column server defaults for nulls, constants only
