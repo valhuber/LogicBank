@@ -890,27 +890,34 @@ class LogicRow:
 
 
     def _aggregate_defaults(self):
-        """_summary_
-        TODO - consider defaulting sums and counts to 0.
-        * Failure can make insert Fail (Airplane: row.passenger_count <= row.capacity)
-        * Seems pretty obvious, not sure why this was not done.
-        * FIXME - non-trivial: Adjustment logic chaining deferred means this loses good sums - see aggregate rule
+        """ Clear aggregates (sums/counts) to 0 (and generates important log entry)
+            Much more subtle than it seems... occurs in TWO cases, eg, for the add_order test:
+            1. Normal case, where Order is processed first (before OrderDetail)
+            2. When deferred adjustments occur, where OrderDetail is processed first:
+                    * This can occur because SQLAlchemy does not guarantee order of inserts
+                    * So, we must clear the aggregates during OrderDetail's parent adjustment processing
+                        * Search for calls to this method to see where this occurs
+                    * And, not clear them again when the Order insert is later processed; this too is subtle
+                        * We cannot track this this state in LogicRow
+                            * Since we might create a 2nd Order LogicRow (adjust vs insert)
+                        * So, we track that in the row itself: `hasattr(self.row, 'defaults_applied')`
+            
+            Critical this not run when aggregates already correct:
+                * Assert to ensure row actually in insert state
+                    * Key assumption: pending and not persistent means inserted
+                    * https://docs.sqlalchemy.org/en/20/orm/session_state_management.html#getting-the-current-state-of-an-object
+                * Log entry to ensure we know it ran
+            
+            This is important - eg, can make insert Fail (Airplane: row.passenger_count <= row.capacity)
         """
-        # https://docs.sqlalchemy.org/en/20/orm/session_state_management.html#getting-the-current-state-of-an-object
-        # pending and not persistent means inserted?
-        # NB: for add_order, the item may come first per deferred adjustments...
-        # default the Order.OrderTotal...  now!  Cannot wait until Order.insert() is run...
-        # FIXME - this occurs for Product too... how do see if parent is in insert mode
 
-        assert inspect(self.row).persistent == False, "Defaults apply only to new rows"
+        assert inspect(self.row).persistent == False, "System Error: Defaults apply only to new rows, row is not new"
         defaults: dict = {}
         defaults_skipped = ""
         mapper = inspect(self.row).mapper
         class_rules = rule_bank_withdraw.rules_of_class(logic_row=self)
 
-        # massive bug... we have 2 Order LogicRows for the same Order from the 2 items... first adjustment is therefore lost
         if not hasattr(self.row, 'defaults_applied'):  # self.row.AmountTotal == Decimal('101'):
-            # setattr(self.row, 'AmountTotal', Decimal('0'))
             setattr(self.row, 'defaults_applied', True)
             if self.name == "Order":
                 debug_string = 'good breakpoint'
@@ -923,11 +930,6 @@ class LogicRow:
                         if each_column.name == each_aggregate._derive.name:
                             default = self.get_default_for_type(each_column, defaults_skipped, '0')
                             defaults[each_column.name] = default
-                if False and each_column.name == 'AmountTotal' and getattr(self.row, each_column.name) != 0:
-                    debug_stop = "convenient break"  # serious issue: Adjustment logic chaining deferred means this loses good sums
-                    attr = mapper.get_property_by_column(each_column)
-                    default = self.get_default_for_type(each_column, defaults_skipped, '0')
-                    defaults[attr.key] = default
                 pass
 
             defaults_applied = ""
@@ -943,7 +945,7 @@ class LogicRow:
     def _eager_defaults(self):
         """called by insert() to set column server defaults for nulls, constants only
 
-        logs attrs defaulted (todo - verify)
+        logs attrs defaulted
         thanks to Elmer de Looff: https://variable-scope.com/posts/setting-eager-defaults-for-sqlalchemy-orm-models
         """
 
@@ -964,39 +966,8 @@ class LogicRow:
                             attr = mapper.get_property_by_column(each_column)
                             do_defaults = True  # for debug
                             if do_defaults:
-                                if isinstance(each_column.type, sqlalchemy.sql.sqltypes.Integer):
-                                    default = int(default_str)
-                                    if isinstance(each_column.type, sqlalchemy.sql.sqltypes.Numeric):
-                                        default = int(default_str)
-                                elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.String):
-                                    default = default_str  # it's not quoted
-                                elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Float):
-                                    default = float(default_str)
-                                elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.DECIMAL):
-                                    default = Decimal(default)
-                                # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Boolean):
-                                # default = bool(default_str)
-                                elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.DateTime):
-                                    if default == "CURRENT_TIMESTAMP":
-                                        default = date.today()
-                                    else:
-                                        defaults_skipped += f'{each_column.name}[{each_column.type} (unexpected default: {default})] '
-                                        default = None
-                                elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Date):
-                                    if default == "CURRENT_TIMESTAMP":
-                                        default = date.today()
-                                    else:
-                                        defaults_skipped += f'{each_column.name}[{each_column.type} (unexpected default: {default})] '
-                                        default = None
-                                # elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Binary):
-                                #    default = default
-                                else:
-                                    default = None
-                                    # self.log(f'Warning - default ignored for {self.name}.{each_column.name}: {each_column.type}')
-                                    defaults_skipped += f'{each_column.name}[{each_column.type} (not handled)] '
-                            else:
                                 default = self.get_default_for_type(each_column, defaults_skipped, default_str)
-                            defaults[attr.key] = default
+                                defaults[attr.key] = default
             except Exception as ex:
                 defaults_skipped += f'{each_column.name}[{each_column.type}] (ex: {ex}) '
 
@@ -1012,7 +983,7 @@ class LogicRow:
                 default_msg += f"-- skipped: {defaults_skipped}"
             self.log(f'{default_msg}')
 
-        self._aggregate_defaults()
+        self._aggregate_defaults()  # this addresses add_order / Order first case.
 
         return
 
