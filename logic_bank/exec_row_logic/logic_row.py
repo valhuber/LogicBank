@@ -856,6 +856,14 @@ class LogicRow:
     @staticmethod
     def get_default_for_type(each_column, defaults_skipped, default_str):
         default = default_str
+        try:
+            if default_str is None:
+                default_str = "0"
+            default = each_column.type.python_type(default_str)
+            return default
+        except:
+            pass
+        #breakpoint()
         if isinstance(each_column.type, sqlalchemy.sql.sqltypes.Integer):
             default = int(default_str)
             if isinstance(each_column.type, sqlalchemy.sql.sqltypes.Numeric):

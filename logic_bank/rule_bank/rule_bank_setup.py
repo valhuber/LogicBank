@@ -10,12 +10,14 @@ from logic_bank.rule_bank.rule_bank import RuleBank
 from logic_bank.rule_bank import rule_bank_withdraw
 from logic_bank.exec_trans_logic.listeners import before_flush, before_commit, after_flush
 from logic_bank.rule_type import abstractrule
+from logic_bank.exceptions import LBCircularDependencyException
 from sqlalchemy.orm import session
 from sqlalchemy.orm import mapper
 import logging
 
 __version__ = "01.20.19"  # dflts, missing attrs excp with all excps, fail-save rules, full excp content, w/ fix, singleton
 
+logic_logger = logging.getLogger("logic_logger")
 
 def setup(a_session: session):
     """
@@ -139,7 +141,9 @@ def compute_formula_execution_order_for_class(class_name: str):
                         cycles += ", "
                     cycle_count += 1
                     cycles += each_formula._column
-            raise Exception("Mapped Class[" + class_name + "] blocked by circular dependencies:" + cycles)
+            for each_formula in formula_list:
+                logic_logger.debug(f"Circular dependencies in {class_name} formula: {each_formula.get_rule_text()}")
+            raise LBCircularDependencyException("Mapped Class[" + class_name + "] blocked by circular dependencies:" + cycles, formula_list)
 
 
 def compute_formula_execution_order() -> list[str]:
@@ -149,7 +153,6 @@ def compute_formula_execution_order() -> list[str]:
         list[str]: list of attributes that are missing, have cyclic dependencies, or other issues  (not excp)
     """
     global version
-    logic_logger = logging.getLogger("logic_logger")
     rules_bank = RuleBank()
 
     for each_key in rules_bank.orm_objects:
