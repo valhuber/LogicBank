@@ -2,6 +2,7 @@ import inspect
 from typing import Callable
 
 from sqlalchemy.orm.attributes import InstrumentedAttribute
+import sqlalchemy
 
 import logic_bank.exec_row_logic.logic_row as LogicRow
 from logic_bank.rule_bank.rule_bank import RuleBank
@@ -66,10 +67,19 @@ class Formula(Derivation):
             value = self._as_exp_lambda(row=logic_row.row)
         else:
             raise Exception("Internal Error - what to execute")
+        
         old_value = getattr(logic_row.row, self._column)
         if value != old_value:
             setattr(logic_row.row, self._column, value)
             logic_row.log(f'Formula {self._column}')
+        else:
+            inspector = sqlalchemy.inspect(logic_row.row)
+            mapper = inspector.mapper
+            old_value_type = str(type(old_value))
+            col_type = mapper.columns[self._column].type.python_type
+            if 'float' in old_value_type and 'Float()' not in str(col_type):
+                setattr(logic_row.row, self._column, value)
+                logic_row.log(f'Formula reset type {self._column}')
 
 
     def get_referenced_attributes(self) -> list[str]:

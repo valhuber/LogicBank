@@ -471,9 +471,9 @@ class LogicRow:
                 return True
         return False
 
-    def _get_derived_attributes(self, aggregates_only: bool = False) -> List[InstrumentedAttribute]:
+    def _get_derived_attributes(self) -> List[InstrumentedAttribute]:
         """
-            returns a list of derived attributes
+            returns a list of derived attributes  FIXME remove old code
 
             Example:
                 def handle_all(logic_row: LogicRow):
@@ -490,8 +490,6 @@ class LogicRow:
         """
         result_derived_attrs = []
         derivations = rule_bank_withdraw.rules_of_class(self, Derivation)
-        if aggregates_only == True:
-            derivations = rule_bank_withdraw.rules_of_class(self, Aggregate)
         for each_derivation in derivations:
             result_derived_attrs.append(each_derivation._derive)
         return result_derived_attrs
@@ -868,6 +866,8 @@ class LogicRow:
             default = int(default_str)
             if isinstance(each_column.type, sqlalchemy.sql.sqltypes.Numeric):
                 default = int(default_str)
+        elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Numeric):
+            default = 0
         elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.String):
             default = default_str  # it's not quoted
         elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Float):
@@ -896,6 +896,16 @@ class LogicRow:
             defaults_skipped += f'{each_column.name}[{each_column.type} (not handled)] '
         return default
 
+    def _get_aggregate_rules(self):
+        """ return aggregate rules for this class """
+        result = []
+        class_rules = rule_bank_withdraw.rules_of_class(logic_row=self)
+        for each_rule in class_rules:
+            rule_class = each_rule.__class__.__name__
+            if (rule_class == 'Sum' or rule_class == 'Count'):
+                result.append(each_rule)
+        return result
+
 
     def _aggregate_defaults(self):
         """ Clear aggregates (sums/counts) to 0 (and generates important log entry)
@@ -919,11 +929,11 @@ class LogicRow:
             This is important - eg, can make insert Fail (Airplane: row.passenger_count <= row.capacity)
         """
 
-        assert inspect(self.row).persistent == False, "System Error: Defaults apply only to new rows, row is not new"
+        assert inspect(self.row).persistent == False, "System Error: Defaults apply only to new rows, this row is not new"
         defaults: dict = {}
         defaults_skipped = ""
         mapper = inspect(self.row).mapper
-        class_rules = rule_bank_withdraw.rules_of_class(logic_row=self)
+        aggregate_rules = self._get_aggregate_rules()
 
         if not hasattr(self.row, 'defaults_applied'):  # self.row.AmountTotal == Decimal('101'):
             setattr(self.row, 'defaults_applied', True)
@@ -932,12 +942,10 @@ class LogicRow:
             for each_column in mapper.columns:  # now clear the aggregates
                 if each_column.name == 'AmountTotal':
                     debug_string = 'good breakpoint'
-                for each_aggregate in class_rules:
-                    rule_class = each_aggregate.__class__.__name__
-                    if (rule_class == 'Sum' or rule_class == 'Count'):
-                        if each_column.name == each_aggregate._derive.name:
-                            default = self.get_default_for_type(each_column, defaults_skipped, '0')
-                            defaults[each_column.name] = default
+                for each_aggregate in aggregate_rules:
+                    if each_column.name == each_aggregate._derive.name:
+                        default = self.get_default_for_type(each_column, defaults_skipped, '0')
+                        defaults[each_column.name] = default
                 pass
 
             defaults_applied = ""

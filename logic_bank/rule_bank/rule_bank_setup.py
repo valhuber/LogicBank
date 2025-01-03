@@ -15,7 +15,7 @@ from sqlalchemy.orm import session
 from sqlalchemy.orm import mapper
 import logging
 
-__version__ = "01.20.19"  # dflts, missing attrs excp with all excps, fail-save rules, full excp content, w/ fix, singleton
+__version__ = "01.20.20"  # dflts Numeric, missing attrs excp with all excps, fail-save rules, full excp content, w/ fix, singleton
 
 logic_logger = logging.getLogger("logic_logger")
 
@@ -141,8 +141,8 @@ def compute_formula_execution_order_for_class(class_name: str):
                         cycles += ", "
                     cycle_count += 1
                     cycles += each_formula._column
-            for each_formula in formula_list:
-                logic_logger.debug(f"Circular dependencies in {class_name} formula: {each_formula.get_rule_text()}")
+            for each_formula in formula_list:  # TODO can there be >1 formula, etc...
+                logic_logger.warning(f"Circular dependencies in {class_name} formula: {each_formula.get_rule_text()}")
             raise LBCircularDependencyException("Mapped Class[" + class_name + "] blocked by circular dependencies:" + cycles, formula_list)
 
 
