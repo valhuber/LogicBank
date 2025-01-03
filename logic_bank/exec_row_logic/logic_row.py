@@ -902,7 +902,7 @@ class LogicRow:
         class_rules = rule_bank_withdraw.rules_of_class(logic_row=self)
         for each_rule in class_rules:
             rule_class = each_rule.__class__.__name__
-            if (rule_class == 'Sum' or rule_class == 'Count'):
+            if rule_class == 'Sum' or rule_class == 'Count':
                 result.append(each_rule)
         return result
 
@@ -935,7 +935,7 @@ class LogicRow:
         mapper = inspect(self.row).mapper
         aggregate_rules = self._get_aggregate_rules()
 
-        if not hasattr(self.row, 'defaults_applied'):  # self.row.AmountTotal == Decimal('101'):
+        if not hasattr(self.row, 'defaults_applied'):  #  be sure *not* to overwrite adjusted aggregates
             setattr(self.row, 'defaults_applied', True)
             if self.name == "Order":
                 debug_string = 'good breakpoint'
