@@ -58,7 +58,7 @@ by_rules = True  # True => use rules, False => use legacy hand code (for compari
 rule_list = None
 db = None
 if by_rules:
-    LogicBank.activate(session=session, activator=declare_logic)
+    LogicBank.activate(session=session, activator=declare_logic, aggregate_defaults=True)
 else:
     legacy_setup.setup(session)  # ignore test asserts that fail due to (unimplemented) counts (else ok)
 

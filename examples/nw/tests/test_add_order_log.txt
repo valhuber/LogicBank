@@ -1,0 +1,305 @@
+/Users/val/dev/LogicBank/venv/bin/python /Users/val/dev/LogicBank/examples/nw/tests/test_add_order.py 
+
+Started from cmd line - launch unittest and exit
+
+Started from unittest: examples.nw.tests.test_add_order
+
+********************************
+  IMPORTANT - copy_gold_over_db: copy db/database.db from db/database-gold.db in /Users/val/dev/LogicBank/examples/nw/nw/db/
+            - from -- tests/__init__.py#copy_gold_over_db():  at: 2025-01-01 13:07:47.195934
+********************************
+/Users/val/dev/LogicBank/examples/nw/db/models.py:296: SAWarning: implicitly coercing SELECT object to scalar subquery; please use the .scalar_subquery() method to produce a scalar subquery.
+  Customer.total_ordered_sql = column_property(
+/Users/val/dev/LogicBank/examples/nw/db/models.py:299: SAWarning: implicitly coercing SELECT object to scalar subquery; please use the .scalar_subquery() method to produce a scalar subquery.
+  Employee.order_count_sql = column_property(
+
+
+*********************
+logic/__init__.py#<module>(): BEGIN - setup logging, connect to db, register listeners
+*********************
+
+The following rules have been loaded - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+Rule Bank[0x1044370d0] (loaded 2025-01-01 13:07:47.251948) - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+Mapped Class[Customer] rules: - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+  Constraint Function: None  - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.Customer'>.Balance as Sum(Order.AmountTotal Where where=lambda row: row.ShippedDate is None)  # *not* a sql select sum... - <function declare_logic.<locals>.<lambda> at 0x1044593a0>) - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.Customer'>.UnpaidOrderCount as Count(<class 'examples.nw.db.models.Order'> Where where=lambda row: row.ShippedDate is None)  # *not* a sql select sum... - <function declare_logic.<locals>.<lambda> at 0x104535a80>) - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.Customer'>.OrderCount as Count(<class 'examples.nw.db.models.Order'> Where  - None) - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+Mapped Class[Order] rules: - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.Order'>.AmountTotal as Sum(OrderDetail.Amount Where  - None) - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+  RowEvent Order.congratulate_sales_rep()  - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+Mapped Class[OrderDetail] rules: - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.OrderDetail'>.Amount as Formula (-1): Rule.formula(derive=OrderDetail.Amount, as_expres [...] - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.OrderDetail'>.UnitPrice as Copy(ProductOrdered.UnitPrice) - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.OrderDetail'>.ShippedDate as Formula (-1): row.OrderHeader.ShippedDate - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+Mapped Class[Department] rules: - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.Department'>.SalaryTotal as Sum(Employee.Salary Where  - None) - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.Department'>.OnLoanCount as Count(<class 'examples.nw.db.models.Employee'> Where  - None) - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.Department'>.WorksForCount as Count(<class 'examples.nw.db.models.Employee'> Where  - None) - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+Mapped Class[Product] rules: - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.Product'>.UnitsShipped as Sum(OrderDetail.Quantity Where row.ShippedDate is not None - row.ShippedDate is not None) - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.Product'>.UnitsInStock as Formula (-1): <function> - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+Mapped Class[OrderClass] rules: - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+  Constraint Function: None  - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+Mapped Class[Employee] rules: - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+  Constraint Function: None  - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.Employee'>.order_count as Count(<class 'examples.nw.db.models.Order'> Where  - None) - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+  Constraint Function: <function declare_logic.<locals>.raise_over_20_percent at 0x104537ce0>  - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+  RowEvent Employee.audit_by_event()  - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+  NW Copy to: EmployeeAudit - 2025-01-01 13:07:47,335 - logic_logger - DEBUG
+
+The following attributes have been referenced
+ - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..Customer.Balance: constraint - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..Customer.CreditLimit: constraint - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..Customer.Balance: aggregate derivation - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..Order.ShippedDate: aggregate where clause - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..Order.AmountTotal: sum derived from - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..Customer.UnpaidOrderCount: aggregate derivation - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..Order.ShippedDate: aggregate where clause - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..Customer.OrderCount: aggregate derivation - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..Order.AmountTotal: aggregate derivation - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..OrderDetail.Amount: sum derived from - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..OrderDetail.UnitPrice: - formula - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..OrderDetail.Quantity: - formula - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..OrderDetail.UnitPrice: parent copy derivation - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..Product.UnitPrice: parent copy from - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..OrderDetail.OrderHeader.ShippedDate: - formula - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..Department.SalaryTotal: aggregate derivation - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..Employee.Salary: sum derived from - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..Department.OnLoanCount: aggregate derivation - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..Department.WorksForCount: aggregate derivation - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..Product.UnitsShipped: aggregate derivation - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..OrderDetail.ShippedDate: aggregate where clause - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..OrderDetail.Quantity: sum derived from - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..Product.UnitsInStock: - formula - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..Product.UnitsShipped: - formula - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..OrderClass.Id: constraint - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..Employee.IsCommissioned: constraint - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..Employee.order_count: constraint - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..Employee.order_count: aggregate derivation - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..Employee.Salary: constraint - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+..Employee.Salary: constraint - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+
+The following rules have been activated - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+Rule Bank[0x1044370d0] (loaded 2025-01-01 13:07:47.251948) - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+Mapped Class[Customer] rules: - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+  Constraint Function: None  - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.Customer'>.Balance as Sum(Order.AmountTotal Where where=lambda row: row.ShippedDate is None)  # *not* a sql select sum... - <function declare_logic.<locals>.<lambda> at 0x1044593a0>) - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.Customer'>.UnpaidOrderCount as Count(<class 'examples.nw.db.models.Order'> Where where=lambda row: row.ShippedDate is None)  # *not* a sql select sum... - <function declare_logic.<locals>.<lambda> at 0x104535a80>) - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.Customer'>.OrderCount as Count(<class 'examples.nw.db.models.Order'> Where  - None) - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+Mapped Class[Order] rules: - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.Order'>.AmountTotal as Sum(OrderDetail.Amount Where  - None) - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+  RowEvent Order.congratulate_sales_rep()  - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+Mapped Class[OrderDetail] rules: - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.OrderDetail'>.Amount as Formula (1): Rule.formula(derive=OrderDetail.Amount, as_expres [...] - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.OrderDetail'>.UnitPrice as Copy(ProductOrdered.UnitPrice) - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.OrderDetail'>.ShippedDate as Formula (2): row.OrderHeader.ShippedDate - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+Mapped Class[Department] rules: - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.Department'>.SalaryTotal as Sum(Employee.Salary Where  - None) - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.Department'>.OnLoanCount as Count(<class 'examples.nw.db.models.Employee'> Where  - None) - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.Department'>.WorksForCount as Count(<class 'examples.nw.db.models.Employee'> Where  - None) - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+Mapped Class[Product] rules: - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.Product'>.UnitsShipped as Sum(OrderDetail.Quantity Where row.ShippedDate is not None - row.ShippedDate is not None) - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.Product'>.UnitsInStock as Formula (1): <function> - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+Mapped Class[OrderClass] rules: - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+  Constraint Function: None  - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+Mapped Class[Employee] rules: - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+  Constraint Function: None  - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+  Derive <class 'examples.nw.db.models.Employee'>.order_count as Count(<class 'examples.nw.db.models.Order'> Where  - None) - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+  Constraint Function: <function declare_logic.<locals>.raise_over_20_percent at 0x104537ce0>  - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+  RowEvent Employee.audit_by_event()  - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+  NW Copy to: EmployeeAudit - 2025-01-01 13:07:47,336 - logic_logger - DEBUG
+Logic Bank 01.20.18 - 28 rules loaded - 2025-01-01 13:07:47,336 - logic_logger - INFO
+
+
+*********************
+logic/__init__.py#<module>(): END - connected, session created, listeners registered
+*********************
+
+**************** add_python_path BEGIN		calling file: /Users/val/dev/LogicBank/examples/nw/tests/test_add_order.py
+
+Run Environment info...
+
+Current Working Directory: /Users/val/dev/LogicBank/examples/nw/tests
+
+sys.path: (Python imports)
+/Users/val/dev/LogicBank/examples/nw/tests
+/Users/val/dev/LogicBank
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_display
+/Library/Frameworks/Python.framework/Versions/3.11/lib/python311.zip
+/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11
+/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/lib-dynload
+/Users/val/dev/LogicBank/venv/lib/python3.11/site-packages
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_matplotlib_backend
+/Applications/PyCharm.app/Contents/plugins/python-ce/helpers/pycharm_plotly_backend
+
+From: /Users/val/dev/LogicBank/examples/nw/tests/test_add_order.py
+
+Using Python: 3.11.2 (v3.11.2:878ead1ac1, Feb  7 2023, 10:02:41) [Clang 13.0.0 (clang-1300.0.29.30)]
+
+At: 2025-01-01 13:07:47.187467
+
+fix path: NOT Fixing path (default PyCharm, set in VSC Launch Config)
+
+**************** add_python_path END
+
+
+
+********************************
+  IMPORTANT - copy_gold_over_db: copy db/database.db from db/database-gold.db in /Users/val/dev/LogicBank/examples/nw/nw/db/
+            - from -- tests/__init__.py#copy_gold_over_db():  at: 2025-01-01 13:07:47.341854
+********************************
+
+
+**********************
+** Setup complete - test execution begins for: /Users/val/dev/LogicBank/examples/nw/tests/test_add_order.py
+** Started: 2025-01-01 13:07:47.342274
+** Following log best viewed without word wrap
+**********************
+
+Logic Phase:		ROW LOGIC		(session=0x104436e90) (sqlalchemy before_flush)			 - 2025-01-01 13:07:47,346 - logic_logger - INFO
+..OrderDetail[None] {Insert - client} Id: None, OrderId: None, ProductId: 1, UnitPrice: 18, Quantity: 1, Discount: 0, Amount: 0, ShippedDate: None  row: 0x10455ec90  session: 0x104436e90  ins_upd_dlt: ins - 2025-01-01 13:07:47,346 - logic_logger - INFO
+..OrderDetail[None] {copy_rules for role: ProductOrdered - UnitPrice} Id: None, OrderId: None, ProductId: 1, UnitPrice: 18.00, Quantity: 1, Discount: 0, Amount: 0, ShippedDate: None  row: 0x10455ec90  session: 0x104436e90  ins_upd_dlt: ins - 2025-01-01 13:07:47,348 - logic_logger - INFO
+..OrderDetail[None] {Formula Amount} Id: None, OrderId: None, ProductId: 1, UnitPrice: 18.00, Quantity: 1, Discount: 0, Amount: 18.00, ShippedDate: None  row: 0x10455ec90  session: 0x104436e90  ins_upd_dlt: ins - 2025-01-01 13:07:47,348 - logic_logger - INFO
+....Order[None] {Adjustment logic chaining deferred for this parent parent do_defer_adjustment: True, is_parent_submitted: True, is_parent_row_processed: False, OrderHeader} Id: None, CustomerId: ALFKI, EmployeeId: 6, OrderDate: None, RequiredDate: None, ShippedDate: None, ShipVia: None, Freight: 1, ShipName: None, ShipAddress: None, ShipCity: Richmond, ShipRegion: None, ShipPostalCode: None, ShipCountry: None, AmountTotal:  [0-->] 18.00  row: 0x1044fbad0  session: 0x104436e90  ins_upd_dlt: * - 2025-01-01 13:07:47,348 - logic_logger - INFO
+..Order[None] {Insert - client} Id: None, CustomerId: ALFKI, EmployeeId: 6, OrderDate: None, RequiredDate: None, ShippedDate: None, ShipVia: None, Freight: 1, ShipName: None, ShipAddress: None, ShipCity: Richmond, ShipRegion: None, ShipPostalCode: None, ShipCountry: None, AmountTotal: 18.00  row: 0x1044fbad0  session: 0x104436e90  ins_upd_dlt: ins - 2025-01-01 13:07:47,348 - logic_logger - INFO
+....Customer[ALFKI] {Update - Adjusting Customer: Balance, UnpaidOrderCount, OrderCount} Id: ALFKI, CompanyName: Alfreds Futterkiste, ContactName: Maria Anders, ContactTitle: Sales Representative, Address: Obere Str. 57, City: Berlin, Region: Western Europe, PostalCode: 12209, Country: Germany, Phone: 030-0074321, Fax: 030-0076545, Balance:  [1016.00-->] 1034.00, CreditLimit: 2000.00, OrderCount:  [9-->] 10, UnpaidOrderCount:  [4-->] 5, total_ordered_sql: 4652.20  row: 0x1045e1c10  session: 0x104436e90  ins_upd_dlt: upd - 2025-01-01 13:07:47,351 - logic_logger - INFO
+....Employee[6] {Update - Adjusting SalesRep: order_count} Id: 6, LastName: Suyama, FirstName: Michael, Title: Sales Representative, TitleOfCourtesy: Mr., BirthDate: 1995-07-02, HireDate: 2025-10-17, Address: Coventry House Miner Rd., City: London, Region: British Isles, PostalCode: EC2 7JR, Country: UK, HomePhone: (71) 555-7773, Extension: 428, Photo: None, Notes: Michael is a graduate of Sussex University (MA, economics, 1983) and the University of California at Los Angeles (MBA, marketing, 1986).  He has also taken the courses 'Multi-Cultural Selling' and 'Time Management for the Sales Professional.'  He is fluent in Japanese and can read and write French, Portuguese, and Spanish., ReportsTo: 5, PhotoPath: http://accweb/emmployees/davolio.bmp, IsCommissioned: 1, Salary: 96000.00, WorksFor: None, OnLoan: None, order_count_sql:  [0-->] 1  row: 0x1045ef9d0  session: 0x104436e90  ins_upd_dlt: upd - 2025-01-01 13:07:47,351 - logic_logger - INFO
+..OrderDetail[None] {Insert - client} Id: None, OrderId: None, ProductId: 2, UnitPrice: 18, Quantity: 20000, Discount: 0, Amount: 0, ShippedDate: None  row: 0x104539850  session: 0x104436e90  ins_upd_dlt: ins - 2025-01-01 13:07:47,352 - logic_logger - INFO
+..OrderDetail[None] {copy_rules for role: ProductOrdered - UnitPrice} Id: None, OrderId: None, ProductId: 2, UnitPrice: 19.00, Quantity: 20000, Discount: 0, Amount: 0, ShippedDate: None  row: 0x104539850  session: 0x104436e90  ins_upd_dlt: ins - 2025-01-01 13:07:47,353 - logic_logger - INFO
+..OrderDetail[None] {Formula Amount} Id: None, OrderId: None, ProductId: 2, UnitPrice: 19.00, Quantity: 20000, Discount: 0, Amount: 380000.00, ShippedDate: None  row: 0x104539850  session: 0x104436e90  ins_upd_dlt: ins - 2025-01-01 13:07:47,353 - logic_logger - INFO
+....Order[None] {Update - Adjusting OrderHeader: AmountTotal} Id: None, CustomerId: ALFKI, EmployeeId: 6, OrderDate: None, RequiredDate: None, ShippedDate: None, ShipVia: None, Freight: 1, ShipName: None, ShipAddress: None, ShipCity: Richmond, ShipRegion: None, ShipPostalCode: None, ShipCountry: None, AmountTotal:  [18.00-->] 380018.00  row: 0x1044fbad0  session: 0x104436e90  ins_upd_dlt: upd - 2025-01-01 13:07:47,353 - logic_logger - INFO
+......Customer[ALFKI] {Update - Adjusting Customer: Balance} Id: ALFKI, CompanyName: Alfreds Futterkiste, ContactName: Maria Anders, ContactTitle: Sales Representative, Address: Obere Str. 57, City: Berlin, Region: Western Europe, PostalCode: 12209, Country: Germany, Phone: 030-0074321, Fax: 030-0076545, Balance:  [1034.00-->] 381034.00, CreditLimit: 2000.00, OrderCount: 10, UnpaidOrderCount: 5, total_ordered_sql: 4652.20  row: 0x1045e1c10  session: 0x104436e90  ins_upd_dlt: upd - 2025-01-01 13:07:47,354 - logic_logger - INFO
+......Customer[ALFKI] {Constraint Failure: balance (381034.00) exceeds credit (2000.00)} Id: ALFKI, CompanyName: Alfreds Futterkiste, ContactName: Maria Anders, ContactTitle: Sales Representative, Address: Obere Str. 57, City: Berlin, Region: Western Europe, PostalCode: 12209, Country: Germany, Phone: 030-0074321, Fax: 030-0076545, Balance:  [1034.00-->] 381034.00, CreditLimit: 2000.00, OrderCount: 10, UnpaidOrderCount: 5, total_ordered_sql: 4652.20  row: 0x1045e1c10  session: 0x104436e90  ins_upd_dlt: upd - 2025-01-01 13:07:47,354 - logic_logger - INFO
+
+Rules Fired:		## - 2025-01-01 13:07:47,354 - logic_logger - INFO
+  Customer		## - 2025-01-01 13:07:47,354 - logic_logger - INFO
+    1. Derive <class 'examples.nw.db.models.Customer'>.OrderCount as Count(<class 'examples.nw.db.models.Order'> Where  - None)		## - 2025-01-01 13:07:47,354 - logic_logger - INFO
+    2. Constraint Function: None 		## - 2025-01-01 13:07:47,354 - logic_logger - INFO
+    3. Derive <class 'examples.nw.db.models.Customer'>.UnpaidOrderCount as Count(<class 'examples.nw.db.models.Order'> Where where=lambda row: row.ShippedDate is None)  # *not* a sql select sum... - <function declare_logic.<locals>.<lambda> at 0x104535a80>)		## - 2025-01-01 13:07:47,354 - logic_logger - INFO
+    4. Derive <class 'examples.nw.db.models.Customer'>.Balance as Sum(Order.AmountTotal Where where=lambda row: row.ShippedDate is None)  # *not* a sql select sum... - <function declare_logic.<locals>.<lambda> at 0x1044593a0>)		## - 2025-01-01 13:07:47,354 - logic_logger - INFO
+  Department		## - 2025-01-01 13:07:47,354 - logic_logger - INFO
+    5. Derive <class 'examples.nw.db.models.Department'>.WorksForCount as Count(<class 'examples.nw.db.models.Employee'> Where  - None)		## - 2025-01-01 13:07:47,354 - logic_logger - INFO
+    6. Derive <class 'examples.nw.db.models.Department'>.OnLoanCount as Count(<class 'examples.nw.db.models.Employee'> Where  - None)		## - 2025-01-01 13:07:47,354 - logic_logger - INFO
+    7. Derive <class 'examples.nw.db.models.Department'>.SalaryTotal as Sum(Employee.Salary Where  - None)		## - 2025-01-01 13:07:47,354 - logic_logger - INFO
+  Employee		## - 2025-01-01 13:07:47,354 - logic_logger - INFO
+    8. Derive <class 'examples.nw.db.models.Employee'>.order_count as Count(<class 'examples.nw.db.models.Order'> Where  - None)		## - 2025-01-01 13:07:47,354 - logic_logger - INFO
+  Order		## - 2025-01-01 13:07:47,354 - logic_logger - INFO
+    9. Derive <class 'examples.nw.db.models.Order'>.AmountTotal as Sum(OrderDetail.Amount Where  - None)		## - 2025-01-01 13:07:47,354 - logic_logger - INFO
+  OrderDetail		## - 2025-01-01 13:07:47,354 - logic_logger - INFO
+    10. Derive <class 'examples.nw.db.models.OrderDetail'>.ShippedDate as Formula (2): row.OrderHeader.ShippedDate		## - 2025-01-01 13:07:47,354 - logic_logger - INFO
+    11. Derive <class 'examples.nw.db.models.OrderDetail'>.Amount as Formula (1): Rule.formula(derive=OrderDetail.Amount, as_expres [...]		## - 2025-01-01 13:07:47,354 - logic_logger - INFO
+    12. Derive <class 'examples.nw.db.models.OrderDetail'>.UnitPrice as Copy(ProductOrdered.UnitPrice)		## - 2025-01-01 13:07:47,354 - logic_logger - INFO
+  Product		## - 2025-01-01 13:07:47,354 - logic_logger - INFO
+    13. Derive <class 'examples.nw.db.models.Product'>.UnitsShipped as Sum(OrderDetail.Quantity Where row.ShippedDate is not None - row.ShippedDate is not None)		## - 2025-01-01 13:07:47,354 - logic_logger - INFO
+Expected constraint: balance (381034.00) exceeds credit (2000.00)
+
+tests/test_add_order.py#test_run(): huge order failed credit check as expected.  Now trying non-commissioned order, should also fail...
+
+Logic Phase:		ROW LOGIC		(session=0x104436e90) (sqlalchemy before_flush)			 - 2025-01-01 13:07:47,355 - logic_logger - INFO
+..Order[None] {Insert - client} Id: None, CustomerId: ALFKI, EmployeeId: 2, OrderDate: None, RequiredDate: None, ShippedDate: None, ShipVia: None, Freight: 1, ShipName: None, ShipAddress: None, ShipCity: Richmond, ShipRegion: None, ShipPostalCode: None, ShipCountry: None, AmountTotal: 0  row: 0x104456990  session: 0x104436e90  ins_upd_dlt: ins - 2025-01-01 13:07:47,355 - logic_logger - INFO
+....Customer[ALFKI] {Update - Adjusting Customer: UnpaidOrderCount, OrderCount} Id: ALFKI, CompanyName: Alfreds Futterkiste, ContactName: Maria Anders, ContactTitle: Sales Representative, Address: Obere Str. 57, City: Berlin, Region: Western Europe, PostalCode: 12209, Country: Germany, Phone: 030-0074321, Fax: 030-0076545, Balance: 1016.00, CreditLimit: 2000.00, OrderCount:  [9-->] 10, UnpaidOrderCount:  [4-->] 5, total_ordered_sql: 4652.20  row: 0x1045e1c10  session: 0x104436e90  ins_upd_dlt: upd - 2025-01-01 13:07:47,357 - logic_logger - INFO
+....Employee[2] {Update - Adjusting SalesRep: order_count} Id: 2, LastName: Fuller, FirstName: Andrew, Title: Vice President, Sales, TitleOfCourtesy: Dr., BirthDate: 1984-02-19, HireDate: 2024-08-14, Address: 908 W. Capital Way, City: Tacoma, Region: North America, PostalCode: 98401, Country: USA, HomePhone: (206) 555-9482, Extension: 3457, Photo: None, Notes: Andrew received his BTS commercial in 1974 and a Ph.D. in international marketing from the University of Dallas in 1981.  He is fluent in French and Italian and reads German.  He joined the company as a sales representative, was promoted to sales manager in January 1992 and to vice president of sales in March 1993.  Andrew is a member of the Sales Management Roundtable, the Seattle Chamber of Commerce, and the Pacific Rim Importers Association., ReportsTo: None, PhotoPath: http://accweb/emmployees/fuller.bmp, IsCommissioned: 0, Salary: 92000.00, WorksFor: 1, OnLoan: None, order_count_sql:  [0-->] 1  row: 0x104612c50  session: 0x104436e90  ins_upd_dlt: upd - 2025-01-01 13:07:47,358 - logic_logger - INFO
+....Employee[2] {Constraint Failure: Fuller is not commissioned (0) - cannot have orders (1)} Id: 2, LastName: Fuller, FirstName: Andrew, Title: Vice President, Sales, TitleOfCourtesy: Dr., BirthDate: 1984-02-19, HireDate: 2024-08-14, Address: 908 W. Capital Way, City: Tacoma, Region: North America, PostalCode: 98401, Country: USA, HomePhone: (206) 555-9482, Extension: 3457, Photo: None, Notes: Andrew received his BTS commercial in 1974 and a Ph.D. in international marketing from the University of Dallas in 1981.  He is fluent in French and Italian and reads German.  He joined the company as a sales representative, was promoted to sales manager in January 1992 and to vice president of sales in March 1993.  Andrew is a member of the Sales Management Roundtable, the Seattle Chamber of Commerce, and the Pacific Rim Importers Association., ReportsTo: None, PhotoPath: http://accweb/emmployees/fuller.bmp, IsCommissioned: 0, Salary: 92000.00, WorksFor: 1, OnLoan: None, order_count_sql:  [0-->] 1  row: 0x104612c50  session: 0x104436e90  ins_upd_dlt: upd - 2025-01-01 13:07:47,359 - logic_logger - INFO
+
+Rules Fired:		## - 2025-01-01 13:07:47,359 - logic_logger - INFO
+  Customer		## - 2025-01-01 13:07:47,359 - logic_logger - INFO
+    1. Derive <class 'examples.nw.db.models.Customer'>.OrderCount as Count(<class 'examples.nw.db.models.Order'> Where  - None)		## - 2025-01-01 13:07:47,359 - logic_logger - INFO
+    2. Derive <class 'examples.nw.db.models.Customer'>.UnpaidOrderCount as Count(<class 'examples.nw.db.models.Order'> Where where=lambda row: row.ShippedDate is None)  # *not* a sql select sum... - <function declare_logic.<locals>.<lambda> at 0x104535a80>)		## - 2025-01-01 13:07:47,359 - logic_logger - INFO
+    3. Derive <class 'examples.nw.db.models.Customer'>.Balance as Sum(Order.AmountTotal Where where=lambda row: row.ShippedDate is None)  # *not* a sql select sum... - <function declare_logic.<locals>.<lambda> at 0x1044593a0>)		## - 2025-01-01 13:07:47,359 - logic_logger - INFO
+  Department		## - 2025-01-01 13:07:47,359 - logic_logger - INFO
+    4. Derive <class 'examples.nw.db.models.Department'>.WorksForCount as Count(<class 'examples.nw.db.models.Employee'> Where  - None)		## - 2025-01-01 13:07:47,359 - logic_logger - INFO
+    5. Derive <class 'examples.nw.db.models.Department'>.SalaryTotal as Sum(Employee.Salary Where  - None)		## - 2025-01-01 13:07:47,359 - logic_logger - INFO
+    6. Derive <class 'examples.nw.db.models.Department'>.OnLoanCount as Count(<class 'examples.nw.db.models.Employee'> Where  - None)		## - 2025-01-01 13:07:47,359 - logic_logger - INFO
+  Employee		## - 2025-01-01 13:07:47,359 - logic_logger - INFO
+    7. Derive <class 'examples.nw.db.models.Employee'>.order_count as Count(<class 'examples.nw.db.models.Order'> Where  - None)		## - 2025-01-01 13:07:47,359 - logic_logger - INFO
+    8. Constraint Function: None 		## - 2025-01-01 13:07:47,359 - logic_logger - INFO
+
+tests/test_add_order.py#test_run(): non-commissioned order failed constraint as expected.  Now trying invalid customer, should fail...
+
+Logic Phase:		ROW LOGIC		(session=0x104436e90) (sqlalchemy before_flush)			 - 2025-01-01 13:07:47,360 - logic_logger - INFO
+..Order[None] {Insert - client} Id: None, CustomerId: XX INVALID CUSTOMER, EmployeeId: 6, OrderDate: None, RequiredDate: None, ShippedDate: None, ShipVia: None, Freight: 1, ShipName: None, ShipAddress: None, ShipCity: Richmond, ShipRegion: None, ShipPostalCode: None, ShipCountry: None, AmountTotal: 0  row: 0x10419e490  session: 0x104436e90  ins_upd_dlt: ins - 2025-01-01 13:07:47,360 - logic_logger - INFO
+..Order[None] {Missing Parent: Customer} Id: None, CustomerId: XX INVALID CUSTOMER, EmployeeId: 6, OrderDate: None, RequiredDate: None, ShippedDate: None, ShipVia: None, Freight: 1, ShipName: None, ShipAddress: None, ShipCity: Richmond, ShipRegion: None, ShipPostalCode: None, ShipCountry: None, AmountTotal: 0  row: 0x10419e490  session: 0x104436e90  ins_upd_dlt: ins - 2025-01-01 13:07:47,360 - logic_logger - INFO
+Missing Parent: Customer
+
+tests/test_add_order.py#test_run(): invalid customer failed as expected.  Now trying valid order, should succeed...
+
+Logic Phase:		ROW LOGIC		(session=0x104436e90) (sqlalchemy before_flush)			 - 2025-01-01 13:07:47,361 - logic_logger - INFO
+..Order[None] {Insert - client} Id: None, CustomerId: ALFKI, EmployeeId: 6, OrderDate: None, RequiredDate: None, ShippedDate: None, ShipVia: None, Freight: 1, ShipName: None, ShipAddress: None, ShipCity: Richmond, ShipRegion: None, ShipPostalCode: None, ShipCountry: None, AmountTotal: 0  row: 0x10455f010  session: 0x104436e90  ins_upd_dlt: ins - 2025-01-01 13:07:47,361 - logic_logger - INFO
+....Customer[ALFKI] {Update - Adjusting Customer: UnpaidOrderCount, OrderCount} Id: ALFKI, CompanyName: Alfreds Futterkiste, ContactName: Maria Anders, ContactTitle: Sales Representative, Address: Obere Str. 57, City: Berlin, Region: Western Europe, PostalCode: 12209, Country: Germany, Phone: 030-0074321, Fax: 030-0076545, Balance: 1016.00, CreditLimit: 2000.00, OrderCount:  [9-->] 10, UnpaidOrderCount:  [4-->] 5, total_ordered_sql: 4652.20  row: 0x1045e1c10  session: 0x104436e90  ins_upd_dlt: upd - 2025-01-01 13:07:47,364 - logic_logger - INFO
+....Employee[6] {Update - Adjusting SalesRep: order_count} Id: 6, LastName: Suyama, FirstName: Michael, Title: Sales Representative, TitleOfCourtesy: Mr., BirthDate: 1995-07-02, HireDate: 2025-10-17, Address: Coventry House Miner Rd., City: London, Region: British Isles, PostalCode: EC2 7JR, Country: UK, HomePhone: (71) 555-7773, Extension: 428, Photo: None, Notes: Michael is a graduate of Sussex University (MA, economics, 1983) and the University of California at Los Angeles (MBA, marketing, 1986).  He has also taken the courses 'Multi-Cultural Selling' and 'Time Management for the Sales Professional.'  He is fluent in Japanese and can read and write French, Portuguese, and Spanish., ReportsTo: 5, PhotoPath: http://accweb/emmployees/davolio.bmp, IsCommissioned: 1, Salary: 96000.00, WorksFor: None, OnLoan: None, order_count_sql:  [0-->] 1  row: 0x1045ef9d0  session: 0x104436e90  ins_upd_dlt: upd - 2025-01-01 13:07:47,364 - logic_logger - INFO
+..OrderDetail[None] {Insert - client} Id: None, OrderId: None, ProductId: 1, UnitPrice: 18, Quantity: 1, Discount: 0, Amount: 0, ShippedDate: None  row: 0x104602810  session: 0x104436e90  ins_upd_dlt: ins - 2025-01-01 13:07:47,365 - logic_logger - INFO
+..OrderDetail[None] {copy_rules for role: ProductOrdered - UnitPrice} Id: None, OrderId: None, ProductId: 1, UnitPrice: 18.00, Quantity: 1, Discount: 0, Amount: 0, ShippedDate: None  row: 0x104602810  session: 0x104436e90  ins_upd_dlt: ins - 2025-01-01 13:07:47,366 - logic_logger - INFO
+..OrderDetail[None] {Formula Amount} Id: None, OrderId: None, ProductId: 1, UnitPrice: 18.00, Quantity: 1, Discount: 0, Amount: 18.00, ShippedDate: None  row: 0x104602810  session: 0x104436e90  ins_upd_dlt: ins - 2025-01-01 13:07:47,366 - logic_logger - INFO
+....Order[None] {Update - Adjusting OrderHeader: AmountTotal} Id: None, CustomerId: ALFKI, EmployeeId: 6, OrderDate: None, RequiredDate: None, ShippedDate: None, ShipVia: None, Freight: 1, ShipName: None, ShipAddress: None, ShipCity: Richmond, ShipRegion: None, ShipPostalCode: None, ShipCountry: None, AmountTotal:  [0-->] 18.00  row: 0x10455f010  session: 0x104436e90  ins_upd_dlt: upd - 2025-01-01 13:07:47,367 - logic_logger - INFO
+......Customer[ALFKI] {Update - Adjusting Customer: Balance} Id: ALFKI, CompanyName: Alfreds Futterkiste, ContactName: Maria Anders, ContactTitle: Sales Representative, Address: Obere Str. 57, City: Berlin, Region: Western Europe, PostalCode: 12209, Country: Germany, Phone: 030-0074321, Fax: 030-0076545, Balance:  [1016.00-->] 1034.00, CreditLimit: 2000.00, OrderCount: 10, UnpaidOrderCount: 5, total_ordered_sql: 4652.20  row: 0x1045e1c10  session: 0x104436e90  ins_upd_dlt: upd - 2025-01-01 13:07:47,367 - logic_logger - INFO
+..OrderDetail[None] {Insert - client} Id: None, OrderId: None, ProductId: 2, UnitPrice: 18, Quantity: 2, Discount: 0, Amount: 0, ShippedDate: None  row: 0x1046010d0  session: 0x104436e90  ins_upd_dlt: ins - 2025-01-01 13:07:47,368 - logic_logger - INFO
+..OrderDetail[None] {copy_rules for role: ProductOrdered - UnitPrice} Id: None, OrderId: None, ProductId: 2, UnitPrice: 19.00, Quantity: 2, Discount: 0, Amount: 0, ShippedDate: None  row: 0x1046010d0  session: 0x104436e90  ins_upd_dlt: ins - 2025-01-01 13:07:47,368 - logic_logger - INFO
+..OrderDetail[None] {Formula Amount} Id: None, OrderId: None, ProductId: 2, UnitPrice: 19.00, Quantity: 2, Discount: 0, Amount: 38.00, ShippedDate: None  row: 0x1046010d0  session: 0x104436e90  ins_upd_dlt: ins - 2025-01-01 13:07:47,368 - logic_logger - INFO
+....Order[None] {Update - Adjusting OrderHeader: AmountTotal} Id: None, CustomerId: ALFKI, EmployeeId: 6, OrderDate: None, RequiredDate: None, ShippedDate: None, ShipVia: None, Freight: 1, ShipName: None, ShipAddress: None, ShipCity: Richmond, ShipRegion: None, ShipPostalCode: None, ShipCountry: None, AmountTotal:  [18.00-->] 56.00  row: 0x10455f010  session: 0x104436e90  ins_upd_dlt: upd - 2025-01-01 13:07:47,368 - logic_logger - INFO
+......Customer[ALFKI] {Update - Adjusting Customer: Balance} Id: ALFKI, CompanyName: Alfreds Futterkiste, ContactName: Maria Anders, ContactTitle: Sales Representative, Address: Obere Str. 57, City: Berlin, Region: Western Europe, PostalCode: 12209, Country: Germany, Phone: 030-0074321, Fax: 030-0076545, Balance:  [1034.00-->] 1072.00, CreditLimit: 2000.00, OrderCount: 10, UnpaidOrderCount: 5, total_ordered_sql: 4652.20  row: 0x1045e1c10  session: 0x104436e90  ins_upd_dlt: upd - 2025-01-01 13:07:47,369 - logic_logger - INFO
+Logic Phase:		COMMIT LOGIC		(session=0x104436e90)   										 - 2025-01-01 13:07:47,369 - logic_logger - INFO
+....Employee[6] {Commit Event} Id: 6, LastName: Suyama, FirstName: Michael, Title: Sales Representative, TitleOfCourtesy: Mr., BirthDate: 1995-07-02, HireDate: 2025-10-17, Address: Coventry House Miner Rd., City: London, Region: British Isles, PostalCode: EC2 7JR, Country: UK, HomePhone: (71) 555-7773, Extension: 428, Photo: None, Notes: Michael is a graduate of Sussex University (MA, economics, 1983) and the University of California at Los Angeles (MBA, marketing, 1986).  He has also taken the courses 'Multi-Cultural Selling' and 'Time Management for the Sales Professional.'  He is fluent in Japanese and can read and write French, Portuguese, and Spanish., ReportsTo: 5, PhotoPath: http://accweb/emmployees/davolio.bmp, IsCommissioned: 1, Salary: 96000.00, WorksFor: None, OnLoan: None, order_count_sql:  [0-->] 1  row: 0x1045ef9d0  session: 0x104436e90  ins_upd_dlt: upd - 2025-01-01 13:07:47,369 - logic_logger - INFO
+..Order[None] {Commit Event} Id: None, CustomerId: ALFKI, EmployeeId: 6, OrderDate: None, RequiredDate: None, ShippedDate: None, ShipVia: None, Freight: 1, ShipName: None, ShipAddress: None, ShipCity: Richmond, ShipRegion: None, ShipPostalCode: None, ShipCountry: None, AmountTotal: 56.00  row: 0x10455f010  session: 0x104436e90  ins_upd_dlt: ins - 2025-01-01 13:07:47,370 - logic_logger - INFO
+/Users/val/dev/LogicBank/examples/nw/tests/test_add_order.py:40: SAWarning: Dialect sqlite+pysqlite does *not* support Decimal objects natively, and SQLAlchemy must convert from floating point - rounding errors and other issues may occur. Please consider storing Decimal numbers as strings or integers on this platform for lossless storage.
+  pre_cust = session.query(models.Customer).filter(models.Customer.Id == "ALFKI").one()
+/Users/val/dev/LogicBank/logic_bank/exec_row_logic/logic_row.py:256: SAWarning: Dialect sqlite+pysqlite does *not* support Decimal objects natively, and SQLAlchemy must convert from floating point - rounding errors and other issues may occur. Please consider storing Decimal numbers as strings or integers on this platform for lossless storage.
+  parent_row = self.session.query(parent_class).get(parent_key)
+..Order[None] {Hi, Steven, congratulate Michael on their new order} Id: None, CustomerId: ALFKI, EmployeeId: 6, OrderDate: None, RequiredDate: None, ShippedDate: None, ShipVia: None, Freight: 1, ShipName: None, ShipAddress: None, ShipCity: Richmond, ShipRegion: None, ShipPostalCode: None, ShipCountry: None, AmountTotal: 56.00  row: 0x10455f010  session: 0x104436e90  ins_upd_dlt: ins - 2025-01-01 13:07:47,370 - logic_logger - INFO
+Logic Phase:		AFTER_FLUSH LOGIC	(session=0x104436e90)   										 - 2025-01-01 13:07:47,373 - logic_logger - INFO
+
+Rules Fired:		## - 2025-01-01 13:07:47,374 - logic_logger - INFO
+  Customer		## - 2025-01-01 13:07:47,374 - logic_logger - INFO
+    1. Derive <class 'examples.nw.db.models.Customer'>.OrderCount as Count(<class 'examples.nw.db.models.Order'> Where  - None)		## - 2025-01-01 13:07:47,374 - logic_logger - INFO
+    2. Derive <class 'examples.nw.db.models.Customer'>.UnpaidOrderCount as Count(<class 'examples.nw.db.models.Order'> Where where=lambda row: row.ShippedDate is None)  # *not* a sql select sum... - <function declare_logic.<locals>.<lambda> at 0x104535a80>)		## - 2025-01-01 13:07:47,374 - logic_logger - INFO
+    3. Derive <class 'examples.nw.db.models.Customer'>.Balance as Sum(Order.AmountTotal Where where=lambda row: row.ShippedDate is None)  # *not* a sql select sum... - <function declare_logic.<locals>.<lambda> at 0x1044593a0>)		## - 2025-01-01 13:07:47,374 - logic_logger - INFO
+  Department		## - 2025-01-01 13:07:47,374 - logic_logger - INFO
+    4. Derive <class 'examples.nw.db.models.Department'>.WorksForCount as Count(<class 'examples.nw.db.models.Employee'> Where  - None)		## - 2025-01-01 13:07:47,374 - logic_logger - INFO
+    5. Derive <class 'examples.nw.db.models.Department'>.SalaryTotal as Sum(Employee.Salary Where  - None)		## - 2025-01-01 13:07:47,374 - logic_logger - INFO
+    6. Derive <class 'examples.nw.db.models.Department'>.OnLoanCount as Count(<class 'examples.nw.db.models.Employee'> Where  - None)		## - 2025-01-01 13:07:47,374 - logic_logger - INFO
+  Employee		## - 2025-01-01 13:07:47,374 - logic_logger - INFO
+    7. RowEvent Employee.audit_by_event() 		## - 2025-01-01 13:07:47,374 - logic_logger - INFO
+    8. Derive <class 'examples.nw.db.models.Employee'>.order_count as Count(<class 'examples.nw.db.models.Order'> Where  - None)		## - 2025-01-01 13:07:47,374 - logic_logger - INFO
+  Order		## - 2025-01-01 13:07:47,374 - logic_logger - INFO
+    9. Derive <class 'examples.nw.db.models.Order'>.AmountTotal as Sum(OrderDetail.Amount Where  - None)		## - 2025-01-01 13:07:47,374 - logic_logger - INFO
+    10. RowEvent Order.congratulate_sales_rep() 		## - 2025-01-01 13:07:47,375 - logic_logger - INFO
+  OrderDetail		## - 2025-01-01 13:07:47,375 - logic_logger - INFO
+    11. Derive <class 'examples.nw.db.models.OrderDetail'>.ShippedDate as Formula (2): row.OrderHeader.ShippedDate		## - 2025-01-01 13:07:47,375 - logic_logger - INFO
+    12. Derive <class 'examples.nw.db.models.OrderDetail'>.Amount as Formula (1): Rule.formula(derive=OrderDetail.Amount, as_expres [...]		## - 2025-01-01 13:07:47,375 - logic_logger - INFO
+    13. Derive <class 'examples.nw.db.models.OrderDetail'>.UnitPrice as Copy(ProductOrdered.UnitPrice)		## - 2025-01-01 13:07:47,375 - logic_logger - INFO
+  Product		## - 2025-01-01 13:07:47,375 - logic_logger - INFO
+    14. Derive <class 'examples.nw.db.models.Product'>.UnitsShipped as Sum(OrderDetail.Quantity Where row.ShippedDate is not None - row.ShippedDate is not None)		## - 2025-01-01 13:07:47,375 - logic_logger - INFO
+
+Logic Phase:		COMPLETE(session=0x104436e90))       	 - 2025-01-01 13:07:47,375 - logic_logger - INFO
+
+add_order, update completed - analyzing results..
+
+
+
+new Order Result, Order: AmountTotal [56.00-->]: 56.00, CustomerId: ALFKI, EmployeeId [6-->]: 6, Freight [1.00-->]: 1.00, Id [11081-->]: 11081, OrderDate [None-->]: None, RequiredDate [None-->]: None, ShipAddress [None-->]: None, ShipCity: Richmond, ShipCountry [None-->]: None, ShipName [None-->]: None, ShipPostalCode [None-->]: None, ShipRegion [None-->]: None, ShipVia [None-->]: None, ShippedDate [None-->]: None
+
+new Order Detail 1 Result, OrderDetail: Amount [18.00-->]: 18.00, Discount [0.0-->]: 0.0, Id [2160-->]: 2160, OrderId [11081-->]: 11081, ProductId [1-->]: 1, Quantity [1-->]: 1, ShippedDate [None-->]: None, UnitPrice [18.00-->]: 18.00
+
+new Order Detail 2 Result, OrderDetail: Amount [38.00-->]: 38.00, Discount [0.0-->]: 0.0, Id [2161-->]: 2161, OrderId [11081-->]: 11081, ProductId [2-->]: 2, Quantity [2-->]: 2, ShippedDate [None-->]: None, UnitPrice [19.00-->]: 19.00
+..Customer[ALFKI] {Correct adjusted Customer Result} Id: ALFKI, CompanyName: Alfreds Futterkiste, ContactName: Maria Anders, ContactTitle: Sales Representative, Address: Obere Str. 57, City: Berlin, Region: Western Europe, PostalCode: 12209, Country: Germany, Phone: 030-0074321, Fax: 030-0076545, Balance:  [1016.00-->] 1072.00, CreditLimit: 2000.00, OrderCount:  [9-->] 10, UnpaidOrderCount:  [4-->] 5, total_ordered_sql:  [4652.20-->] 4708.20  row: 0x1045e1c10  session: 0x104436e90  ins_upd_dlt: * - 2025-01-01 13:07:47,378 - logic_logger - INFO
+..Customer[ALFKI] {Derived balance matches sql `select sum' result: 1072.00} Id: ALFKI, CompanyName: Alfreds Futterkiste, ContactName: Maria Anders, ContactTitle: Sales Representative, Address: Obere Str. 57, City: Berlin, Region: Western Europe, PostalCode: 12209, Country: Germany, Phone: 030-0074321, Fax: 030-0076545, Balance:  [1016.00-->] 1072.00, CreditLimit: 2000.00, OrderCount:  [9-->] 10, UnpaidOrderCount:  [4-->] 5, total_ordered_sql:  [4652.20-->] 4708.20  row: 0x1045e1c10  session: 0x104436e90  ins_upd_dlt: * - 2025-01-01 13:07:47,379 - logic_logger - INFO
+
+add_order, ran to completion
+
+
+
+
+**********************
+** Test complete, SQLAlchemy session/engine closed for: /Users/val/dev/LogicBank/examples/nw/tests/test_add_order.py
+** Started: 2025-01-01 13:07:47.340014 Ended: 2025-01-01 13:07:47.379343
+**********************
+/Users/val/dev/LogicBank/logic_bank/util.py:75: SAWarning: Dialect sqlite+pysqlite does *not* support Decimal objects natively, and SQLAlchemy must convert from floating point - rounding errors and other issues may occur. Please consider storing Decimal numbers as strings or integers on this platform for lossless storage.
+  getattr(obj, prop.key)
+.
+----------------------------------------------------------------------
+Ran 1 test in 0.039s
+
+OK
+
+Process finished with exit code 0
