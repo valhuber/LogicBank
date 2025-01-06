@@ -856,9 +856,11 @@ class LogicRow:
         default = default_str
         try:
             if default_str is None:
-                default_str = "0"
-            default = each_column.type.python_type(default_str)
-            return default
+                if each_column.type.python_type is str:
+                    default = ""
+                default = each_column.type.python_type(0) 
+            else:
+                default = each_column.type.python_type(default_str)
         except:
             pass
         #breakpoint()
