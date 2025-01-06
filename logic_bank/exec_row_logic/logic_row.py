@@ -856,16 +856,21 @@ class LogicRow:
         default = default_str
         try:
             if default_str is None:
-                default_str = "0"
-            default = each_column.type.python_type(default_str)
+                if each_column.default:
+                    default = each_column.default
+                elif each_column.type.python_type is str:
+                    default = ""
+                else:
+                    default = each_column.type.python_type(0)
+            else:
+                default = each_column.type.python_type(default_str)
             return default
         except:
             pass
-        #breakpoint()
         if isinstance(each_column.type, sqlalchemy.sql.sqltypes.Integer):
             default = int(default_str)
-            if isinstance(each_column.type, sqlalchemy.sql.sqltypes.Numeric):
-                default = int(default_str)
+        if isinstance(each_column.type, sqlalchemy.sql.sqltypes.Numeric):
+            default = int(default_str)
         elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.Numeric):
             default = 0
         elif isinstance(each_column.type, sqlalchemy.sql.sqltypes.String):
@@ -977,6 +982,8 @@ class LogicRow:
                     if (default_str := getattr(each_column.server_default, "arg")) is not None:
                         if isinstance(default_str, sqlalchemy.sql.elements.TextClause):
                             default_str = default_str.text
+                            if default_str == '1':
+                                pass
                         default = default_str  # but, need to convert for type...
                         if not callable(default) and not isinstance(default, Function) and default != 'NULL':
                             attr = mapper.get_property_by_column(each_column)
