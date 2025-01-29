@@ -268,7 +268,7 @@ class LogicRow:
         parent_logic_row = LogicRow(row=parent_row, old_row=old_parent, ins_upd_dlt="*", nest_level=1 + self.nest_level,
                                     a_session=self.session, row_sets=self.row_sets)
         if parent_row is not None and inspect(parent_row).persistent == False:  # in add_order, product is persistent, order is not
-            parent_logic_row._aggregate_defaults()  # default aggregates before adjusting them
+            parent_logic_row._eager_defaults()  # default aggregates before adjusting them  TODO - use _eager_defaults?
         return parent_logic_row
 
     def _early_row_events(self):
@@ -912,6 +912,48 @@ class LogicRow:
         return result
 
 
+    def _numeric_defaults(self):
+        """ set numeric fields to 0 on insert, eg., from _eager_defaults
+        """        
+        lb = RuleBank()
+        if not lb.numeric_defaults:
+            return
+        
+        assert inspect(self.row).persistent == False, "System Error: Defaults apply only to new rows, this row is not new"
+        defaults: dict = {}
+        defaults_skipped = ""
+        mapper = inspect(self.row).mapper
+
+        if not hasattr(self.row, 'defaults_applied'):  #  be sure *not* to overwrite computed defaults
+            if self.name == "Order":
+                debug_string = 'good breakpoint'
+            for each_attribute in mapper.attrs:  # now clear the aggregates
+                if each_attribute.key in ['ReportsTo', 'Id']:
+                    debug_string = 'good breakpoint'
+                if each_attribute.is_attribute:
+                    type = each_attribute.type
+                    is_numeric = isinstance(type, sqlalchemy.sql.sqltypes.Integer) or \
+                                    isinstance(type, sqlalchemy.sql.sqltypes.Numeric) or \
+                                    isinstance(type, sqlalchemy.sql.sqltypes.Float) or \
+                                    isinstance(type, sqlalchemy.sql.sqltypes.DECIMAL)
+                    is_in_key = len(each_attribute.foreign_keys) > 0 or each_attribute.primary_key == True
+                    is_null = getattr(self.row, each_attribute.key) == None
+                    if is_null and is_numeric and not is_in_key:
+                        default = self.get_default_for_type(each_attribute, defaults_skipped, '0')
+                        defaults[each_attribute.name] = default
+                    pass
+
+            defaults_applied = ""
+            for attr, value in defaults.items():
+                setattr(self.row, attr, value)
+                defaults_applied += f"{attr} "
+
+            if defaults_applied != "":
+                default_msg = f'server numeric_defaults: {defaults_applied}'
+                self.log(f'{default_msg}')
+        return
+        
+
     def _aggregate_defaults(self):
         """ Clear aggregates (sums/counts) to 0 (and generates important log entry)
             Much more subtle than it seems... occurs in TWO cases, eg, for the add_order test:
@@ -941,7 +983,7 @@ class LogicRow:
         aggregate_rules = self._get_aggregate_rules()
 
         if not hasattr(self.row, 'defaults_applied'):  #  be sure *not* to overwrite adjusted aggregates
-            setattr(self.row, 'defaults_applied', True)
+            # setattr(self.row, 'defaults_applied', True)  # todo remove
             if self.name == "Order":
                 debug_string = 'good breakpoint'
             for each_column in mapper.columns:  # now clear the aggregates
@@ -953,13 +995,13 @@ class LogicRow:
                         defaults[each_column.name] = default
                 pass
 
-            defaults_applied = ""
+            defaults_applied_msg = ""
             for attr, value in defaults.items():
                 setattr(self.row, attr, value)
-                defaults_applied += f"{attr} "
+                defaults_applied_msg += f"{attr} "
 
-            if defaults_applied != "":
-                default_msg = f'server_aggregate_defaults: {defaults_applied}'
+            if defaults_applied_msg != "":
+                default_msg = f'server aggregate_defaults: {defaults_applied_msg}'
                 self.log(f'{default_msg}')
         return
 
@@ -1007,6 +1049,8 @@ class LogicRow:
             self.log(f'{default_msg}')
 
         self._aggregate_defaults()  # this addresses add_order / Order first case.
+        self._numeric_defaults()
+        setattr(self.row, 'defaults_applied', True)
 
         return
 

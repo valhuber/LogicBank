@@ -75,7 +75,7 @@ class LogicBank:
     """
 
     @staticmethod
-    def activate(session: session, activator: callable, constraint_event: callable = None, aggregate_defaults: bool = False):
+    def activate(session: session, activator: callable, constraint_event: callable = None, aggregate_defaults: bool = False, numeric_defaults: bool = False):   
         """
 
         #### Usage (e.g., als - highly recommended)
@@ -118,11 +118,13 @@ class LogicBank:
             session: SQLAlchemy session
             activator: user function that declares rules (e.g., Rule.sum... in als `logic/declare_logic.py`)
             constraint_event: optional user function called on constraint exceptions
+            aggregate_defaults: on insert, set sum/counts to 0
         """
         rule_bank = rule_bank_setup.setup(session)
         if constraint_event is not None:
             rule_bank.constraint_event = constraint_event
         rule_bank.aggregate_defaults = aggregate_defaults
+        rule_bank.numeric_defaults = numeric_defaults
         try:
             activator()  # in als, called from server_setup - this is logic/declare_logic.py#declare_logic()
         except Exception as e:
