@@ -61,7 +61,7 @@ class RowSets():
             return obj.table
 
         sorted_used = sorted(self.rules_fired, key=obj_name)
-        logic_bank.logic_logger.info(f'\nRules Fired:\t\t##')
+        logic_bank.logic_logger.info(f'\nThese Rules Fired (see Logic Phases, above, for actual order):\t\t##')
         rule_num = 1
         last_table = ""
         for each_rule in sorted_used:

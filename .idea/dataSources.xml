@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="LB-database (nw)" uuid="da12e0f2-df36-4f5e-b19d-21f1776bb3c4">
+    <data-source source="LOCAL" name="ALS-database (nw)" uuid="da12e0f2-df36-4f5e-b19d-21f1776bb3c4">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/../ApiLogicServer/ApiLogicServer-dev/servers/ApiLogicProject/database/db.sqlite</jdbc-url>
     </data-source>
-    <data-source source="LOCAL" name="LB-database-gold (nw)" uuid="706c7ce7-8c8e-4731-9ced-09c42f2b9e52">
+    <data-source source="LOCAL" name="ALS-database-gold (nw)" uuid="706c7ce7-8c8e-4731-9ced-09c42f2b9e52">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
@@ -78,7 +78,7 @@
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/examples/nw/db/database-gold-plus.db</jdbc-url>
     </data-source>
-    <data-source source="LOCAL" name="nw-gold" uuid="4402ef3c-209f-46ba-a52b-f417655181c7">
+    <data-source source="LOCAL" name="lb-nw-gold" uuid="4402ef3c-209f-46ba-a52b-f417655181c7">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
@@ -90,7 +90,7 @@
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/../ApiLogicServer/api_logic_server_cli/database/nw-gold-plus.sqlite</jdbc-url>
     </data-source>
-    <data-source source="LOCAL" name="nw-db" uuid="3b1837a2-28fc-42c7-b811-631f23bdf046">
+    <data-source source="LOCAL" name="lb-nw-db" uuid="3b1837a2-28fc-42c7-b811-631f23bdf046">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
@@ -141,7 +141,7 @@
         </library>
       </libraries>
     </data-source>
-    <data-source source="LOCAL" name="LB-auth-db-gold" uuid="cc0bb2a8-dc23-45da-957e-575fde89342d">
+    <data-source source="LOCAL" name="ALS-auth-db-gold" uuid="cc0bb2a8-dc23-45da-957e-575fde89342d">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>

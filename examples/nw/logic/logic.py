@@ -67,7 +67,7 @@ def declare_logic():
                     as_condition=lambda row: row.Balance <= row.CreditLimit,
                     error_msg="balance ({row.Balance}) exceeds credit ({row.CreditLimit})")
     Rule.sum(derive=Customer.Balance, as_sum_of=Order.AmountTotal,
-             where=lambda row: row.ShippedDate is None)  # *not* a sql select sum...
+             where=lambda row: row.ShippedDate is None or row.ShippedDate == '')  # *not* a sql select sum...
 #    Rule.sum(derive=Customer.Balance, as_sum_of=OrderDetail.Amount,
 #             where=lambda row: row.ShippedDate is None)  # test bad rule definition
 
@@ -88,11 +88,13 @@ def declare_logic():
         result = row.UnitsInStock - (row.UnitsShipped - old_row.UnitsShipped)
         return result
     Rule.sum(derive=Product.UnitsShipped, as_sum_of=OrderDetail.Quantity,
-             where="row.ShippedDate is not None")
+             where= lambda row: row.ShippedDate is not None and row.ShippedDate  != '')
+            #"row.ShippedDate is not None or row.ShippedDate != ''")
+
     Rule.formula(derive=Product.UnitsInStock, calling=units_in_stock)
 
     Rule.count(derive=Customer.UnpaidOrderCount, as_count_of=Order,
-             where=lambda row: row.ShippedDate is None)  # *not* a sql select sum...
+             where=lambda row: row.ShippedDate is None or row.ShippedDate == '')  # *not* a sql select sum...
 
     Rule.count(derive=Customer.OrderCount, as_count_of=Order)
 

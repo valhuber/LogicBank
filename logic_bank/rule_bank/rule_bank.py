@@ -59,7 +59,7 @@ class RuleBank(metaclass=Singleton):  # FIXME design review singleton
         self.constraint_event = None
         self.aggregate_defaults = False
         ''' on insert, set sum/counts to 0 '''
-        self.numeric_defaults = False
+        self.all_defaults = False
         ''' on insert, set numerics to 0 '''
         self.invalid_rules : list[str] = []  # rule-load failures during activation
         self.map_name_to_mapper = None  # type: None | Dict[str, mapper]

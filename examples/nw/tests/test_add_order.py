@@ -155,6 +155,8 @@ class Test(unittest.TestCase):
 
             new_order = models.Order(AmountTotal=101, CustomerId="ALFKI", ShipCity="Richmond",
                                      EmployeeId=6, Freight=1)
+            new_order = models.Order(AmountTotal=0, CustomerId="ALFKI", ShipCity="Richmond",
+                                     EmployeeId=6, Freight=1)
             session.add(new_order)
 
             # OrderDetails - https://docs.sqlalchemy.org/en/13/orm/backref.html
@@ -184,7 +186,7 @@ class Test(unittest.TestCase):
                 logic_row.log("Correct adjusted Customer Result")
                 assert True
             else:
-                self.fail(logic_row.log("ERROR - incorrect adjusted Customer Result"))
+                self.fail(logic_row.log(f"ERROR - incorrect adjusted Customer Result {post_cust.Balance} != {pre_cust.Balance + 56}"))
 
             if post_cust.OrderCount == pre_cust.OrderCount + 1 and\
                 post_cust.UnpaidOrderCount == pre_cust.UnpaidOrderCount + 1:
@@ -195,12 +197,12 @@ class Test(unittest.TestCase):
             from sqlalchemy.sql import func
             qry = session.query(models.Order.CustomerId,
                                 func.sum(models.Order.AmountTotal).label('sql_balance'))\
-                .filter(models.Order.CustomerId == "ALFKI", models.Order.ShippedDate == None)
+                .filter(models.Order.CustomerId == "ALFKI", (models.Order.ShippedDate == '') | (models.Order.ShippedDate == None))
             qry = qry.group_by(models.Order.CustomerId).one()
             if qry.sql_balance == post_cust.Balance:
-                logic_row.log("Derived balance matches sql `select sum' result: " + str(post_cust.Balance))
+                logic_row.log(f"Derived balance matches sql `select sum' result {qry.sql_balance}: " + str(post_cust.Balance))
             else:
-                self.fail(logic_row.log("ERROR - computed balance does not match sql result"))
+                self.fail(logic_row.log(f"ERROR - computed balance {str(post_cust.Balance)} does not match sql result: {qry.sql_balance}"))
 
             print("\nadd_order, ran to completion\n\n")
             self.assertTrue(True)

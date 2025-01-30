@@ -12,7 +12,7 @@ import sqlalchemy
 from logic_bank import logic_bank  # import this first - import ordering
 
 from sqlalchemy import Boolean, Column, DECIMAL, DateTime, Float, ForeignKey, Integer, LargeBinary, String, \
-    UniqueConstraint, select, func
+    UniqueConstraint, select, func, text
 from sqlalchemy.orm import relationship, column_property
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.testing import db
@@ -250,7 +250,7 @@ class OrderClass(Base):
     EmployeeId = Column(ForeignKey('Employee.Id'))
     OrderDate = Column(String(8000))
     RequiredDate = Column(String(8000))
-    ShippedDate = Column(String(8000))
+    ShippedDate = Column(String(8000), server_default=text('NULL'))
     ShipVia = Column(Integer)
     Freight = Column(DECIMAL(10, 2), nullable=False)
     ShipName = Column(String(8000))

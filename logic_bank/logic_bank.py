@@ -75,7 +75,7 @@ class LogicBank:
     """
 
     @staticmethod
-    def activate(session: session, activator: callable, constraint_event: callable = None, aggregate_defaults: bool = False, numeric_defaults: bool = False):   
+    def activate(session: session, activator: callable, constraint_event: callable = None, aggregate_defaults: bool = False, all_defaults: bool = False):
         """
 
         #### Usage (e.g., als - highly recommended)
@@ -124,7 +124,7 @@ class LogicBank:
         if constraint_event is not None:
             rule_bank.constraint_event = constraint_event
         rule_bank.aggregate_defaults = aggregate_defaults
-        rule_bank.numeric_defaults = numeric_defaults
+        rule_bank.all_defaults = all_defaults
         try:
             activator()  # in als, called from server_setup - this is logic/declare_logic.py#declare_logic()
         except Exception as e:

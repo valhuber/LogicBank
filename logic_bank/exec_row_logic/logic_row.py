@@ -249,7 +249,7 @@ class LogicRow:
         parent_row = None
         if hasattr(row, role_name):  # for client updates, old is obj_view, not base
             parent_row = getattr(row, role_name)
-        if self.name == "OrderDetail":  #  and role_name == "OrderHeader":
+        if self.name == "OrderDetail":  # and role_name == "OrderHeader":
             debug_stop = 'nice breakpoint'
         if parent_row is None:  # e.g., get the Product for an Order
             my_mapper = object_mapper(self.row)
@@ -268,7 +268,8 @@ class LogicRow:
         parent_logic_row = LogicRow(row=parent_row, old_row=old_parent, ins_upd_dlt="*", nest_level=1 + self.nest_level,
                                     a_session=self.session, row_sets=self.row_sets)
         if parent_row is not None and inspect(parent_row).persistent == False:  # in add_order, product is persistent, order is not
-            parent_logic_row._eager_defaults()  # default aggregates before adjusting them  TODO - use _eager_defaults?
+            # alert: as formerly aggregate_defaults, this under 'watch'
+            parent_logic_row._eager_defaults()  # this addresses add_order / OrderDetail-first case.
         return parent_logic_row
 
     def _early_row_events(self):
@@ -517,7 +518,7 @@ class LogicRow:
                     changes.append(each_attr.key)
         return changes
 
-    def copy_children(self, copy_from: base, which_children: Union [dict | list]):
+    def copy_children(self, copy_from: base, which_children: Union[dict | list]):
         """
         Useful in row event handlers to copy multiple children types to self from copy_from children.
 
@@ -694,7 +695,8 @@ class LogicRow:
                 if value != old_value:
                     # child_role_name = self._get_child_role(each_parent_role_name[0], each_parent_role_name[1])
                     if each_child_role_name not in cascade_dict:
-                        cascade_dict[each_child_role_name] = (each_child_role_name, each_parent_attribute_name, each_parent_role_name)
+                        cascade_dict[each_child_role_name] = (
+                        each_child_role_name, each_parent_attribute_name, each_parent_role_name)
 
             for each_child_role_name, each_parent_attribute_name, each_parent_role_name in cascade_dict.values():
                 reason = "Cascading " + each_parent_role_name + "." + each_parent_attribute_name + " (,...)"
@@ -703,13 +705,13 @@ class LogicRow:
                 for each_child_row in child_rows:
                     old_child = self._make_copy(each_child_row)
                     each_logic_row = LogicRow(row=each_child_row, old_row=old_child, ins_upd_dlt="upd",
-                                            nest_level=1 + self.nest_level,
-                                            a_session=self.session, row_sets=self.row_sets)
+                                              nest_level=1 + self.nest_level,
+                                              a_session=self.session, row_sets=self.row_sets)
                     # no need to set attrs - the child will do that
                     # NB: the reason contains the parent_role_name, used to prevent pruning
                     each_logic_row.update(reason=reason)
         pass
-        
+
     def _is_parent_cascading(self, parent_role_name: str):
         """ if so (check self.reason), we must not prune referencing formulae """
         result = False
@@ -911,36 +913,43 @@ class LogicRow:
                 result.append(each_rule)
         return result
 
-
-    def _numeric_defaults(self):
-        """ set numeric fields to 0 on insert, eg., from _eager_defaults
-        """        
+    def _all_defaults(self):
+        """ set numeric fields to 0 and strings to '' on insert, eg., from _eager_defaults
+        """
         lb = RuleBank()
-        if not lb.numeric_defaults:
+        if not lb.all_defaults:
             return
-        
-        assert inspect(self.row).persistent == False, "System Error: Defaults apply only to new rows, this row is not new"
+
+        assert inspect(
+            self.row).persistent == False, "System Error: Defaults apply only to new rows, this row is not new"
         defaults: dict = {}
         defaults_skipped = ""
         mapper = inspect(self.row).mapper
 
-        if not hasattr(self.row, 'defaults_applied'):  #  be sure *not* to overwrite computed defaults
+        if not hasattr(self.row, 'defaults_applied'):  # be sure *not* to overwrite computed defaults
             if self.name == "Order":
                 debug_string = 'good breakpoint'
             for each_attribute in mapper.attrs:  # now clear the aggregates
-                if each_attribute.key in ['ReportsTo', 'Id']:
+                if each_attribute.key in ['ShippedDate']:  # 'Amount_total', 'ReportsTo', 'Id', 'credit_limit', 'date_shipped', 'OrderDate']:
                     debug_string = 'good breakpoint'
-                if each_attribute.is_attribute:
-                    type = each_attribute.type
-                    is_numeric = isinstance(type, sqlalchemy.sql.sqltypes.Integer) or \
-                                    isinstance(type, sqlalchemy.sql.sqltypes.Numeric) or \
-                                    isinstance(type, sqlalchemy.sql.sqltypes.Float) or \
-                                    isinstance(type, sqlalchemy.sql.sqltypes.DECIMAL)
-                    is_in_key = len(each_attribute.foreign_keys) > 0 or each_attribute.primary_key == True
+                    pass  # return   # with this, it works for order-first or item-first
+                is_reln = 'relationship' in each_attribute.__class__.__name__.lower()  # odd, since supporting SQLAlchemy 1.4 and 2.0
+                is_synonym = 'synonym' in each_attribute.__class__.__name__.lower()
+                if each_attribute.is_property and not is_reln and not is_synonym:  # erk, is_attribute is False in flask
+                    # type = each_attribute.type
+                    if not hasattr(each_attribute, 'columns'):
+                        pass
+                    type = each_attribute.columns[0].type.python_type  # returns int, str, etc
+                    each_column = each_attribute.columns[0]
+                    is_in_key = len(each_column.foreign_keys) > 0 or each_column.primary_key == True
                     is_null = getattr(self.row, each_attribute.key) == None
-                    if is_null and is_numeric and not is_in_key:
-                        default = self.get_default_for_type(each_attribute, defaults_skipped, '0')
-                        defaults[each_attribute.name] = default
+                    if is_null and not is_in_key:  # and is_numeric
+                        # default = self.get_default_for_type(each_attribute, defaults_skipped, '0')
+                        if 'date' in str(type).lower():
+                            pass  # don't default dates, datetime
+                        else:
+                            default = type()
+                            defaults[each_attribute.key] = default
                     pass
 
             defaults_applied = ""
@@ -949,10 +958,9 @@ class LogicRow:
                 defaults_applied += f"{attr} "
 
             if defaults_applied != "":
-                default_msg = f'server numeric_defaults: {defaults_applied}'
+                default_msg = f'server all_defaults: {defaults_applied}'
                 self.log(f'{default_msg}')
         return
-        
 
     def _aggregate_defaults(self):
         """ Clear aggregates (sums/counts) to 0 (and generates important log entry)
@@ -966,23 +974,24 @@ class LogicRow:
                         * We cannot track this this state in LogicRow
                             * Since we might create a 2nd Order LogicRow (adjust vs insert)
                         * So, we track that in the row itself: `hasattr(self.row, 'defaults_applied')`
-            
+
             Critical this not run when aggregates already correct:
                 * Assert to ensure row actually in insert state
                     * Key assumption: pending and not persistent means inserted
                     * https://docs.sqlalchemy.org/en/20/orm/session_state_management.html#getting-the-current-state-of-an-object
                 * Log entry to ensure we know it ran
-            
+
             This is important - eg, can make insert Fail (Airplane: row.passenger_count <= row.capacity)
         """
 
-        assert inspect(self.row).persistent == False, "System Error: Defaults apply only to new rows, this row is not new"
+        assert inspect(
+            self.row).persistent == False, "System Error: Defaults apply only to new rows, this row is not new"
         defaults: dict = {}
         defaults_skipped = ""
         mapper = inspect(self.row).mapper
         aggregate_rules = self._get_aggregate_rules()
 
-        if not hasattr(self.row, 'defaults_applied'):  #  be sure *not* to overwrite adjusted aggregates
+        if not hasattr(self.row, 'defaults_applied'):  # be sure *not* to overwrite adjusted aggregates
             # setattr(self.row, 'defaults_applied', True)  # todo remove
             if self.name == "Order":
                 debug_string = 'good breakpoint'
@@ -1036,7 +1045,7 @@ class LogicRow:
             except Exception as ex:
                 defaults_skipped += f'{each_column.name}[{each_column.type}] (ex: {ex}) '
 
-        defaults_applied = ""           # set defaults (for None values only)
+        defaults_applied = ""  # set defaults (for None values only)
         for attr, value in defaults.items():
             if getattr(self.row, attr) is None:
                 setattr(self.row, attr, value)
@@ -1048,8 +1057,8 @@ class LogicRow:
                 default_msg += f"-- skipped: {defaults_skipped}"
             self.log(f'{default_msg}')
 
-        self._aggregate_defaults()  # this addresses add_order / Order first case.
-        self._numeric_defaults()
+        self._aggregate_defaults()  # this addresses add_order / Order-first case.
+        self._all_defaults()
         setattr(self.row, 'defaults_applied', True)
 
         return
@@ -1322,11 +1331,11 @@ class ParentRoleAdjuster:
 
     def __init__(self, parent_role_name: str, child_logic_row: LogicRow):
 
-        self.child_logic_row : LogicRow = child_logic_row  # the child (curr, old values)
+        self.child_logic_row: LogicRow = child_logic_row  # the child (curr, old values)
 
         self.parent_role_name = parent_role_name  # which parent are we dealing with?
-        self.parent_logic_row : LogicRow = None
-        self.previous_parent_logic_row : LogicRow = None
+        self.parent_logic_row: LogicRow = None
+        self.previous_parent_logic_row: LogicRow = None
         self.adjusting_attributes = ""
         """ list of attributes being adjusted, for log """
 
