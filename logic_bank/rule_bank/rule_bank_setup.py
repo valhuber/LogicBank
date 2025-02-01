@@ -15,7 +15,7 @@ from sqlalchemy.orm import session
 from sqlalchemy.orm import mapper
 import logging
 
-__version__ = "01.20.23"  # all_defaults, missing attrs excp with all excps, fail-save rules, full excp content, w/ fix, singleton
+__version__ = "01.20.24"  # bug: col), all_defaults, missing attrs excp with all excps, fail-save rules, full excp content, w/ fix, singleton
 
 logic_logger = logging.getLogger("logic_logger")
 

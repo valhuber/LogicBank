@@ -70,12 +70,16 @@ class AbstractRule(object):
         Set <rule>._dependencies() to all words starting with "row."
         """
         words = rule_text.split()
+        # if 'row.CreditLimit)' in rule_text:
+        #     pass  # good breakpoint
         for each_word in words:
             the_word = each_word
             if each_word.startswith("("):
                 the_word = each_word[1:]
             if the_word.endswith(")"):
                 the_word = each_word[0:len(the_word) - 1]
+            if the_word.endswith("),"):
+                the_word = each_word[0:len(the_word) - 2]
             if the_word.endswith(","):
                 the_word = each_word[0:len(the_word) - 1]
             if the_word.startswith("row."):  # allow Cust.CreditLimit?

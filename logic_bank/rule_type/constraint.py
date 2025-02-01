@@ -50,6 +50,8 @@ class Constraint(AbstractRule):
     def get_referenced_attributes(self) -> list[str]:
         referenced_attributes = list()
         rule_text = self.get_rule_text()
+        if 'row.CreditLimit)' in rule_text:
+            pass  # good breakpoint
         self.parse_dependencies(rule_text)
         for each_attribute in self._dependencies:
             referenced_attributes.append(f'{self.table}.{each_attribute}: constraint')
