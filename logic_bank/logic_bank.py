@@ -38,12 +38,12 @@ def failsafe(func):
         except Exception as e:
             tb = traceback.extract_stack()
             for frame in tb:
-                if '/logic/' in frame.filename: # project errors (typically in declare_logic.py)
+                if '/logic/' in frame.filename:  # project errors (typically in declare_logic.py)
                     logic_logger.error(f"Rule error: {frame.filename}, Line: {frame.lineno}")
                     break
             else:
                 logic_logger.error(f"Rule error in unknown file")
-            logic_logger.error(f"LogicBank activate error occurred: {e}" )
+            logic_logger.error(f"LogicBank activate error occurred: {e}")
             if os.getenv("LOGICBANK_FAILSAFE") == "true":
                 return None
             raise e
@@ -67,19 +67,20 @@ class LogicBank:
         session.commit()  # LogicBank listeners execute rules relevant for submitted changes
 
     .. _Rule Summary:
-   
+
    https://apilogicserver.github.io/Docs/Logic/
-   
+
    https://github.com/valhuber/LogicBank/wiki/Rule-Summary
 
     """
 
     @staticmethod
-    def activate(session: session, activator: callable, constraint_event: callable = None, aggregate_defaults: bool = False, all_defaults: bool = False):
+    def activate(session: session, activator: callable, constraint_event: callable = None,
+                 aggregate_defaults: bool = False, all_defaults: bool = False):
         """
 
         #### Usage (e.g., als - highly recommended)
-        
+
             See `api_logic_server_run -> Config/server_setup -> activate_logicbank`,\n\t\t\tafter opening database to activate logic:
 
             `LogicBank.activate(session=session, activator=declare_logic.declare_logic, constraint_event=constraint_handler)`
@@ -95,7 +96,7 @@ class LogicBank:
             - Raises exception if cycles detected, or invalid rules per missing attr references
 
         #### Subsequent rule execution starts in `exec_row_logic/LogicRow.py on session.commit()`
-                
+
             - `exec_trans_logic/listeners.py` handles the SQLAlchemy events (after_flush etc.) to get changed rows; for each, it calls....
 
             - `exec_row_logic/LogicRow.py#update()`, which executes the rule_type objects (in TableRules)
@@ -130,7 +131,7 @@ class LogicBank:
         except Exception as e:
             rule_bank.invalid_rules.append(e)
 
-        if debug_show_attributes :=True:
+        if debug_show_attributes := True:
             rules_bank = RuleBank()
             rule_count = 0
             logic_logger.debug(f'\nThe following rules have been loaded')
@@ -142,7 +143,7 @@ class LogicBank:
 
         missing_attributes = rule_bank_setup.compute_formula_execution_order()
         if len(rule_bank.invalid_rules) > 0 or len(missing_attributes) > 0:
-            #raise Exception(rule_bank.invalid_rules, missing_attributes)  # compare - this logs the errors
+            # raise Exception(rule_bank.invalid_rules, missing_attributes)  # compare - this logs the errors
             if more_debug := False:
                 for each_invalid_rule in rule_bank.invalid_rules:
                     logic_logger.info(f'Invalid Rule: {each_invalid_rule}')
@@ -176,7 +177,7 @@ class Rule:
 
     @failsafe
     @staticmethod
-    def sum(derive: Column, as_sum_of: any, where: any = None, child_role_name: str = "", insert_parent: bool=False):
+    def sum(derive: Column, as_sum_of: any, where: any = None, child_role_name: str = "", insert_parent: bool = False):
         """
         Derive parent column as sum of designated child column, optional where
 
@@ -202,7 +203,8 @@ class Rule:
 
     @failsafe
     @staticmethod
-    def count(derive: Column, as_count_of: object, where: any = None, child_role_name: str = "", insert_parent: bool=False):
+    def count(derive: Column, as_count_of: object, where: any = None, child_role_name: str = "",
+              insert_parent: bool = False):
         """
         Derive parent column as count of designated child rows
 
@@ -401,9 +403,12 @@ class Rule:
         return CommitRowEvent(on_class, calling)  # --> load_logic
 
     @staticmethod
-    def after_flush_row_event(on_class: object, calling: Callable = None):
+    def after_flush_row_event(on_class: object, calling: Callable = None,
+                              if_condition: any = None,
+                              when_condition: any = None,
+                              with_args: dict = None):
         """
-        After Flush Row Events are Python functions *after* all row logic formulas/constraints,
+        After Flush Row Events are Python functions executed *after* all row logic formulas/constraints,
         and after rows are flushed to disk.
 
         Unlike commit row events, such rows will reflect DBMS-generated AutoNum values.
@@ -412,16 +417,27 @@ class Rule:
 
         Example
             Rule.after_flush_row_event(on_class=models.Order, calling=send_order_to_shipping)
+            Send the Order to Kafka topic 'order_shipping' if the date_shipped is not None
+                Rule.after_flush_row_event(on_class=Order, calling=kafka_producer.send_row_to_kafka, if_condition=lambda row: row.date_shipped is not None, with_args={"topic": "order_shipping"})
 
         1 call per row, per transaction
 
-        Example use: send mail/message including AutoNum values
-
         Args:
-            on_class: <class> for event
-            calling: function, passed row, old_row, logic_row
+            on_class (object): Data Model Class
+            calling (Callable, optional): Event handler function. Defaults to None.
+            if_condition (any, optional): lambda expression - execute calling iff True. Defaults to None.
+            when_condition (any, optional): lambda expression - execute calling iff was false, now True. Defaults to None.
+            with_args (dict, optional): additional args (e.g., Kafka topic, email recipient, ...). Defaults to None.
+
+        Returns:
+            _type_: _description_
         """
-        return AfterFlushRowEvent(on_class, calling)  # --> load_logic
+
+        return AfterFlushRowEvent(on_class=on_class,
+                                  calling=calling,
+                                  if_condition=if_condition,
+                                  when_condition=when_condition,
+                                  with_args=with_args)  # --> load_logic
 
     '''
     disabled, per ORM support (retained in case of misunderstandings)

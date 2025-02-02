@@ -55,5 +55,32 @@ class AfterFlushRowEvent(AbstractRowEvent):
     _function = None
 
     def __init__(self, on_class: object,
-                 calling: Callable = None):
+                 calling: Callable = None,
+                 if_condition: Callable = None,
+                 when_condition: Callable = None,
+                 with_args: dict = None):
         super(AfterFlushRowEvent, self).__init__(on_class=on_class, calling=calling)
+        self.if_condition = lambda row: eval(if_condition)
+        self.when_condition = lambda row: eval(when_condition)
+        self.with_args = with_args
+
+    def execute(self, logic_row: LogicRow):
+        AbstractRule.execute(self, logic_row)
+        # logic_row.log(f'Event BEGIN {str(self)} on {str(logic_row)}')
+        do_event = True
+        if self.if_condition is not None and self.when_condition is not None:
+            pass
+        elif self.as_condition is not None:
+            do_event = self._as_condition(row=logic_row.row)
+        elif self.when_condition is not None:
+            current_row = self._when_condition(row=logic_row.row)
+            old_row = False
+            if logic_row.is_update:
+                old_row = self._when_condition(row=logic_row.old_row)
+            do_event = current_row == True and old_row == False
+        if do_event:
+            if self.with_args is None:
+                value = self._function(row=logic_row.row, old_row=logic_row.old_row, logic_row=logic_row)
+            else:
+                value = self._function(row=logic_row.row, old_row=logic_row.old_row, logic_row=logic_row, with_args=self.with_args)
+        # print(f'Event END {str(self)} on {str(logic_row)}')

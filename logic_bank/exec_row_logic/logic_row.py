@@ -983,7 +983,7 @@ class LogicRow:
 
             This is important - eg, can make insert Fail (Airplane: row.passenger_count <= row.capacity)
         """
-
+        # TODO - make this condiitonal, as clearly suggested by the activate arguments...
         assert inspect(
             self.row).persistent == False, "System Error: Defaults apply only to new rows, this row is not new"
         defaults: dict = {}
