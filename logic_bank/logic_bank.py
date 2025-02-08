@@ -347,7 +347,7 @@ class Rule:
 
         Args:
             on_class: <class> for event
-            calling: function, passed row, old_row, logic_row
+            calling: function, passed (row, old_row, logic_row)
         """
         return EarlyRowEvent(on_class, calling)  # --> load_logic
 
@@ -365,7 +365,7 @@ class Rule:
         Rule.early_row_event_all_classes(early_row_event_all_classes=handle_all)
 
         Args:
-            early_row_event_all_classes: function, passed logic_row
+            early_row_event_all_classes: function, passed (logic_row)
 
         """
         return rule_bank_setup.setup_early_row_event_all_classes(
@@ -380,7 +380,7 @@ class Rule:
 
         Args:
             on_class: <class> for event
-            calling: function, passed row, old_row, logic_row
+            calling: function, passed (row, old_row, logic_row)
         """
         return RowEvent(on_class, calling)  # --> load_logic
 
@@ -398,7 +398,7 @@ class Rule:
 
         Args:
             on_class: <class> for event
-            calling: function, passed row, old_row, logic_row
+            calling: function, passed (row, old_row, logic_row)
         """
         return CommitRowEvent(on_class, calling)  # --> load_logic
 
@@ -424,7 +424,7 @@ class Rule:
 
         Args:
             on_class (object): Data Model Class
-            calling (Callable, optional): Event handler function. Defaults to None.
+            calling (Callable, optional): Event handler function passed (row, old_row, logic_row [, with_args]). Defaults to None.
             if_condition (any, optional): lambda expression - execute calling iff True. Defaults to None.
             when_condition (any, optional): lambda expression - execute calling iff was false, now True. Defaults to None.
             with_args (dict, optional): additional args (e.g., Kafka topic, email recipient, ...). Defaults to None.
