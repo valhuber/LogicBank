@@ -15,7 +15,7 @@ from sqlalchemy.orm import session
 from sqlalchemy.orm import mapper
 import logging
 
-__version__ = "01.20.25"  # conditional afterFlush (send msg), bug: col), all_defaults, missing attrs excp with all excps, fail-save rules, full excp content, w/ fix, singleton
+__version__ = "01.20.26"  # no bool defaults, conditional afterFlush (send msg), bug: col), all_defaults, missing attrs excp with all excps, fail-save rules, full excp content, w/ fix, singleton
 
 logic_logger = logging.getLogger("logic_logger")
 
@@ -58,10 +58,19 @@ def find_referenced_attributes(rules_bank: RuleBank) -> list[str]:
     return all_referenced_attributes
 
 def find_missing_attributes(all_attributes: list[str], rules_bank: RuleBank) -> list[str]:
+    """find attrs in all_attributes that are not in the ORM
+
+    Args:
+        all_attributes (list[str]): eg, 'RecastSet.analysisYear: constraint'
+        rules_bank (RuleBank): system object
+
+    Returns:
+        list[str]: entries in all_attributes that are not in the ORM
+    """
     missing_attributes = list()
     mapper_dict : dict[str, mapper] = None  # class_name -> mapper
     for each_attribute in all_attributes:
-        if 'Employee.order_count: constraint' in each_attribute:
+        if 'RecastSet.analysisYear' in each_attribute:
             good_breakpoint = True
         class_and_attr = each_attribute.split(':')[0]
         if len(class_and_attr.split('.')) > 2:
@@ -96,7 +105,7 @@ def find_missing_attributes(all_attributes: list[str], rules_bank: RuleBank) -> 
             if class_name not in mapper_dict:
                 missing_attributes.append(each_attribute)
                 continue
-        if 'unit_price' in each_attribute:
+        if 'analysisYear' in each_attribute:
             good_breakpoint = True
         if attr_name not in each_mapper.all_orm_descriptors:
             missing_attributes.append(each_attribute)
