@@ -4,15 +4,15 @@
         "-s",
         "./examples/nw/tests",
         "-p",
-        "*test*.py"
+        "test_*.py"
     ],
     "python.testing.pytestEnabled": false,
-    "debug.console.wordWrap": false,    
-    "python.testing.nittestEnabled": true,
+    "debug.console.wordWrap": false,
+    "python.testing.unittestEnabled": true,
     // "editor.fontSize": 13,
     // "terminal.integrated.fontSize": 13,
     // "window.zoomLevel": 1.0,
     "python.testing.pytestArgs": [
-        "examples"
+        "examples/nw/tests"
     ]
 }
