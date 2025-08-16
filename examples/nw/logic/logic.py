@@ -105,7 +105,7 @@ def declare_logic():
 
     # test virtual attribute
     Rule.constraint(validate=Employee,
-                    as_condition=lambda row: row.IsCommissioned == 1 or row.order_count_sql == 0,
+                    as_condition=lambda row: row.IsCommissioned == 1 or row.order_count_sql == 0 or row.order_count_sql is None,
                     error_msg="{row.LastName} is not commissioned ({row.IsCommissioned}) - cannot have orders ({row.order_count_sql})")
 
     Rule.count(derive=Employee.order_count_sql, as_count_of=Order)

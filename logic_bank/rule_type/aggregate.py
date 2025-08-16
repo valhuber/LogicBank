@@ -102,7 +102,7 @@ class Aggregate(Derivation):
                 curr_value = 0
             setattr(parent_adjustor.parent_logic_row.row, self._column, curr_value + delta)
             parent_adjustor.append_adjusting_attributes(self._column)
-            # parent_adjustor.child_logic_row.log(f'adjust_from_inserted/adopted_child adjusts {str(self)}')
+            parent_adjustor.child_logic_row.log(f'TODO DB adjust_from_inserted/adopted_child adjusts {str(self)}')
 
     def adjust_from_deleted_child(self,
                                   parent_adjustor: ParentRoleAdjuster,

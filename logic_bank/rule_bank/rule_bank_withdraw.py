@@ -73,7 +73,10 @@ def aggregate_rules(child_logic_row: LogicRow) -> dict:
     e.g., for child_logic_row "Order", we return
       ["Order", (Customer.balance, Customer.order_count...)
       ["Employee, (Employee.order_count)]
-    """
+    e.g. LB Employee, we return
+      ["On_loan_dept", (Department.OnLoanCount)
+      ["Works_for_dept, (Department.WorksForCount, Department.SalaryTotal)]
+    """ 
     result_role_rules_list = {}  # dict of RoleRules
 
     child_mapper = object_mapper(child_logic_row.row)
@@ -93,6 +96,8 @@ def aggregate_rules(child_logic_row: LogicRow) -> dict:
                         if each_parent_rule._child_role_name == child_role_name:
                             if parent_role_name not in result_role_rules_list:
                                 result_role_rules_list[parent_role_name] = []
+                            else:
+                                pass # it's already in the list (multiple aggregates for this role)
                             result_role_rules_list[parent_role_name].append(each_parent_rule)
                             each_parent_rule._parent_role_name = parent_role_name
     return result_role_rules_list

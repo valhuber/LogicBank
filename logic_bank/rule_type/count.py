@@ -13,6 +13,8 @@ class Count(Aggregate):
         Rule.count(derive=Customer.UnpaidOrderCount, as_count_of=Order,
                  where=lambda row: row.ShippedDate is None)  # *not* a sql select sum...
 
+        Rule.count(derive=Department.OnLoanCount, as_count_of=Employee, child_role_name="EmployeeOnLoanList")
+
     Execute adjust_parent
     """
 
@@ -28,12 +30,15 @@ class Count(Aggregate):
         if self._load_error:
             pass  # FIXME log
         else:
-            local_attrs = as_count_of._sa_class_manager.local_attrs  # FIXME design
-            for each_local_attr in local_attrs:
-                random_attr = local_attrs[each_local_attr]
-                child_attrs = random_attr.parent.attrs
-                break
-            self._child_role_name = self.get_child_role_name(child_attrs=child_attrs)
+            if child_role_name is not None:
+                self._child_role_name = child_role_name
+            else:
+                local_attrs = as_count_of._sa_class_manager.local_attrs  # child attrs...  TODO 'splain!
+                for each_local_attr in local_attrs:
+                    random_attr = local_attrs[each_local_attr]
+                    child_attrs = random_attr.parent.attrs
+                    break
+                self._child_role_name = self.get_child_role_name(child_attrs=child_attrs)
 
         rb = RuleBank()
         rb.deposit_rule(self)

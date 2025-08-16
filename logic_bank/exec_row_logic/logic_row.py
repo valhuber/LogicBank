@@ -1182,6 +1182,8 @@ class LogicRow:
         # self.log("adjust_parent_aggregates")
         aggregate_rules = rule_bank_withdraw.aggregate_rules(child_logic_row=self)
         for each_parent_role, each_aggr_list in aggregate_rules.items():
+            if each_parent_role in ["On_loan_dept"]:
+                debug_string = "good breakpoint"
             parent_adjuster = ParentRoleAdjuster(child_logic_row=self,
                                                  parent_role_name=each_parent_role)
             for each_aggregate in each_aggr_list:  # adjusts each_parent iff req'd

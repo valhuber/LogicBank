@@ -38,6 +38,7 @@ class Test(unittest.TestCase):
         tests.tearDown(file=__file__, started_at=self.started_at, engine=engine, session=session)
 
     def test_run(self):
+        # failed 8/16/2025 since defaults are setting ReportsTo to 0 (which is invalid), so all_defaults=False
         new_employee = models.Employee(LastName='Obama', Salary=100000, WorksFor=1, OnLoan=2, IsCommissioned=0)  # project_id (fk, not id) triggers clone
 
         session.add(new_employee)

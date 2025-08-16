@@ -33,7 +33,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/examples/nw/tests/test_add_emp.py",
             "redirectOutput": true,
-            "console": "integratedTerminal"
+            "console": "internalConsole"
         },
         {
             "name": "nw_test upd order shipped",
@@ -110,6 +110,5 @@
             "redirectOutput": true,
             "console": "integratedTerminal"
         },
-
     ]
 }
