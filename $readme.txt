@@ -4,6 +4,7 @@ TODO major - designates significant unimplemented
 test framework is PyUnit (Unittest) - but the tests are not tests, but ./examples/nw/tests
     tests run in vsc and Pycharm
     note these are only the nw tests; others run manually
+    run fine under vsc - see testing.md (8/16/2025) - small unit test add_order is also fine from F5
 
 still on Python 3.11, so build is (using LogicBank venv - 8/31/2024)
     pip install wheel twine
@@ -20,6 +21,7 @@ Major friction due to Python Path
 Major issues with SQLAlchemy1.4 (DeclarativeMeta (etc) now merged in SQLAlchemy.orm)ß
     But, SQLAlchemy Utils is very old -- nothing since 2014!  Seems ok to remove (done)
     And it fails with SAFRS JABase
+    genai-logic is on 2.0.39 (8/16/2025)
 
 Significant bug fixes:
     See nw/trans_tests/upd_order_reuse, and logic_engine/exec_row_logic/logic_row#save_altered_parents
