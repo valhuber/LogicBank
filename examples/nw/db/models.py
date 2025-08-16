@@ -1,37 +1,69 @@
 # coding: utf-8
-
-"""
-WARNING: used in logic, but FAB uses version in basic_web_app/app
-The primary copy is here -- copy changes to basic_web_app/app.
-on relationships...
-  * declare them in the parent (not child), eg, for Order:
-  *    OrderDetailList = relationship("OrderDetail", backref="OrderHeader", cascade_backrefs=False)
-"""
+from sqlalchemy import DECIMAL, DateTime  # API Logic Server GenAI assist
+from sqlalchemy import Column, DECIMAL, Double, ForeignKey, Integer, LargeBinary, String, Table, Text, text, select, func
 import sqlalchemy
-
-from logic_bank import logic_bank  # import this first - import ordering
-
-from sqlalchemy import Boolean, Column, DECIMAL, DateTime, Float, ForeignKey, Integer, LargeBinary, String, \
-    UniqueConstraint, select, func, text
-from sqlalchemy.orm import relationship, column_property
+from sqlalchemy.orm import relationship, column_property, foreign
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.testing import db
-from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 
-Base = declarative_base()
+########################################################################################################################
+# Classes describing database for SqlAlchemy ORM, initially created by schema introspection.
+#
+# Alter this file per your database maintenance policy
+#    See https://apilogicserver.github.io/Docs/Project-Rebuild/#rebuilding
+#
+# Created:  August 16, 2025 08:43:38
+# Database: sqlite:////Users/val/dev/ApiLogicServer/ApiLogicServer-dev/build_and_test/ApiLogicServer/logic_bank/database/db.sqlite
+# Dialect:  sqlite
+#
+# mypy: ignore-errors
+########################################################################################################################
+ 
+'''
+from database.system.SAFRSBaseX import SAFRSBaseX, TestBase
+from flask_login import UserMixin
+import safrs, flask_sqlalchemy, os
+from safrs import jsonapi_attr
+from flask_sqlalchemy import SQLAlchemy
+'''
+from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped
+from sqlalchemy.sql.sqltypes import NullType
+from typing import List
+
+Base = declarative_base()  # type: flask_sqlalchemy.model.DefaultMeta
 metadata = Base.metadata
 
+'''
+#NullType = db.String  # datatype fixup
+#TIMESTAMP= db.TIMESTAMP
 
-class Category(Base):
+from sqlalchemy.dialects.sqlite import *
+
+if os.getenv('APILOGICPROJECT_NO_FLASK') is None or os.getenv('APILOGICPROJECT_NO_FLASK') == 'None':
+    Base = SAFRSBaseX   # enables rules to be used outside of Flask, e.g., test data loading
+else:
+    Base = TestBase     # ensure proper types, so rules work for data loading
+    print('*** Models.py Using TestBase ***')
+'''
+
+
+class Category(Base):  # type: ignore
     __tablename__ = 'Category'
+    _s_collection_name = 'Category'  # type: ignore
 
     Id = Column(Integer, primary_key=True)
     CategoryName = Column(String(8000))
     Description = Column(String(8000))
 
+    # parent relationships (access parent)
 
-class Customer(Base):
+    # child relationships (access children)
+
+
+
+class Customer(Base):  # type: ignore
     __tablename__ = 'Customer'
+    _s_collection_name = 'Customer'  # type: ignore
 
     Id = Column(String(8000), primary_key=True)
     CompanyName = Column(String(8000))
@@ -44,63 +76,198 @@ class Customer(Base):
     Country = Column(String(8000))
     Phone = Column(String(8000))
     Fax = Column(String(8000))
-    Balance = Column(DECIMAL(10, 2))
-    CreditLimit = Column(DECIMAL(10, 2))
-    OrderCount = Column(Integer)
-    UnpaidOrderCount = Column(Integer)
+    Balance : DECIMAL = Column(DECIMAL)
+    CreditLimit : DECIMAL = Column(DECIMAL)
+    OrderCount = Column(Integer, server_default=text("0"))
+    UnpaidOrderCount = Column(Integer, server_default=text("0"))
+    allow_client_generated_ids = True
 
-    @hybrid_property
-    def paid_order_count(self):
-        if not hasattr(self, "_paid_order_count"):
-            if self.OrderCount is None:
-                self.OrderCount = 0
-            if self.UnpaidOrderCount is None:
-                self.UnpaidOrderCount = 0
-            self._paid_order_count = self.OrderCount - self.UnpaidOrderCount
-        return self._paid_order_count
+    # parent relationships (access parent)
 
-    @paid_order_count.setter
-    def paid_order_count(self, value):  # @paid_order_count.setter => python stack overflow
-        self._paid_order_count = value
+    # child relationships (access children)
+    CustomerCustomerDemoList : Mapped[List["CustomerCustomerDemo"]] = relationship(back_populates="CustomerType")
+    # OrderZList : Mapped[List["OrderZ"]] = relationship(back_populates="Customer")
+    OrderList : Mapped[List["Order"]] = relationship(back_populates="Customer")
 
 
-    @hybrid_property
-    def total_ordered(self):
-        if not hasattr(self, "_total_ordered"):
-            self._total_ordered = self.total_ordered_sql
-        return self._total_ordered
 
-    @total_ordered.setter
-    def total_ordered(self, value):  # @paid_order_count.setter => python stack overflow
-        self._total_ordered = value
-
-    OrderList = relationship("Order",
-                             backref="Customer",
-                             cascade="all, delete",
-                             # passive_deletes=True,  # means database RI will do the deleting... which SQLlite *never* does
-                             # use this *only* when DBMS does cascade deletes, to run LogicBank delete logic
-                             cascade_backrefs=False)
-
-
-class CustomerDemographic(Base):
+class CustomerDemographic(Base):  # type: ignore
     __tablename__ = 'CustomerDemographic'
+    _s_collection_name = 'CustomerDemographic'  # type: ignore
 
     Id = Column(String(8000), primary_key=True)
     CustomerDesc = Column(String(8000))
+    allow_client_generated_ids = True
+
+    # parent relationships (access parent)
+
+    # child relationships (access children)
 
 
-class Department(Base):
+
+class Department(Base):  # type: ignore
     __tablename__ = 'Department'
+    _s_collection_name = 'Department'  # type: ignore
 
     Id = Column(Integer, primary_key=True)
-    Name = Column(String(8000))
-    SalaryTotal = Column(DECIMAL(10, 2))
+    Name = Column(Text)
+    SalaryTotal : DECIMAL = Column(DECIMAL)
     WorksForCount = Column(Integer)
     OnLoanCount = Column(Integer)
 
+    # parent relationships (access parent)
 
-class Employee(Base):
+    # child relationships (access children)
+    EmployeeList : Mapped[List["Employee"]] = relationship(foreign_keys='[Employee.OnLoan]', back_populates="Department")
+    EmployeeList1 : Mapped[List["Employee"]] = relationship(foreign_keys='[Employee.WorksFor]', back_populates="Department1")
+
+
+
+class EmployeeAudit(Base):  # type: ignore
+    __tablename__ = 'EmployeeAudit'
+    _s_collection_name = 'EmployeeAudit'  # type: ignore
+
+    Id = Column(Integer, primary_key=True)
+    Title = Column(String)
+    Salary : DECIMAL = Column(DECIMAL)
+    LastName = Column(String)
+    FirstName = Column(String)
+    EmployeeId = Column(Integer)
+    CreatedOn = Column(Text)
+
+    # parent relationships (access parent)
+
+    # child relationships (access children)
+
+
+
+class Product(Base):  # type: ignore
+    __tablename__ = 'Product'
+    _s_collection_name = 'Product'  # type: ignore
+
+    Id = Column(Integer, primary_key=True)
+    ProductName = Column(String(8000))
+    SupplierId = Column(Integer, nullable=False)
+    CategoryId = Column(Integer, nullable=False)
+    QuantityPerUnit = Column(String(8000))
+    UnitPrice : DECIMAL = Column(DECIMAL, nullable=False)
+    UnitsInStock = Column(Integer, nullable=False)
+    UnitsOnOrder = Column(Integer, nullable=False)
+    ReorderLevel = Column(Integer, nullable=False)
+    Discontinued = Column(Integer, nullable=False)
+    UnitsShipped = Column(Integer)
+
+    # parent relationships (access parent)
+
+    # child relationships (access children)
+    OrderDetailList : Mapped[List["OrderDetail"]] = relationship(back_populates="Product")
+
+
+
+t_ProductDetails_V = Table(
+    'ProductDetails_V', metadata,
+    Column('Id', Integer),
+    Column('ProductName', String(8000)),
+    Column('SupplierId', Integer),
+    Column('CategoryId', Integer),
+    Column('QuantityPerUnit', String(8000)),
+    Column('UnitPrice', DECIMAL),
+    Column('UnitsInStock', Integer),
+    Column('UnitsOnOrder', Integer),
+    Column('ReorderLevel', Integer),
+    Column('Discontinued', Integer),
+    Column('UnitsShipped', Integer),
+    Column('CategoryName', String(8000)),
+    Column('CategoryDescription', String(8000)),
+    Column('SupplierName', String(8000)),
+    Column('SupplierRegion', String(8000))
+)
+
+
+class Region(Base):  # type: ignore
+    __tablename__ = 'Region'
+    _s_collection_name = 'Region'  # type: ignore
+
+    Id = Column(Integer, primary_key=True)
+    RegionDescription = Column(String(8000))
+
+    # parent relationships (access parent)
+
+    # child relationships (access children)
+
+
+
+class Shipper(Base):  # type: ignore
+    __tablename__ = 'Shipper'
+    _s_collection_name = 'Shipper'  # type: ignore
+
+    Id = Column(Integer, primary_key=True)
+    CompanyName = Column(String(8000))
+    Phone = Column(String(8000))
+
+    # parent relationships (access parent)
+
+    # child relationships (access children)
+
+
+
+class Supplier(Base):  # type: ignore
+    __tablename__ = 'Supplier'
+    _s_collection_name = 'Supplier'  # type: ignore
+
+    Id = Column(Integer, primary_key=True)
+    CompanyName = Column(String(8000))
+    ContactName = Column(String(8000))
+    ContactTitle = Column(String(8000))
+    Address = Column(String(8000))
+    City = Column(String(8000))
+    Region = Column(String(8000))
+    PostalCode = Column(String(8000))
+    Country = Column(String(8000))
+    Phone = Column(String(8000))
+    Fax = Column(String(8000))
+    HomePage = Column(String(8000))
+
+    # parent relationships (access parent)
+
+    # child relationships (access children)
+
+
+
+class Territory(Base):  # type: ignore
+    __tablename__ = 'Territory'
+    _s_collection_name = 'Territory'  # type: ignore
+
+    Id = Column(String(8000), primary_key=True)
+    TerritoryDescription = Column(String(8000))
+    RegionId = Column(Integer, nullable=False)
+    allow_client_generated_ids = True
+
+    # parent relationships (access parent)
+
+    # child relationships (access children)
+    EmployeeTerritoryList : Mapped[List["EmployeeTerritory"]] = relationship(back_populates="Territory")
+
+
+
+class CustomerCustomerDemo(Base):  # type: ignore
+    __tablename__ = 'CustomerCustomerDemo'
+    _s_collection_name = 'CustomerCustomerDemo'  # type: ignore
+
+    Id = Column(String(8000), primary_key=True)
+    CustomerTypeId = Column(ForeignKey('Customer.Id'))
+    allow_client_generated_ids = True
+
+    # parent relationships (access parent)
+    CustomerType : Mapped["Customer"] = relationship(back_populates=("CustomerCustomerDemoList"))
+
+    # child relationships (access children)
+
+
+
+class Employee(Base):  # type: ignore
     __tablename__ = 'Employee'
+    _s_collection_name = 'Employee'  # type: ignore
 
     Id = Column(Integer, primary_key=True)
     LastName = Column(String(8000))
@@ -118,174 +285,102 @@ class Employee(Base):
     Extension = Column(String(8000))
     Photo = Column(LargeBinary)
     Notes = Column(String(8000))
-    ReportsTo = Column(ForeignKey('Employee.Id'), nullable=False)
+    ReportsTo = Column(Integer)
     PhotoPath = Column(String(8000))
     IsCommissioned = Column(Integer)
-    Salary = Column(DECIMAL(10, 2))
-    WorksFor = Column(ForeignKey('Department.Id'), nullable=False)
-    OnLoan = Column(ForeignKey('Department.Id'), nullable=False)
+    Salary : DECIMAL = Column(DECIMAL)
+    WorksFor = Column(ForeignKey('Department.Id'))
+    OnLoan = Column(ForeignKey('Department.Id'))
 
-    OrderList = relationship("Order", cascade_backrefs=False, backref="SalesRep")
-    # https://stackoverflow.com/questions/2638217/sqlalchemy-mapping-self-referential-relationship-as-one-to-many-declarative-f
-    Manager = relationship('Employee', remote_side='Employee.Id',
-                                      backref='Manages')  # parent Company
-    TerritoryList = relationship("EmployeeTerritory", cascade_backrefs=False, backref="Employee")
+    # parent relationships (access parent)
+    Department : Mapped["Department"] = relationship(foreign_keys='[Employee.OnLoan]', back_populates=("EmployeeList"))
+    Department1 : Mapped["Department"] = relationship(foreign_keys='[Employee.WorksFor]', back_populates=("EmployeeList1"))
 
-    # TODO - resolve why cascade as False, revise to current SQLAlchemy standards
-    EmployeeAuditList = relationship("EmployeeAudit", cascade_backrefs=True, backref="Employee")
+    # test virtual relationship (no FK in db)
+    Manager = relationship('Employee', 
+                          remote_side='Employee.Id',
+                          primaryjoin='foreign(Employee.ReportsTo) == Employee.Id',
+                          back_populates='Manages')  # parent emp, via ReportsTo (test: missing FK)
 
-    Works_for_dept = relationship('Department', remote_side='Department.Id',
-                                  foreign_keys="Employee.WorksFor",
-                                  backref='EmployeeWorksForList')
-    On_loan_dept = relationship('Department', remote_side='Department.Id',
-                                foreign_keys="Employee.OnLoan",
-                                backref='EmployeeOnLoanList')
+    # child relationships (access children)
+    Manages : Mapped[List["Employee"]] = relationship('Employee',
+                                                     primaryjoin='Employee.Id == foreign(Employee.ReportsTo)',
+                                                     back_populates='Manager')  # employees this person manages
+    EmployeeTerritoryList : Mapped[List["EmployeeTerritory"]] = relationship(back_populates="Employee")
+    OrderList : Mapped[List["Order"]] = relationship(back_populates="SalesRep")
 
-    @hybrid_property
-    def order_count(self):
-        if not hasattr(self, "_order_count"):
-            self._order_count = self.order_count_sql
-        result = self._order_count
-        if result is None:
-            result = 0
-        return result
 
-    @order_count.setter
-    def order_count(self, value):
-        self._order_count = value
 
-class EmployeeAudit(Base):
-    __tablename__ = 'EmployeeAudit'
+class OrderClass(Base):  # type: ignore
+    __tablename__ = 'OrderZ' # used to verify name mapping
+    _s_collection_name = 'OrderZ'  # type: ignore
 
     Id = Column(Integer, primary_key=True)
-    EmployeeId = Column(ForeignKey('Employee.Id'), nullable=False)
-    LastName = Column(String(8000))
-    FirstName = Column(String(8000))
-    Title = Column(String(8000))
-    Salary = Column(DECIMAL(10, 2))
-    CreatedOn = Column(String(200))
-
-class Product(Base):
-    __tablename__ = 'Product'
-
-    Id = Column(Integer, primary_key=True)
-    ProductName = Column(String(8000))
-    SupplierId = Column(Integer, nullable=False)
-    CategoryId = Column(Integer, nullable=False)
-    QuantityPerUnit = Column(String(8000))
-    UnitPrice = Column(DECIMAL(10, 2), nullable=False)
-    UnitsInStock = Column(Integer, nullable=False)
-    UnitsOnOrder = Column(Integer, nullable=False)
-    ReorderLevel = Column(Integer, nullable=False)
-    Discontinued = Column(Integer, nullable=False)
-    UnitsShipped = Column(Integer, nullable=False)
-
-    OrderList = relationship("OrderDetail", cascade_backrefs=False, backref="ProductOrdered")
-
-
-
-class Region(Base):
-    __tablename__ = 'Region'
-
-    Id = Column(Integer, primary_key=True)
-    RegionDescription = Column(String(8000))
-
-
-class Shipper(Base):
-    __tablename__ = 'Shipper'
-
-    Id = Column(Integer, primary_key=True)
-    CompanyName = Column(String(8000))
-    Phone = Column(String(8000))
-
-
-class Supplier(Base):
-    __tablename__ = 'Supplier'
-
-    Id = Column(Integer, primary_key=True)
-    CompanyName = Column(String(8000))
-    ContactName = Column(String(8000))
-    ContactTitle = Column(String(8000))
-    Address = Column(String(8000))
-    City = Column(String(8000))
-    Region = Column(String(8000))
-    PostalCode = Column(String(8000))
-    Country = Column(String(8000))
-    Phone = Column(String(8000))
-    Fax = Column(String(8000))
-    HomePage = Column(String(8000))
-
-
-class Territory(Base):
-    __tablename__ = 'Territory'
-
-    Id = Column(String(8000), primary_key=True)
-    TerritoryDescription = Column(String(8000))
-    RegionId = Column(Integer, nullable=False)
-
-    EmployeeList = relationship("EmployeeTerritory", cascade_backrefs=False, backref="Territory")
-
-
-class CustomerCustomerDemo(Base):
-    __tablename__ = 'CustomerCustomerDemo'
-
-    Id = Column(String(8000), primary_key=True)
-    CustomerTypeId = Column(ForeignKey('Customer.Id'))
-
-
-class EmployeeTerritory(Base):
-    __tablename__ = 'EmployeeTerritory'
-
-    Id = Column(String(8000), primary_key=True)
-    EmployeeId = Column(ForeignKey('Employee.Id'), nullable=False)
-    TerritoryId = Column(ForeignKey('Territory.Id'))
-
-
-class OrderClass(Base):
-    """ Used to test different table vs. class name """
-    __tablename__ = 'OrderZ'
-
-    Id = Column(Integer, primary_key=True)  #, autoincrement=True)
     CustomerId = Column(ForeignKey('Customer.Id'))
-    EmployeeId = Column(ForeignKey('Employee.Id'))
-    OrderDate = Column(String(8000))
-    RequiredDate = Column(String(8000))
-    ShippedDate = Column(String(8000), server_default=text('NULL'))
-    ShipVia = Column(Integer)
-    Freight = Column(DECIMAL(10, 2), nullable=False)
-    ShipName = Column(String(8000))
-    ShipAddress = Column(String(8000))
-    ShipCity = Column(String(8000))
-    ShipRegion = Column(String(8000))
-    ShipPostalCode = Column(String(8000))
-    ShipCountry = Column(String(8000))
-    AmountTotal = Column(DECIMAL(10, 2))
-
-
-class Order(Base):
-    __tablename__ = 'Order'
-
-    Id = Column(Integer, primary_key=True)  #, autoincrement=True)
-    CustomerId = Column(ForeignKey('Customer.Id'))
-    EmployeeId = Column(ForeignKey('Employee.Id'))
+    EmployeeId = Column(Integer, nullable=False)
     OrderDate = Column(String(8000))
     RequiredDate = Column(String(8000))
     ShippedDate = Column(String(8000))
     ShipVia = Column(Integer)
-    Freight = Column(DECIMAL(10, 2), nullable=False)
+    Freight : DECIMAL = Column(DECIMAL, nullable=False)
     ShipName = Column(String(8000))
     ShipAddress = Column(String(8000))
     ShipCity = Column(String(8000))
     ShipRegion = Column(String(8000))
     ShipPostalCode = Column(String(8000))
     ShipCountry = Column(String(8000))
-    AmountTotal = Column(DECIMAL(10, 2))
+    AmountTotal : DECIMAL = Column(DECIMAL)
 
-    OrderDetailList = relationship("OrderDetail",
-                                   backref="OrderHeader",
-                                   cascade="all, delete",
-                                   # passive_deletes=True,  # means database RI will do the deleting (never for SqlLite)
-                                   cascade_backrefs=False)
+    # parent relationships (access parent)
+    # Customer : Mapped["Customer"] = relationship(back_populates=("OrderZList"))
+
+    # child relationships (access children)
+
+
+class EmployeeTerritory(Base):  # type: ignore
+    __tablename__ = 'EmployeeTerritory'
+    _s_collection_name = 'EmployeeTerritory'  # type: ignore
+
+    Id = Column(String(8000), primary_key=True)
+    EmployeeId = Column(ForeignKey('Employee.Id'), nullable=False)
+    TerritoryId = Column(ForeignKey('Territory.Id'))
+    allow_client_generated_ids = True
+
+    # parent relationships (access parent)
+    Employee : Mapped["Employee"] = relationship(back_populates=("EmployeeTerritoryList"))
+    Territory : Mapped["Territory"] = relationship(back_populates=("EmployeeTerritoryList"))
+
+    # child relationships (access children)
+
+
+
+class Order(Base):  # type: ignore
+    __tablename__ = 'Order'
+    _s_collection_name = 'Order'  # type: ignore
+
+    Id = Column(Integer, primary_key=True)
+    CustomerId = Column(ForeignKey('Customer.Id'))
+    EmployeeId = Column(ForeignKey('Employee.Id'), nullable=False)
+    OrderDate = Column(String(8000))
+    RequiredDate = Column(String(8000))
+    ShippedDate = Column(String(8000))
+    ShipVia = Column(Integer)
+    Freight : DECIMAL = Column(DECIMAL, nullable=False)
+    ShipName = Column(String(8000))
+    ShipAddress = Column(String(8000))
+    ShipCity = Column(String(8000))
+    ShipRegion = Column(String(8000))
+    ShipPostalCode = Column(String(8000))
+    ShipCountry = Column(String(8000))
+    AmountTotal : DECIMAL = Column(DECIMAL(10, 2))
+
+    # parent relationships (access parent)
+    Customer : Mapped["Customer"] = relationship(back_populates=("OrderList"))
+    SalesRep : Mapped["Employee"] = relationship(back_populates=("OrderList"))  # manual override on accessor
+
+    # child relationships (access children)
+    OrderDetailList : Mapped[List["OrderDetail"]] = relationship(back_populates="OrderHeader")
+
 
 #  https://docs.sqlalchemy.org/en/13/orm/mapped_sql_expr.html
 
@@ -296,115 +391,25 @@ Customer.total_ordered_sql = column_property(
 Customer.total_ordered_sql = column_property(
     select(sqlalchemy.sql.functions.sum(Order.AmountTotal)).where(Order.CustomerId == Customer.Id))
 
-Employee.order_count_sql = column_property(
+Employee.order_count_sql = column_property(   # used in rules, special provisions required
     select(sqlalchemy.sql.functions.count(Order.Id)).where(Order.Id == Order.EmployeeId))
 
 
-class OrderDetail(Base):
+class OrderDetail(Base):  # type: ignore
     __tablename__ = 'OrderDetail'
+    _s_collection_name = 'OrderDetail'  # type: ignore
 
-    Id = Column(Integer, primary_key=True)  #, autoincrement=True)
+    Id = Column(Integer, primary_key=True)
     OrderId = Column(ForeignKey('Order.Id'), nullable=False)
     ProductId = Column(ForeignKey('Product.Id'), nullable=False)
-    UnitPrice = Column(DECIMAL(10, 2), nullable=False)
+    UnitPrice : DECIMAL = Column(DECIMAL, nullable=False)
     Quantity = Column(Integer, nullable=False)
-    Discount = Column(Float, nullable=False)
-    Amount = Column(DECIMAL(10, 2))
+    Discount = Column(Double, nullable=False)
+    Amount : DECIMAL = Column(DECIMAL)
     ShippedDate = Column(String(8000))
 
+    # parent relationships (access parent)
+    OrderHeader : Mapped["Order"] = relationship(back_populates=("OrderDetailList"))  # manual override on accessor
+    Product : Mapped["Product"] = relationship(back_populates=("OrderDetailList"))
 
-class AbPermission(Base):
-    __tablename__ = 'ab_permission'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String(100), nullable=False, unique=True)
-
-
-class AbRegisterUser(Base):
-    __tablename__ = 'ab_register_user'
-
-    id = Column(Integer, primary_key=True)
-    first_name = Column(String(64), nullable=False)
-    last_name = Column(String(64), nullable=False)
-    username = Column(String(64), nullable=False, unique=True)
-    password = Column(String(256))
-    email = Column(String(64), nullable=False)
-    registration_date = Column(DateTime)
-    registration_hash = Column(String(256))
-
-
-class AbRole(Base):
-    __tablename__ = 'ab_role'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String(64), nullable=False, unique=True)
-
-
-class AbUser(Base):
-    __tablename__ = 'ab_user'
-
-    id = Column(Integer, primary_key=True)
-    first_name = Column(String(64), nullable=False)
-    last_name = Column(String(64), nullable=False)
-    username = Column(String(64), nullable=False, unique=True)
-    password = Column(String(256))
-    active = Column(Boolean)
-    email = Column(String(64), nullable=False, unique=True)
-    last_login = Column(DateTime)
-    login_count = Column(Integer)
-    fail_login_count = Column(Integer)
-    created_on = Column(DateTime)
-    changed_on = Column(DateTime)
-    created_by_fk = Column(ForeignKey('ab_user.id'))
-    changed_by_fk = Column(ForeignKey('ab_user.id'))
-
-    parent = relationship('AbUser', remote_side=[id], primaryjoin='AbUser.changed_by_fk == AbUser.id')
-    parent1 = relationship('AbUser', remote_side=[id], primaryjoin='AbUser.created_by_fk == AbUser.id')
-
-
-class AbViewMenu(Base):
-    __tablename__ = 'ab_view_menu'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String(250), nullable=False, unique=True)
-
-class AbPermissionView(Base):
-    __tablename__ = 'ab_permission_view'
-    __table_args__ = (
-        UniqueConstraint('permission_id', 'view_menu_id'),
-    )
-
-    id = Column(Integer, primary_key=True)
-    permission_id = Column(ForeignKey('ab_permission.id'))
-    view_menu_id = Column(ForeignKey('ab_view_menu.id'))
-
-    permission = relationship('AbPermission')
-    view_menu = relationship('AbViewMenu')
-
-
-class AbUserRole(Base):
-    __tablename__ = 'ab_user_role'
-    __table_args__ = (
-        UniqueConstraint('user_id', 'role_id'),
-    )
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(ForeignKey('ab_user.id'))
-    role_id = Column(ForeignKey('ab_role.id'))
-
-    role = relationship('AbRole')
-    user = relationship('AbUser')
-
-
-class AbPermissionViewRole(Base):
-    __tablename__ = 'ab_permission_view_role'
-    __table_args__ = (
-        UniqueConstraint('permission_view_id', 'role_id'),
-    )
-
-    id = Column(Integer, primary_key=True)
-    permission_view_id = Column(ForeignKey('ab_permission_view.id'))
-    role_id = Column(ForeignKey('ab_role.id'))
-
-    permission_view = relationship('AbPermissionView')
-    role = relationship('AbRole')
+    # child relationships (access children)

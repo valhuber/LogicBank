@@ -80,7 +80,7 @@ def find_missing_attributes(all_attributes: list[str], rules_bank: RuleBank) -> 
             continue
         class_name = class_and_attr.split('.')[0]
         attr_name = class_and_attr.split('.')[1]
-        if attr_name == 'unit_price':
+        if attr_name in ['unit_price', 'order_count']:
             good_breakpoint = True
         each_mapper = rules_bank.get_mapper_for_class_name(class_name)
         if each_mapper is None:

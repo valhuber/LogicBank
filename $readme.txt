@@ -19,9 +19,10 @@ Major friction due to Python Path
     Using LogicBankUtils to set path (to LogicBank) in each nw/tests
 
 Major issues with SQLAlchemy1.4 (DeclarativeMeta (etc) now merged in SQLAlchemy.orm)ß
-    But, SQLAlchemy Utils is very old -- nothing since 2014!  Seems ok to remove (done)
+    But, SQLAlchemy Utils is very old (1.4.29) -- nothing since 2014!  Seems ok to remove (done)
     And it fails with SAFRS JABase
-    genai-logic is on 2.0.39 (8/16/2025)
+    genai-logic is on 2.0.39 (8/16/2025) pip install SQLAlchemy==2.0.39
+        The 'cascade_backrefs' parameter passed to relationship() may only be set to False.
 
 Significant bug fixes:
     See nw/trans_tests/upd_order_reuse, and logic_engine/exec_row_logic/logic_row#save_altered_parents

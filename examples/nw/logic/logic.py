@@ -61,6 +61,7 @@ def declare_logic():
             if sales_rep is None:
                 logic_row.log("no salesrep for this order")
             else:
+                manager = sales_rep.Manager  # type : Employee
                 logic_row.log(f'Hi, {sales_rep.Manager.FirstName}, congratulate {sales_rep.FirstName} on their new order')
 
     Rule.constraint(validate=Customer,
@@ -102,11 +103,12 @@ def declare_logic():
                     as_condition=lambda row: row.Id <= 99999,
                     error_msg="Test constraint for className <> tableName")
 
+    # test virtual attribute
     Rule.constraint(validate=Employee,
-                    as_condition=lambda row: row.IsCommissioned == 1 or row.order_count == 0,
-                    error_msg="{row.LastName} is not commissioned ({row.IsCommissioned}) - cannot have orders ({row.order_count})")
+                    as_condition=lambda row: row.IsCommissioned == 1 or row.order_count_sql == 0,
+                    error_msg="{row.LastName} is not commissioned ({row.IsCommissioned}) - cannot have orders ({row.order_count_sql})")
 
-    Rule.count(derive=Employee.order_count, as_count_of=Order)
+    Rule.count(derive=Employee.order_count_sql, as_count_of=Order)
 
     def raise_over_20_percent(row: Employee, old_row: Employee, logic_row: LogicRow):
         if logic_row.ins_upd_dlt == "upd" and row.Salary != old_row.Salary:
