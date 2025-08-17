@@ -570,14 +570,8 @@ class LogicRow:
                                                ins_upd_dlt="*", nest_level=0,
                                                a_session=self.session,
                                                row_sets=None)
-                new_child_obj = copy_to_class()  # Create new child object
-                # CRITICAL SQLAlchemy 2.0 fix: explicitly add new child object to session
-                self.session.add(new_child_obj)
-                new_copy_to_row = LogicRow(row=new_child_obj, old_row=copy_to_class(),
-                                           ins_upd_dlt="ins",
-                                           nest_level=self.nest_level + 1,
-                                           a_session=self.session,
-                                           row_sets=self.row_sets)
+                # Use new_logic_row() for proper SQLAlchemy 2.0 session management
+                new_copy_to_row = self.new_logic_row(copy_to_class)
                 new_copy_to_row.set_same_named_attributes(each_from_logic_row)
                 new_copy_to_row.link(to_parent=self, is_copy=True)
                 new_copy_to_row.insert(reason="Copy Children " + copy_to_list_name)  # triggers rules...

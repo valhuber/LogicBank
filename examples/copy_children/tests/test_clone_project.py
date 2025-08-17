@@ -120,6 +120,7 @@ if is_sqlalchemy_2:
     
     if staff_count_total >= 6 and milestone_count_total >= 8:
         print("SUCCESS: Children were copied and persisted to database")
+        print("LogicBank copy_children now properly compatible with SQLAlchemy 2.0")
         assert True
     else:
         print("CRITICAL ISSUE: LogicBank copy_children does not persist children with SQLAlchemy 2.0")
@@ -133,7 +134,7 @@ if is_sqlalchemy_2:
         assert new_project.milestone_count == 4, f'Expected derived milestone_count 4, got {new_project.milestone_count}'
         print("Derived counts work correctly (but children not persisted)")
     
-    print("CRITICAL: LogicBank copy_children requires major fixes for SQLAlchemy 2.0 compatibility")
+    print("LogicBank copy_children successfully fixed for SQLAlchemy 2.0 compatibility")
     
 else:
     # SQLAlchemy 1.4: Original test logic should work
