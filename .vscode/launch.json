@@ -127,5 +127,79 @@
             "redirectOutput": true,
             "console": "integratedTerminal"
         },
+        {
+            "name": "Run Tests - All Examples",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/run_tests.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": [],
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
+            "name": "Run Tests - NW Example",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/run_tests.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "--dir",
+                "examples/nw/tests"
+            ],
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
+            "name": "Run Tests - Copy Children",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/run_tests.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "--dir",
+                "examples/copy_children/tests"
+            ],
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
+            "name": "Run Tests - Banking",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/run_tests.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "--dir",
+                "examples/banking/tests"
+            ],
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
+            "name": "Run Tests - Payment Allocation",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/run_tests.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "--dir",
+                "examples/payment_allocation/tests"
+            ],
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
+            "name": "List Test Directories",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/run_tests.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "--list"
+            ],
+            "python": "${workspaceFolder}/venv/bin/python"
+        }
     ]
 }
