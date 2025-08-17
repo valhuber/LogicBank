@@ -44,7 +44,7 @@ class Test(unittest.TestCase):
         session.expunge(pre_cust)
 
         print("")
-        test_order = session.query(models.OrderClass).filter(models.OrderClass.Id == 11011).join(models.Employee).one()
+        test_order = session.query(models.OrderClass).filter(models.OrderClass.Id == 11011).join(models.OrderClass.SalesRep).one()
         if test_order.RequiredDate is None or test_order.RequiredDate == "":
             test_order.RequiredDate = str(datetime.now())
             print(prt("Shipping order - RequiredDate: ['' -> " + test_order.RequiredDate + "]"))

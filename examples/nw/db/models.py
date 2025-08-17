@@ -142,6 +142,11 @@ class EmployeeAudit(Base):  # type: ignore
 
     # child relationships (access children)
 
+    # test manual virtual relationship (no FK in db)
+    Employee = relationship('Employee', 
+                          remote_side='Employee.Id',
+                          primaryjoin='foreign(EmployeeAudit.EmployeeId) == Employee.Id',
+                          back_populates='EmployeeAuditList')  # parent emp, via EmployeeId (test: missing FK)
 
 
 class Product(Base):  # type: ignore
@@ -312,6 +317,9 @@ class Employee(Base):  # type: ignore
     EmployeeTerritoryList : Mapped[List["EmployeeTerritory"]] = relationship(back_populates="Employee")
     OrderList : Mapped[List["Order"]] = relationship(back_populates="SalesRep")
 
+    EmployeeAuditList : Mapped[List["EmployeeAudit"]] = relationship('EmployeeAudit',
+                                                     primaryjoin='Employee.Id == foreign(EmployeeAudit.EmployeeId)',
+                                                     back_populates='Employee')  # audit records for this employee
 
 
 class OrderClass(Base):  # type: ignore
@@ -336,6 +344,9 @@ class OrderClass(Base):  # type: ignore
 
     # parent relationships (access parent)
     # Customer : Mapped["Customer"] = relationship(back_populates=("OrderZList"))
+    SalesRep : Mapped["Employee"] = relationship('Employee', 
+                                                foreign_keys='[OrderClass.EmployeeId]',
+                                                primaryjoin='OrderClass.EmployeeId == Employee.Id')
 
     # child relationships (access children)
 

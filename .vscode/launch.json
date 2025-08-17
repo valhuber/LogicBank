@@ -53,6 +53,15 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "nw_test upd orderclass_required",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/examples/nw/tests/test_upd_orderclass_required.py",
+            "redirectOutput": true,
+            "justMyCode": false,
+            "console": "integratedTerminal"
+        },
+        {
             "name": "nw_test",
             "type": "debugpy",
             "request": "launch",
