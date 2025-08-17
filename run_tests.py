@@ -128,8 +128,7 @@ def get_nw_test_details(test_dir):
 
 def write_test_summary_to_file(results, nw_test_details, detailed_test_files=None):
     """Write comprehensive test summary to a file."""
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    filename = f"test_summary_{timestamp}.txt"
+    filename = "test_summary.txt"
     
     with open(filename, 'w') as f:
         f.write("="*80 + "\n")

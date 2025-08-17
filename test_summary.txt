@@ -1,7 +1,7 @@
 ================================================================================
 LOGICBANK TEST SUMMARY REPORT
 ================================================================================
-Generated: 2025-08-17 09:54:14
+Generated: 2025-08-17 11:34:36
 SQLAlchemy Version: 2.0.39
 LogicBank Version: 1.20.26
 
@@ -9,9 +9,9 @@ OVERALL RESULTS:
 ----------------------------------------
 Total Test Suites: 8
 Total Test Files: 23
-Passed Suites: 7
-Failed Suites: 1
-Success Rate: 87.5%
+Passed Suites: 8
+Failed Suites: 0
+Success Rate: 100.0%
 
 DETAILED TEST RESULTS:
 ----------------------------------------
@@ -54,7 +54,7 @@ examples/payment_allocation/tests        PASSED
   Standalone scripts:
     - test_payment_allocation.py
 
-examples/referential_integrity/tests     FAILED
+examples/referential_integrity/tests     PASSED
   Standalone scripts:
     - test_referential_integrity.py
 
@@ -127,10 +127,7 @@ KEY ACCOMPLISHMENTS:
 
 NOTES:
 ----------------------------------------
-Failed tests may indicate:
-- Pre-existing compatibility issues with SQLAlchemy 2.0
-- Framework features requiring additional migration work
-- Test infrastructure needing updates
+All tests passed successfully! LogicBank is fully compatible with SQLAlchemy 2.0.
 
 For detailed test execution logs, see terminal output.
 ================================================================================
