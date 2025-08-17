@@ -90,7 +90,7 @@ class Customer(Base):  # type: ignore
     # child relationships (access children)
     CustomerCustomerDemoList : Mapped[List["CustomerCustomerDemo"]] = relationship(back_populates="CustomerType")
     # OrderZList : Mapped[List["OrderZ"]] = relationship(back_populates="Customer")
-    OrderList : Mapped[List["Order"]] = relationship(back_populates="Customer")
+    OrderList : Mapped[List["Order"]] = relationship(back_populates="Customer", cascade="all, delete")
 
 
 
@@ -163,7 +163,7 @@ class Product(Base):  # type: ignore
     # parent relationships (access parent)
 
     # child relationships (access children)
-    OrderDetailList : Mapped[List["OrderDetail"]] = relationship(back_populates="Product")
+    OrderList : Mapped[List["OrderDetail"]] = relationship(back_populates="ProductOrdered")
 
 
 
@@ -382,7 +382,7 @@ class Order(Base):  # type: ignore
     SalesRep : Mapped["Employee"] = relationship(back_populates=("OrderList"))  # manual override on accessor
 
     # child relationships (access children)
-    OrderDetailList : Mapped[List["OrderDetail"]] = relationship(back_populates="OrderHeader")
+    OrderDetailList : Mapped[List["OrderDetail"]] = relationship(back_populates="OrderHeader", cascade="all, delete")
 
 
 #  https://docs.sqlalchemy.org/en/13/orm/mapped_sql_expr.html
@@ -414,6 +414,6 @@ class OrderDetail(Base):  # type: ignore
 
     # parent relationships (access parent)
     OrderHeader : Mapped["Order"] = relationship(back_populates=("OrderDetailList"))  # manual override on accessor
-    Product : Mapped["Product"] = relationship(back_populates=("OrderDetailList"))
+    ProductOrdered : Mapped["Product"] = relationship(back_populates=("OrderList"))
 
     # child relationships (access children)

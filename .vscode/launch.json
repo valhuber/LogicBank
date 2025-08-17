@@ -28,6 +28,14 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "nw_test test_dlt_customer",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/examples/nw/tests/test_dlt_customer.py",
+            "redirectOutput": true,
+            "console": "integratedTerminal"
+        },
+        {
             "name": "nw_test add emp",
             "type": "debugpy",
             "request": "launch",

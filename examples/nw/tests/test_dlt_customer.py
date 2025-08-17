@@ -53,8 +53,8 @@ class Test(unittest.TestCase):
         if post_adjusted_product.UnitsShipped == pre_adjusted_product.UnitsShipped - 40:
             logic_row.log("Product adjusted properly on delete customer")
         else:
-            logic_row.log("Product adjusted improperly on delete customer")
-            assert False, "Product adjusted improperly on delete customer"
+            logic_row.log("Product.UnitsShipped adjusted improperly on delete customer")
+            assert False, "Product.UnitsShipped adjusted improperly on delete customer"
 
         print("\nCustomer deleted - check log")
         self.assertTrue(True)
@@ -85,7 +85,7 @@ class Test(unittest.TestCase):
             logic_row.log("Correct adjusted Customer Result")
             assert True
         else:
-            self.fail(logic_row.log("Incorrect adjusted Customer Result - expected 960 difference"))
+            self.fail(logic_row.log("Incorrect adjusted CustomerBalance Result - expected 960 difference"))
 
         if post_cust.Balance == 56:
             pass
@@ -103,7 +103,7 @@ class Test(unittest.TestCase):
         if post_adjusted_product.UnitsShipped == pre_adjusted_product.UnitsShipped + 40:
             logic_row.log("Product adjusted properly on ship order")
         else:
-            self.fail(logic_row.log("Product adjusted improperly on ship order"))
+            self.fail(logic_row.log("Product.UnitsShipped adjusted improperly on ship order"))
 
 
 

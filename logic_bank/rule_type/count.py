@@ -30,7 +30,9 @@ class Count(Aggregate):
         if self._load_error:
             pass  # FIXME log
         else:
-            if child_role_name is not None:
+            if derive.name in ['UnpaidOrderCount', 'UnitsShipped']:
+                debug_message = 'good breakpoint'
+            if child_role_name is not None and child_role_name != "":
                 self._child_role_name = child_role_name
             else:
                 local_attrs = as_count_of._sa_class_manager.local_attrs  # child attrs...  TODO 'splain!

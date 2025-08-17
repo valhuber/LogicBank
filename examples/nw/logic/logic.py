@@ -88,11 +88,11 @@ def declare_logic():
     def units_in_stock(row: Product, old_row: Product, logic_row: LogicRow):
         result = row.UnitsInStock - (row.UnitsShipped - old_row.UnitsShipped)
         return result
-    Rule.sum(derive=Product.UnitsShipped, as_sum_of=OrderDetail.Quantity,
+    Rule.formula(derive=Product.UnitsInStock, calling=units_in_stock)
+    
+    Rule.sum(derive=Product.UnitsShipped, as_sum_of=OrderDetail.Quantity, 
              where= lambda row: row.ShippedDate is not None and row.ShippedDate  != '')
             #"row.ShippedDate is not None or row.ShippedDate != ''")
-
-    Rule.formula(derive=Product.UnitsInStock, calling=units_in_stock)
 
     Rule.count(derive=Customer.UnpaidOrderCount, as_count_of=Order,
              where=lambda row: row.ShippedDate is None or row.ShippedDate == '')  # *not* a sql select sum...
