@@ -12,7 +12,87 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "add_order",
+            "name": "run_tests_all",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/run_tests.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": []
+        },
+        {
+            "name": "run_tests_nw",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/run_tests.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "--dir",
+                "examples/nw/tests"
+            ]
+        },
+        {
+            "name": "run_tests_copy_children",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/run_tests.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "--dir",
+                "examples/copy_children/tests"
+            ]
+        },
+        {
+            "name": "run_tests_banking",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/run_tests.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "--dir",
+                "examples/banking/tests"
+            ]
+        },
+        {
+            "name": "run_tests_payment_allocation",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/run_tests.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "--dir",
+                "examples/payment_allocation/tests"
+            ]
+        },
+        {
+            "name": "run_tests_referential_integrity",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/run_tests.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "--dir",
+                "examples/referential_integrity/tests"
+            ]
+        },
+        {
+            "name": "run_tests_list",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/run_tests.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "--list"
+            ]
+        },
+        {
+            "name": "nw_test_add_order",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/examples/nw/tests/test_add_order.py",
@@ -20,7 +100,7 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "nw_test test_missing_attrs",
+            "name": "nw_test_missing_attrs",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/examples/nw/tests/test_missing_attrs.py",
@@ -28,23 +108,7 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "nw_test test_dlt_customer",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/examples/nw/tests/test_dlt_customer.py",
-            "redirectOutput": true,
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "nw_test add emp",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/examples/nw/tests/test_add_emp.py",
-            "redirectOutput": true,
-            "console": "internalConsole"
-        },
-        {
-            "name": "nw_test upd order shipped",
+            "name": "nw_test_upd_order_shipped",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/examples/nw/tests/test_upd_order_shipped.py",
@@ -53,24 +117,7 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "nw_test upd orderclass_required",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/examples/nw/tests/test_upd_orderclass_required.py",
-            "redirectOutput": true,
-            "justMyCode": false,
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "nw_test",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/examples/nw/tests/nw_test.py",
-            "redirectOutput": true,
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "banking",
+            "name": "banking_test",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/examples/banking/tests/test_transfer_funds.py",
@@ -86,15 +133,7 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "custom_exceptions",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/examples/custom_exceptions/tests/test_custom_constraints.py",
-            "redirectOutput": true,
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "payment_allocation",
+            "name": "payment_allocation_test",
             "type": "debugpy",
             "justMyCode": false,
             "request": "launch",
@@ -103,7 +142,7 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "referential_integrity",
+            "name": "referential_integrity_test",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/examples/referential_integrity/tests/test_referential_integrity.py",
@@ -111,95 +150,28 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "insert_parent",
+            "name": "custom_exceptions_test",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/examples/custom_exceptions/tests/test_custom_constraints.py",
+            "redirectOutput": true,
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "insert_parent_test",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/examples/insert_parent/tests/test_insert_parent.py",
             "redirectOutput": true,
-            "console": "internalConsole",
-            "internalConsoleOptions": "openOnSessionStart"
+            "console": "integratedTerminal"
         },
         {
-            "name": "tutorial - fails sqlalchemy_utils",
+            "name": "tutorial_test",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/examples/tutorial/tests/test_tutorial.py",
             "redirectOutput": true,
             "console": "integratedTerminal"
-        },
-        {
-            "name": "Run Tests - All Examples",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/run_tests.py",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}",
-            "args": [],
-            "python": "${workspaceFolder}/venv/bin/python"
-        },
-        {
-            "name": "Run Tests - NW Example",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/run_tests.py",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}",
-            "args": [
-                "--dir",
-                "examples/nw/tests"
-            ],
-            "python": "${workspaceFolder}/venv/bin/python"
-        },
-        {
-            "name": "Run Tests - Copy Children",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/run_tests.py",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}",
-            "args": [
-                "--dir",
-                "examples/copy_children/tests"
-            ],
-            "python": "${workspaceFolder}/venv/bin/python"
-        },
-        {
-            "name": "Run Tests - Banking",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/run_tests.py",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}",
-            "args": [
-                "--dir",
-                "examples/banking/tests"
-            ],
-            "python": "${workspaceFolder}/venv/bin/python"
-        },
-        {
-            "name": "Run Tests - Payment Allocation",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/run_tests.py",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}",
-            "args": [
-                "--dir",
-                "examples/payment_allocation/tests"
-            ],
-            "python": "${workspaceFolder}/venv/bin/python"
-        },
-        {
-            "name": "List Test Directories",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/run_tests.py",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}",
-            "args": [
-                "--list"
-            ],
-            "python": "${workspaceFolder}/venv/bin/python"
         }
     ]
 }
