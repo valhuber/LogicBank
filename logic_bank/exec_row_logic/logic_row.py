@@ -643,7 +643,7 @@ class LogicRow:
             for each_relationship in my_relationships:  # eg, order has parents cust & emp, child orderdetail
                 if each_relationship.direction == sqlalchemy.orm.interfaces.ONETOMANY:  # cust, emp
                     reason = "Cascading PK change to: " + \
-                             each_relationship.backref + "->" + \
+                             each_relationship.back_populates + "->" + \
                              each_relationship.key
                     child_rows = self._get_old_child_rows(relationship=each_relationship)
                     for each_child_row in child_rows:
