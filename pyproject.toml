@@ -1,0 +1,119 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "logicbank"
+dynamic = ["version"]
+description = "Declare multi-table rules for SQLAlchemy update logic -- 40X more concise, Python for extensibility."
+readme = "README.md"
+license = {text = "BSD"}
+authors = [
+    {name = "Val Huber", email = "valjhuber@gmail.com"}
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "python-dateutil>=2.3,<3",
+    "sqlalchemy==2.0.39",
+]
+keywords = ["SQLAlchemy", "business logic", "rules engine", "declarative", "reactive"]
+
+[project.urls]
+Homepage = "https://github.com/valhuber/logicbank"
+Documentation = "https://github.com/valhuber/logicbank/wiki"
+Repository = "https://github.com/valhuber/logicbank"
+Issues = "https://github.com/valhuber/logicbank/issues"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov",
+    "black",
+    "flake8",
+    "mypy",
+]
+test = [
+    "pytest>=6.0",
+    "pytest-cov",
+]
+
+[tool.setuptools]
+zip-safe = false
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["logic_bank*"]
+
+[tool.setuptools.package-data]
+"*" = ["LICENSE"]
+
+[tool.setuptools.dynamic]
+version = {attr = "logic_bank.rule_bank.rule_bank_setup.__version__"}
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.pytest.ini_options]
+testpaths = ["examples"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[tool.coverage.run]
+source = ["logic_bank"]
+omit = [
+    "*/tests/*",
+    "*/examples/*",
+    "setup.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+]
