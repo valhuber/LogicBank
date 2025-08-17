@@ -570,7 +570,10 @@ class LogicRow:
                                                ins_upd_dlt="*", nest_level=0,
                                                a_session=self.session,
                                                row_sets=None)
-                new_copy_to_row = LogicRow(row=copy_to_class(), old_row=copy_to_class(),
+                new_child_obj = copy_to_class()  # Create new child object
+                # CRITICAL SQLAlchemy 2.0 fix: explicitly add new child object to session
+                self.session.add(new_child_obj)
+                new_copy_to_row = LogicRow(row=new_child_obj, old_row=copy_to_class(),
                                            ins_upd_dlt="ins",
                                            nest_level=self.nest_level + 1,
                                            a_session=self.session,

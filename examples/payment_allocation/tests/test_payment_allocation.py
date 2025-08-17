@@ -95,6 +95,54 @@ if new_payment.Amount != Decimal(1000):
 else:
     print()
 
+# Check SQLAlchemy version and test PaymentAllocation creation
+sqlalchemy_version = sqlalchemy.__version__
+print(f"\nSQLAlchemy version: {sqlalchemy_version}")
+
+if sqlalchemy_version.startswith('2.'):
+    print("SQLAlchemy 2.0: Testing PaymentAllocation creation")
+    
+    # Query PaymentAllocations created for this payment
+    payment_allocations = session.query(models.PaymentAllocation)\
+        .filter(models.PaymentAllocation.PaymentId == new_payment.Id).all()
+    
+    total_allocated = sum(pa.AmountAllocated for pa in payment_allocations)
+    
+    print(f"PaymentAllocations created: {len(payment_allocations)}")
+    print(f"Total allocated amount: {total_allocated}")
+    
+    if len(payment_allocations) > 0:
+        print("SUCCESS: PaymentAllocations were created and persisted to database")
+        for i, pa in enumerate(payment_allocations):
+            order = session.query(models.Order).filter(models.Order.Id == pa.OrderId).one()
+            print(f"  Allocation {i+1}: ${pa.AmountAllocated} to Order {pa.OrderId} (OrderDate: {order.OrderDate})")
+        
+        # Verify allocation logic worked correctly
+        if total_allocated == Decimal(1000):
+            print("SUCCESS: Total allocation amount matches payment amount")
+        else:
+            print(f"WARNING: Total allocation ${total_allocated} != payment amount $1000")
+    else:
+        print("ERROR: No PaymentAllocations were created")
+        print("CRITICAL: LogicBank allocation extension may need fixes for SQLAlchemy 2.0 compatibility")
+        
+elif sqlalchemy_version.startswith('1.'):
+    print("SQLAlchemy 1.4: Testing PaymentAllocation creation (legacy mode)")
+    payment_allocations = session.query(models.PaymentAllocation)\
+        .filter(models.PaymentAllocation.PaymentId == new_payment.Id).all()
+    print(f"PaymentAllocations created: {len(payment_allocations)}")
+    if len(payment_allocations) > 0:
+        print("SUCCESS: PaymentAllocations working in SQLAlchemy 1.4")
+        total_allocated = sum(pa.AmountAllocated for pa in payment_allocations)
+        print(f"Total allocated amount: {total_allocated}")
+    else:
+        print("ERROR: PaymentAllocations not working in SQLAlchemy 1.4")
+else:
+    print(f"Unknown SQLAlchemy version: {sqlalchemy_version}")
+    payment_allocations = session.query(models.PaymentAllocation)\
+        .filter(models.PaymentAllocation.PaymentId == new_payment.Id).all()
+    print(f"PaymentAllocations created: {len(payment_allocations)}")
+
 """
     (10653 owes nothing)
     orderId OrderDate   AmountTotal AmountPaid  AmountOwed  ==> Allocated
