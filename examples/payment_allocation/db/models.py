@@ -8,6 +8,8 @@ from sqlalchemy.orm import relationship, column_property
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.testing import db
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
+from typing import List
+from sqlalchemy.orm import Mapped
 
 Base = declarative_base()
 metadata = Base.metadata
@@ -22,17 +24,15 @@ class Customer(Base):
     Balance = Column(DECIMAL(10, 2))
     CreditLimit = Column(DECIMAL(10, 2))
 
-    OrderList = relationship("Order",
-                             backref="Customer",
+    OrderList : Mapped[List["Order"]] = relationship("Order",
+                             back_populates="Customer",
                              cascade="all, delete",
-                             passive_deletes=True,  # means database RI will do the deleting
-                             cascade_backrefs=True)
+                             passive_deletes=True)  # means database RI will do the deleting
 
-    PaymentList = relationship("Payment",
-                             backref="Customer",
+    PaymentList : Mapped[List["Payment"]] = relationship("Payment",
+                             back_populates="Customer",
                              cascade="all, delete",
-                             passive_deletes=True,  # means database RI will do the deleting
-                             cascade_backrefs=True)
+                             passive_deletes=True)  # means database RI will do the deleting
 
 
 class Payment(Base):
@@ -44,11 +44,14 @@ class Payment(Base):
     CustomerId = Column(ForeignKey('Customer.Id'))
     CreatedOn = Column(String(80))
 
-    AllocationList = relationship("PaymentAllocation",
-                                   backref="Payment",
+    # parent relationships (access parent)
+    Customer : Mapped["Customer"] = relationship("Customer", back_populates="PaymentList")
+
+    # child relationships (access children)
+    AllocationList : Mapped[List["PaymentAllocation"]] = relationship("PaymentAllocation",
+                                   back_populates="Payment",
                                    cascade="all, delete",
-                                   passive_deletes=True,  # means database RI will do the deleting
-                                   cascade_backrefs=True)
+                                   passive_deletes=True)  # means database RI will do the deleting
 
 
 class PaymentAllocation(Base):
@@ -58,6 +61,10 @@ class PaymentAllocation(Base):
     AmountAllocated = Column(DECIMAL(10, 2))
     OrderId = Column(ForeignKey('Order.Id'))
     PaymentId = Column(ForeignKey('Payment.Id'))
+
+    # parent relationships (access parent)
+    Payment : Mapped["Payment"] = relationship("Payment", back_populates="AllocationList")
+    Order : Mapped["Order"] = relationship("Order", back_populates="AllocationList")
 
 
 class Order(Base):
@@ -70,11 +77,14 @@ class Order(Base):
     AmountPaid = Column(DECIMAL(10, 2))
     AmountOwed = Column(DECIMAL(10, 2))
 
-    AllocationList = relationship("PaymentAllocation",
-                                   backref="Order",
+    # parent relationships (access parent)
+    Customer : Mapped["Customer"] = relationship("Customer", back_populates="OrderList")
+
+    # child relationships (access children)
+    AllocationList : Mapped[List["PaymentAllocation"]] = relationship("PaymentAllocation",
+                                   back_populates="Order",
                                    cascade="all, delete",
-                                   passive_deletes=True,  # means database RI will do the deleting
-                                   cascade_backrefs=True)
+                                   passive_deletes=True)  # means database RI will do the deleting
 
 
 class AbPermission(Base):

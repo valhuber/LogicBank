@@ -9,6 +9,8 @@ from sqlalchemy.orm import relationship, column_property
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.testing import db
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
+from typing import List
+from sqlalchemy.orm import Mapped
 
 Base = declarative_base()
 metadata = Base.metadata
@@ -36,19 +38,15 @@ class Parent(Base):
     parent_attr_1 = Column(String(16), primary_key=True)
     parent_attr_2 = Column(String(16), primary_key=True)
 
-    ChildList = relationship("Child"
-                             , backref="Parent"
-                             , cascade="all"  # cascade delete
+    ChildList : Mapped[List["Child"]] = relationship("Child",
+                             back_populates="Parent",
+                             cascade="all")  # cascade delete
                              # , passive_deletes=True  use *only* when DBMS does the cascade delete
                              # for LogicBank delete logic
-                             , cascade_backrefs=True
-                             )
-    ChildOrphanList = relationship("ChildOrphan"
-                                   , backref="Parent"
-                                   , cascade="save-update, merge, refresh-expire, expunge"
+    ChildOrphanList : Mapped[List["ChildOrphan"]] = relationship("ChildOrphan",
+                                   back_populates="Parent",
+                                   cascade="save-update, merge, refresh-expire, expunge")
                                    # no delete option means "nullify"
-                                   , cascade_backrefs=True
-                                   )
 
 
 class Child(Base):
@@ -61,6 +59,8 @@ class Child(Base):
                                            [Parent.parent_attr_1, Parent.parent_attr_2]),
                       {})
 
+    # parent relationships (access parent)
+    Parent : Mapped["Parent"] = relationship("Parent", back_populates="ChildList")
 
 
 class ChildOrphan(Base):
@@ -72,3 +72,6 @@ class ChildOrphan(Base):
     __table_args__ = (ForeignKeyConstraint([parent_1, parent_2],
                                            [Parent.parent_attr_1, Parent.parent_attr_2]),
                       {})
+
+    # parent relationships (access parent)
+    Parent : Mapped["Parent"] = relationship("Parent", back_populates="ChildOrphanList")

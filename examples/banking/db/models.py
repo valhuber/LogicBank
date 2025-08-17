@@ -3,6 +3,8 @@ from sqlalchemy import Column, DECIMAL, DateTime, ForeignKey, ForeignKeyConstrai
 from sqlalchemy.dialects.mysql import INTEGER, MEDIUMINT, SMALLINT
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
+from typing import List
+from sqlalchemy.orm import Mapped
 
 from logic_bank import logic_bank  # import this first - import ordering
 
@@ -44,8 +46,9 @@ class TRANSFERFUND(Base):
     TransferAmt = Column(DECIMAL(10, 2), server_default=text("'0.00'"))
     TransDate = Column(DateTime)
 
-    # CUSTOMER = relationship('CUSTOMER', primaryjoin='TRANSFERFUND.FromCustNum == CUSTOMER.CustNum')
-    # CUSTOMER1 = relationship('CUSTOMER', primaryjoin='TRANSFERFUND.ToCustNum == CUSTOMER.CustNum')
+    # parent relationships (access parent)
+    FROMCUSTOMER : Mapped["CUSTOMER"] = relationship('CUSTOMER', foreign_keys=[FromCustNum], back_populates="TRANSFERFUNDFROMLIST")
+    TOCUSTOMER : Mapped["CUSTOMER"] = relationship('CUSTOMER', foreign_keys=[ToCustNum], back_populates="TRANSFERFUNDTOLIST")
 
 
 class CUSTOMER(Base):
@@ -63,14 +66,14 @@ class CUSTOMER(Base):
     Phone = Column(String(45))
     emailAddress = Column(String(45))
 
-    CHECKINGLIST = relationship("CHECKING", backref="CUSTOMER")
-    ALERTLIST = relationship("ALERT", backref="CUSTOMER")
-    LINEOFCREDITLIST = relationship("LINEOFCREDIT", backref="CUSTOMER")
-    SAVINGLIST = relationship("SAVING", backref="CUSTOMER")
+    CHECKINGLIST : Mapped[List["CHECKING"]] = relationship("CHECKING", back_populates="CUSTOMER")
+    ALERTLIST : Mapped[List["ALERT"]] = relationship("ALERT", back_populates="CUSTOMER")
+    LINEOFCREDITLIST : Mapped[List["LINEOFCREDIT"]] = relationship("LINEOFCREDIT", back_populates="CUSTOMER")
+    SAVINGLIST : Mapped[List["SAVING"]] = relationship("SAVING", back_populates="CUSTOMER")
 
     # https://docs.sqlalchemy.org/en/13/orm/join_conditions.html
-    TRANSFERFUNDFROMLIST = relationship('TRANSFERFUND', backref = "FROMCUSTOMER", foreign_keys="TRANSFERFUND.FromCustNum")
-    TRANSFERFUNDTOLIST = relationship('TRANSFERFUND', backref = "TOCUSTOMER", foreign_keys="TRANSFERFUND.ToCustNum")
+    TRANSFERFUNDFROMLIST : Mapped[List["TRANSFERFUND"]] = relationship('TRANSFERFUND', back_populates="FROMCUSTOMER", foreign_keys="TRANSFERFUND.FromCustNum")
+    TRANSFERFUNDTOLIST : Mapped[List["TRANSFERFUND"]] = relationship('TRANSFERFUND', back_populates="TOCUSTOMER", foreign_keys="TRANSFERFUND.ToCustNum")
 
 
 class ALERT(Base):
@@ -85,6 +88,9 @@ class ALERT(Base):
     WhenBalance = Column(DECIMAL(10, 2), nullable=False)
     AccountBalance = Column(DECIMAL(10, 2))
     EmailAddress = Column(String(45))
+
+    # parent relationships (access parent)
+    CUSTOMER : Mapped["CUSTOMER"] = relationship("CUSTOMER", back_populates="ALERTLIST")
 
 
 class CHECKING(Base):
@@ -101,7 +107,11 @@ class CHECKING(Base):
     CreditLimit = Column(DECIMAL(10, 2), server_default=text("'0.00'"))
     AcctType = Column(String(2), nullable=False, index=True)
 
-    CHECKINGTRANSLIST = relationship('CHECKINGTRANS', backref="CHECKING")
+    # parent relationships (access parent)
+    CUSTOMER : Mapped["CUSTOMER"] = relationship("CUSTOMER", back_populates="CHECKINGLIST")
+
+    # child relationships (access children)
+    CHECKINGTRANSLIST : Mapped[List["CHECKINGTRANS"]] = relationship('CHECKINGTRANS', back_populates="CHECKING")
 
 
 class LINEOFCREDIT(Base):
@@ -119,7 +129,11 @@ class LINEOFCREDIT(Base):
     AvailableBalance = Column(DECIMAL(10, 2))
     Id = Column(INTEGER(9), primary_key=True)
 
-    LOCTRANSACTIONLIST = relationship("LOCTRANSACTION", backref="LINEOFCREDIT")
+    # parent relationships (access parent)
+    CUSTOMER : Mapped["CUSTOMER"] = relationship("CUSTOMER", back_populates="LINEOFCREDITLIST")
+
+    # child relationships (access children)
+    LOCTRANSACTIONLIST : Mapped[List["LOCTRANSACTION"]] = relationship("LOCTRANSACTION", back_populates="LINEOFCREDIT")
 
 
 class SAVING(Base):
@@ -134,7 +148,11 @@ class SAVING(Base):
     ItemCount = Column(INTEGER(9), nullable=False, server_default=text("'0'"))
     AcctType = Column(String(2), index=True)
 
-    SAVINGSTRANSLIST = relationship("SAVINGSTRANS", backref="SAVING")
+    # parent relationships (access parent)
+    CUSTOMER : Mapped["CUSTOMER"] = relationship("CUSTOMER", back_populates="SAVINGLIST")
+
+    # child relationships (access children)
+    SAVINGSTRANSLIST : Mapped[List["SAVINGSTRANS"]] = relationship("SAVINGSTRANS", back_populates="SAVING")
 
 class CHECKINGTRANS(Base):
     __tablename__ = 'CHECKINGTRANS'
@@ -153,7 +171,8 @@ class CHECKINGTRANS(Base):
     ChkNo = Column(String(9))
     ImageURL = Column(String(45))
 
-    # CHECKING = relationship('CHECKING', backref="CHECKINGTRANS" ) fails
+    # parent relationships (access parent)
+    CHECKING : Mapped["CHECKING"] = relationship('CHECKING', back_populates="CHECKINGTRANSLIST")
 
 
 class LOCTRANSACTION(Base):
@@ -171,6 +190,9 @@ class LOCTRANSACTION(Base):
     CustNum = Column(INTEGER(9), nullable=False)
     AcctNum = Column(INTEGER(9), nullable=False)
 
+    # parent relationships (access parent)
+    LINEOFCREDIT : Mapped["LINEOFCREDIT"] = relationship("LINEOFCREDIT", back_populates="LOCTRANSACTIONLIST")
+
 class SAVINGSTRANS(Base):
     __tablename__ = 'SAVINGSTRANS'
     __table_args__ = (
@@ -185,3 +207,6 @@ class SAVINGSTRANS(Base):
     DepositAmt = Column(DECIMAL(10, 2), server_default=text("'0.00'"))
     WithdrawlAmt = Column(DECIMAL(10, 2), server_default=text("'0.00'"))
     Total = Column(DECIMAL(10, 2), server_default=text("'0.00'"))
+
+    # parent relationships (access parent)
+    SAVING : Mapped["SAVING"] = relationship("SAVING", back_populates="SAVINGSTRANSLIST")

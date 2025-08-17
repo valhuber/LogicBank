@@ -3,6 +3,8 @@ from sqlalchemy import Column, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import NullType
 from sqlalchemy.ext.declarative import declarative_base
+from typing import List
+from sqlalchemy.orm import Mapped
 
 
 ########################################################################################################################
@@ -30,11 +32,13 @@ class Project(Base):
     milestone_count = Column(Integer, server_default="0")
     staff_count = Column(Integer)
 
-    # see backref on parent: project_ = relationship('Project', remote_side=[id], cascade_backrefs=True, backref='ProjectList')
-
-    project_ = relationship('Project', remote_side=[id], cascade_backrefs=True, backref='ProjectList')  # special handling for self-relationships
-    MileStoneList = relationship('MileStone', cascade_backrefs=True, backref='project')
-    StaffList = relationship('Staff', cascade_backrefs=True, backref='project')
+    # self-referential relationship - parent project
+    project_ : Mapped["Project"] = relationship('Project', remote_side=[id], back_populates='ProjectList')
+    
+    # child relationships
+    ProjectList : Mapped[List["Project"]] = relationship('Project', remote_side=[project_id], back_populates='project_')
+    MileStoneList : Mapped[List["MileStone"]] = relationship('MileStone', back_populates='project')
+    StaffList : Mapped[List["Staff"]] = relationship('Staff', back_populates='project')
 
 
 t_sqlite_sequence = Table(
@@ -52,9 +56,11 @@ class MileStone(Base):
     id = Column(Integer, primary_key=True)
     project_id = Column(ForeignKey('Project.id'))
 
-    # see backref on parent: project = relationship('Project', cascade_backrefs=True, backref='MileStoneList')
+    # parent relationships (access parent)
+    project : Mapped["Project"] = relationship('Project', back_populates='MileStoneList')
 
-    DeliverableList = relationship('Deliverable', cascade_backrefs=True, backref='milestone')
+    # child relationships (access children)
+    DeliverableList : Mapped[List["Deliverable"]] = relationship('Deliverable', back_populates='milestone')
 
 
 class Staff(Base):
@@ -64,7 +70,8 @@ class Staff(Base):
     Description = Column(String(16))
     project_id = Column(ForeignKey('Project.id'))
 
-    # see backref on parent: project = relationship('Project', cascade_backrefs=True, backref='StaffList')
+    # parent relationships (access parent)
+    project : Mapped["Project"] = relationship('Project', back_populates='StaffList')
 
 
 class Deliverable(Base):
@@ -74,6 +81,7 @@ class Deliverable(Base):
     milestone_id = Column(ForeignKey('MileStone.id'))
     Name = Column(String(16))
 
-    # see backref on parent: milestone = relationship('MileStone', cascade_backrefs=True, backref='DeliverableList')
+    # parent relationships (access parent)
+    milestone : Mapped["MileStone"] = relationship('MileStone', back_populates='DeliverableList')
 
 
