@@ -216,5 +216,18 @@
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/../ApiLogicServer/ApiLogicServer-dev/org_git/ApiLogicServer-src/api_logic_server_cli/prototypes/basic_demo/iteration/database/db.sqlite</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="wip" uuid="e919af0a-6c9e-4b10-8f2a-b092155750ac">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/../ApiLogicServer/ApiLogicServer-dev/build_and_test/ApiLogicServer/wip_db/database/db.sqlite</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+    <data-source source="LOCAL" name="nw-gold-plus [2]" uuid="ccbc147b-74cd-4f23-a3f5-d45d2227d339">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$USER_HOME$/Desktop/nwc.sqlite</jdbc-url>
+    </data-source>
   </component>
 </project>
