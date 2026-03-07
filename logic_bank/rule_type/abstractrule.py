@@ -68,20 +68,16 @@ class AbstractRule(object):
         """
         Split rule_text into space-separated words
         Set <rule>._dependencies() to all words starting with "row."
+
+        Fix: strip ALL leading '(' and trailing ')', '),', ',' from the_word
+        using the_word consistently (not each_word) to handle multiple parens
+        like ((row.foo)) or (row.foo),
         """
         words = rule_text.split()
         # if 'row.CreditLimit)' in rule_text:
         #     pass  # good breakpoint
         for each_word in words:
-            the_word = each_word
-            if each_word.startswith("("):
-                the_word = each_word[1:]
-            if the_word.endswith(")"):
-                the_word = each_word[0:len(the_word) - 1]
-            if the_word.endswith("),"):
-                the_word = each_word[0:len(the_word) - 2]
-            if the_word.endswith(","):
-                the_word = each_word[0:len(the_word) - 1]
+            the_word = each_word.lstrip("(").rstrip("),")
             if the_word.startswith("row."):  # allow Cust.CreditLimit?
                 dependencies = the_word.split('.')
                 if len(dependencies) == 2:
