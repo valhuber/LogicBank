@@ -15,7 +15,7 @@ from sqlalchemy.orm import session
 from sqlalchemy.orm import mapper
 import logging
 
-__version__ = "1.30.00"  # python 3.13, SQLAlchemy 2.0, improved tests
+__version__ = "1.30.01"  # python 3.13, SQLAlchemy 2.0, improved tests w/ parser
 
 logic_logger = logging.getLogger("logic_logger")
 

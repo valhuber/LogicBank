@@ -77,15 +77,16 @@ class AbstractRule(object):
         # if 'row.CreditLimit)' in rule_text:
         #     pass  # good breakpoint
         for each_word in words:
-            the_word = each_word.lstrip("(").rstrip("),")
-            if the_word.startswith("row."):  # allow Cust.CreditLimit?
-                dependencies = the_word.split('.')
-                if len(dependencies) == 2:
-                    self._dependencies.append(dependencies[1])
-                else:
-                    self._dependencies.append(dependencies[1] +
-                                              "." + dependencies[2])
-                    self.update_referenced_parent_attributes(dependencies)
+            for part in each_word.split('('):  # handle tokens like max(row.Balance,
+                the_word = part.lstrip("(").rstrip("),")
+                if the_word.startswith("row."):  # allow Cust.CreditLimit?
+                    dependencies = the_word.split('.')
+                    if len(dependencies) == 2:
+                        self._dependencies.append(dependencies[1])
+                    else:
+                        self._dependencies.append(dependencies[1] +
+                                                  "." + dependencies[2])
+                        self.update_referenced_parent_attributes(dependencies)
 
     def update_referenced_parent_attributes(self, dependencies: list):
         """
