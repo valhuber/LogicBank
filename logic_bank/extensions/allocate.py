@@ -10,10 +10,6 @@ class Allocate(EarlyRowEvent):
     """
     Allocates anAmount from a Provider to Recipients, creating Allocation rows.
 
-    Note: this is a sublclass of EarlyRowEvent, 
-    so declarations (see ctor) create Allocate() objects
-    that are instantiated at rule execution time.
-
     @see https://github.com/valhuber/LogicBank/wiki/Sample-Project---Allocation
     """
     def __init__(self, provider: object,
@@ -25,7 +21,7 @@ class Allocate(EarlyRowEvent):
             raise Exception("Recipients lambda is required")
         self.creating_allocation = creating_allocation  # Custom Rule Arguments
         self.while_calling_allocator = while_calling_allocator
-        super(Allocate, self).__init__(provider, None)  # allocate event creation
+        super(Allocate, self).__init__(provider, None)
 
     def __str__(self):
         creating = str(self.creating_allocation)
