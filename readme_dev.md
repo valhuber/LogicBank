@@ -159,6 +159,40 @@ Each example project:
 
 The `run_tests.py` script handles this by running each test directory separately, avoiding conflicts and ensuring reliable test execution.
 
+### pytest / VS Code Test Explorer Compatibility
+
+**Do not use pytest or the VS Code Test Explorer (beaker icon) to run these tests.** They will show "no output" or hang without reporting results.
+
+#### Why
+
+Each test module performs initialization at **import time** (opening the DB, activating LogicBank rules):
+
+```python
+# module-level code in every test file
+from examples.nw.logic import session, engine  # opens db, activates rules
+```
+
+When pytest or the VS Code Test Explorer discovers tests, it imports all test modules simultaneously. This causes multiple conflicting `LogicBank.activate()` calls on the same session, which breaks test isolation and prevents results from being reported.
+
+#### Test Design
+
+Tests are designed to **raise an exception on failure** — no exception means success. They confirm success with a final `print` and `self.assertTrue(True)`. This works correctly with `unittest` via `run_tests.py` but is not compatible with pytest's collection model.
+
+#### Special Case: `test_missing_attrs`
+
+This test intentionally loads bad rules to verify `LBActivateException` is raised. It has two modes:
+
+- **Via `run_tests_nw`** (normal): `LOAD_BAD_RULES` is not set → runs normal DB operations → passes
+- **Via `nw_test_missing_attrs` launch config** (direct): sets `LOAD_BAD_RULES=True` → catches `LBActivateException` → asserts it contains invalid rules/missing attributes → passes
+
+#### Recommendation
+
+Always run tests using:
+- **VS Code:** `run_tests_nw` or `run_tests_all` launch configurations (F5)
+- **Command line:** `python run_tests.py --dir examples/nw/tests`
+
+Do not attempt to add pytest compatibility — the required refactor (moving all module-level DB setup into `setUp`/`setUpClass`) would introduce significant risk with no benefit given the existing system works reliably.
+
 ### Framework Compatibility
 
 #### SQLAlchemy 2.0 Validation
