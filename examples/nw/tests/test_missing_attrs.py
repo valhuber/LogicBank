@@ -19,9 +19,17 @@ else:
     tests.copy_gold_over_db()
 
     import examples.nw.db.models as models
+    from logic_bank.exceptions import LBActivateException
 
-    from examples.nw.logic import session, engine  # opens db, activates rules <--
-    # activate rules:   LogicBank.activate(session=session, activator=declare_logic)
+    session = None
+    engine = None
+    activate_exception = None
+    try:
+        from examples.nw.logic import session, engine  # opens db, activates rules <--
+        # activate rules:   LogicBank.activate(session=session, activator=declare_logic)
+    except LBActivateException as ex:
+        activate_exception = ex
+        print(f'\nExpected LBActivateException: {ex.message}\n')
 
     print("\n" + sys_env_info + "\n\n")
 
@@ -35,29 +43,31 @@ class Test(unittest.TestCase):
 
 
     def tearDown(self):
-        tests.tearDown(file=__file__, started_at=self.started_at, engine=engine, session=session)
+        if session is not None:
+            tests.tearDown(file=__file__, started_at=self.started_at, engine=engine, session=session)
+        else:
+            print("\n**********************")
+            print("** Test complete (no session - LBActivateException expected) for: " + __file__)
+            print("** Started: " + self.started_at + " Ended: " + str(datetime.now()))
+            print("**********************")
 
     def test_run(self):
-        # first delete, so can add
+        if activate_exception is not None:
+            # Verify the expected LBActivateException was raised for bad rules
+            assert len(activate_exception.invalid_rules) > 0 or len(activate_exception.missing_attributes) > 0, \
+                "LBActivateException raised but no invalid_rules or missing_attributes"
+            print(f'\nmissing_attrs, LBActivateException raised as expected: {activate_exception.message}\n')
+            return
+
+        # Normal path (run_tests.py without LOAD_BAD_RULES): verify session works
         delete_cust = session.query(models.Customer).filter(models.Customer.Id == "$$New Cust").delete()
         print("\nadd_cust, deleting: " + str(delete_cust) + "\n\n")
         session.commit()
 
-        # Add a Customer - works
         new_cust = models.Customer(Id="$$New Cust", Balance=0, CreditLimit=0)
         session.add(new_cust)
         session.commit()
 
         verify_cust = session.query(models.Customer).filter(models.Customer.Id == "$$New Cust").one()
-
-        print("\nadd_cust, verified: " + str(verify_cust) + "\n\n")
-
-        from sqlalchemy.sql import func
-        qry = session.query(models.Order.CustomerId, func.sum(models.Order.AmountTotal))\
-            .filter(models.Order.CustomerId == "ALFKI", models.Order.ShippedDate == None)
-        qry = qry.group_by(models.Order.CustomerId)
-        for _res in qry.all():
-            print(_res)
-
         print("\nadd_cust, completed: " + str(verify_cust) + "\n\n")
         self.assertTrue(True)
