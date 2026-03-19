@@ -1223,6 +1223,25 @@ class LogicRow:
             # self.log("early_row_event_all_classes - " + verb_reason)
             rules_bank._early_row_event_all_classes(self)
 
+    # -------------------------------------------------------------------------
+    # Rule firing sequences (explicit — read these to understand LB execution)
+    #
+    # insert:  early_row_event_all → eager_defaults → load_parents → early_row_events
+    #          → copy → formula (dependency order) → adjust_parent_aggregates → constraints
+    #          → row_events
+    #
+    # update:  early_row_event_all → early_row_events → check_parents → copy
+    #          → formula (dependency order) → adjust_parent_aggregates → constraints
+    #          → parent_cascade_attribute_changes_to_children → parent_cascade_pk_change
+    #          → row_events
+    #
+    # delete:  early_row_event_all → early_row_events → adjust_parent_aggregates
+    #          → constraints → cascade_delete_children
+    #
+    # Chaining happens within the same flush cycle — aggregate adjustments create
+    # synthetic parent updates; changed parent attrs cascade to dependent children.
+    # -------------------------------------------------------------------------
+
     def update(self, reason: str = None, row: base = None):
         """
         make updates - with logic - in events, for example

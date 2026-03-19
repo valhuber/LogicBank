@@ -1,3 +1,28 @@
+# =============================================================================
+# LogicBank Architecture Overview
+# =============================================================================
+#
+# PHASE 1 — Rule Discovery (server startup, once)
+#   declare_logic() executes; each Rule.* call instantiates a rule object and
+#   registers it in the RuleBank (rule_bank/rule_bank.py).
+#   During registration, formula/constraint lambdas are source-scanned
+#   (inspect.getsource + tokenize) for row.parent.attr patterns — this builds
+#   the static dependency graph used for formula execution ordering and
+#   parent-change propagation.  See rule_bank/rule_bank_setup.py.
+#
+# PHASE 2 — Rule Execution (per SQLAlchemy before_flush, every commit)
+#   exec_trans_logic/listeners.py intercepts before_flush, collects
+#   SQLAlchemy's dirty/new/deleted rows, and wraps each in a LogicRow instance
+#   (exec_row_logic/logic_row.py).  LogicRow.insert/update/delete each spell
+#   out the explicit rule firing sequence (early_row_events → copy → formula
+#   → aggregates → constraints → cascade), which may chain within the same
+#   flush cycle: aggregate adjustments propagate to parents, and changed
+#   parent attributes cascade synthetic updates to dependent children.
+#
+#   The workhorse is exec_row_logic/logic_row.py — insert/update/delete
+#   methods are short, explicit, and easy to follow.
+# =============================================================================
+
 from typing import Callable, Sequence
 from sqlalchemy import Column
 from sqlalchemy.orm.attributes import InstrumentedAttribute
