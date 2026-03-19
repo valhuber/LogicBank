@@ -364,7 +364,7 @@ class Rule:
         return Copy(derive=derive, from_parent=from_parent)
 
     @staticmethod
-    def early_row_event(on_class: object, calling: Callable = None):
+    def early_row_event(on_class: object, calling: Callable = None, allow_event_nesting: bool = False):
         """
         Row Events are Python functions called *before* logic
         Possible multiple calls per transaction
@@ -373,8 +373,11 @@ class Rule:
         Args:
             on_class: <class> for event
             calling: function, passed (row, old_row, logic_row)
+            allow_event_nesting: if False (default), suppresses re-fire of this event
+                on the same row within the same flush cycle (prevents Allocate cascade loops).
+                Set True only if intentional re-firing is required.
         """
-        return EarlyRowEvent(on_class, calling)  # --> load_logic
+        return EarlyRowEvent(on_class, calling, allow_event_nesting)  # --> load_logic
 
     @staticmethod
     def early_row_event_all_classes(early_row_event_all_classes: Callable = None):
@@ -397,7 +400,7 @@ class Rule:
             early_row_event_all_classes=early_row_event_all_classes)
 
     @staticmethod
-    def row_event(on_class: object, calling: Callable = None):
+    def row_event(on_class: object, calling: Callable = None, allow_event_nesting: bool = False):
         """
         Row Events are Python functions called *during* logic, after formulas/constraints
         Possible multiple calls per transaction
@@ -406,11 +409,12 @@ class Rule:
         Args:
             on_class: <class> for event
             calling: function, passed (row, old_row, logic_row)
+            allow_event_nesting: if False (default), suppresses re-fire on same row in same flush cycle.
         """
-        return RowEvent(on_class, calling)  # --> load_logic
+        return RowEvent(on_class, calling, allow_event_nesting)  # --> load_logic
 
     @staticmethod
-    def commit_row_event(on_class: object, calling: Callable = None):
+    def commit_row_event(on_class: object, calling: Callable = None, allow_event_nesting: bool = False):
         """
         Commit Row Events are Python functions *after* all row logic formulas/constraints
 
@@ -424,8 +428,9 @@ class Rule:
         Args:
             on_class: <class> for event
             calling: function, passed (row, old_row, logic_row)
+            allow_event_nesting: if False (default), suppresses re-fire on same row in same flush cycle.
         """
-        return CommitRowEvent(on_class, calling)  # --> load_logic
+        return CommitRowEvent(on_class, calling, allow_event_nesting)  # --> load_logic
 
     @staticmethod
     def after_flush_row_event(on_class: object, calling: Callable = None,

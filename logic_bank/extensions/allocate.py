@@ -6,22 +6,23 @@ from logic_bank.rule_type.row_event import EarlyRowEvent
 # see logicbank - examples/payment_allocation
 # not currently tested in ApiLogicServer...
 
-class Allocate(EarlyRowEvent): # allocate is a subclass of early row event
+class Allocate(EarlyRowEvent):
     """
     Allocates anAmount from a Provider to Recipients, creating Allocation rows.
 
     @see https://github.com/valhuber/LogicBank/wiki/Sample-Project---Allocation
     """
-    def __init__(self, provider: object, 
+    def __init__(self, provider: object,
                  creating_allocation: object,  # eg, PaymentAllocation (junction)
                  recipients: Callable = None,
-                 while_calling_allocator: Callable = None):
+                 while_calling_allocator: Callable = None,
+                 allow_event_nesting: bool = False):
         self.recipients = recipients
         if recipients is None:
             raise Exception("Recipients lambda is required")
         self.creating_allocation = creating_allocation  # Custom Rule Arguments
         self.while_calling_allocator = while_calling_allocator
-        super(Allocate, self).__init__(provider, None) # Logic Bank: remember this rule for execution!
+        super(Allocate, self).__init__(provider, None, allow_event_nesting=allow_event_nesting)
 
     def __str__(self):
         creating = str(self.creating_allocation)
@@ -38,6 +39,8 @@ class Allocate(EarlyRowEvent): # allocate is a subclass of early row event
 
         :return:
         """
+        if not self._check_and_mark_fired(logic_row):
+            return self  # allow_event_nesting=False (default): suppress nested re-fire
         logic_row.log(f'BEGIN {str(self)}')
         provider = logic_row
         to_recipients = self.recipients(provider)
@@ -61,7 +64,7 @@ class Allocate(EarlyRowEvent): # allocate is a subclass of early row event
             if self.while_calling_allocator is not None:
                 allocator = self.while_calling_allocator(new_allocation_logic_row,
                                                          provider)
-            else: # 3 for each recipent, fill in the values the fields new_allocation_logic_row, provider, and call the default while_calling_allocator
+            else:
                 allocator = self.while_calling_allocator_default(new_allocation_logic_row,
                                                                  provider)
             if not allocator:
@@ -72,7 +75,7 @@ class Allocate(EarlyRowEvent): # allocate is a subclass of early row event
     def while_calling_allocator_default(self, allocation_logic_row, provider_logic_row) -> bool:
         """
         Called for each created allocation, to
-            * insert the created allocation (triggering rules that compute `Allocation.AmountAllocated`) #NB
+            * insert the created allocation (triggering rules that compute `Allocation.AmountAllocated`)
             * reduce Provider.AmountUnAllocated
             * return boolean indicating whether Provider.AmountUnAllocated > 0 (remains)
 
@@ -81,7 +84,7 @@ class Allocate(EarlyRowEvent): # allocate is a subclass of early row event
             * provider.AmountUnallocated
             * allocation.AmountAllocated
 
-        To use your names, copy this code into declare_logic() and alter as as required
+        To use your names, copy this code and alter as as required
 
         :param allocation_logic_row: allocation row being created
         :param provider_logic_row: provider
@@ -94,6 +97,6 @@ class Allocate(EarlyRowEvent): # allocate is a subclass of early row event
         allocation_logic_row.insert(reason="Allocate " + provider_logic_row.name)  # triggers rules, eg AmountAllocated
 
         provider_logic_row.row.AmountUnAllocated = \
-            provider_logic_row.row.AmountUnAllocated - allocation_logic_row.row.AmountAllocated # decrement unallocated amount for provider
+            provider_logic_row.row.AmountUnAllocated - allocation_logic_row.row.AmountAllocated
 
         return provider_logic_row.row.AmountUnAllocated > 0  # terminate allocation loop if none left
