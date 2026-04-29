@@ -9,7 +9,7 @@ from datetime import datetime
 if  __name__ == '__main__':
     print("\nStarted from cmd line - launch unittest and exit\n")
     sys.argv = [sys.argv[0]]
-    os.environ['LOAD_BAD_RULES'] = 'True'
+    os.environ['LOGICBANK_LOAD_BAD_RULES'] = 'True'
     unittest.main(module="examples.nw.tests.test_missing_attrs")  # logic loaded here
     exit(0)
 else:

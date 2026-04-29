@@ -29,7 +29,7 @@ def declare_logic():
 
         LogicBank.activate(session=session, activator=declare_logic)
     """
-    test_bad_rules = os.getenv('LOAD_BAD_RULES')
+    test_bad_rules = os.getenv('LOGICBANK_LOAD_BAD_RULES')
     if test_bad_rules:
         print('loading bad rules')
         if use_strings := True:

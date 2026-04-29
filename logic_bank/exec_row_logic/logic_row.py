@@ -178,7 +178,7 @@ class LogicRow:
                 if value != old_value:
                     result += ' [' + str(old_value) + '-->] '
                 if isinstance(value, str):
-                    if not os.environ.get("SHOW_FULL_LOG"):
+                    if not os.environ.get("LOGICBANK_SHOW_FULL_LOG"):
                         newline_pos = value.find('\n')
                         display = value[:newline_pos] + "..." if newline_pos != -1 else value
                     else:
