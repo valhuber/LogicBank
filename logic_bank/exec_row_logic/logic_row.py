@@ -1,5 +1,6 @@
 from typing import Dict, List, Union
 
+import os
 import sqlalchemy
 from sqlalchemy import inspect, text
 from sqlalchemy.orm import base
@@ -177,7 +178,12 @@ class LogicRow:
                 if value != old_value:
                     result += ' [' + str(old_value) + '-->] '
                 if isinstance(value, str):
-                    result += value
+                    if not os.environ.get("SHOW_FULL_LOG"):
+                        newline_pos = value.find('\n')
+                        display = value[:newline_pos] + "..." if newline_pos != -1 else value
+                    else:
+                        display = value
+                    result += display
                 else:
                     result += str(value)
         result += f'  row: {str(hex(id(self.row)))}'
