@@ -185,7 +185,7 @@ class LogicBank:
             logic_logger.debug(each_rule)
             rule_count += 1
 
-        logic_logger.info(f'Logic Bank {rule_bank_setup.__version__} - {rule_count} rules loaded')
+        logic_logger.info(f'\nLogic Bank {rule_bank_setup.__version__} - {rule_count} rules loaded')
 
 
 class Rule:
