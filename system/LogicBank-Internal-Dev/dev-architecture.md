@@ -1,0 +1,178 @@
+---
+title: Developer Architecture for LogicBank
+Description: Enables AI assistants to be co-designers for LogicBank development
+Usage: AI assistants read this to understand project structure, development workflow, testing, and release process
+version: 1.0
+changelog:
+  - 1.9 (Jun 2026) - multi-relationship-bug.md now covers full blast radius: Rule.copy (no role param, raises TODO on ambiguity) and parent-refs/insert-link (open thread) added alongside Sum/Count
+  - 1.8 (Jun 2026) - CONFIRMED multi-relationship-bug.md against github.com/valhuber/LogicBank/issues/20 - root cause matched exactly; issue narrows fix to Sum only (Count already has correct precedence: explicit child_role_name wins before falling back to get_child_role_name())
+  - 1.7 (Jun 2026) - Added multi-relationship-bug.md reference: root-caused the suspected GenAI-Logic bug to a fallthrough/wrong-attribute defect in aggregate.py get_child_role_name() that defeats the child_role_name disambiguator for multi-relationship-to-same-parent cases
+  - 1.6 (Jun 2026) - Added Design Lineage section: Versata virtual-vs-stored aggregate distinction, Kolk Oil + State of Utah production performance incidents (minutes vs seconds, caused by virtual aggregates at volume), and why LB closes off this failure class by having no virtual mode (adjustment always on)
+  - 1.5 (Jun 2026) - Added Executable (Governed) Requirements section: scope of the capability, CLVS (Gherkin/EAI/Kafka) and Customs Surtax (regulation-text-driven, governance_report scoring) as flagship proof points, why both are high-scrutiny consumers of LB rule-firing/snapshot semantics
+  - 1.4 (Jun 2026) - Read build_and_test/genai-logic/README.md: added "no second door" before_flush enforcement quote, and noted a 3rd/4th Northwind-shaped artifact (samples/nw_sample(_nocust), samples/basic_demo_logic_gov A/B procedural-vs-declarative comparison) distinct from LB examples/nw and BLT tests/ApiLogicProject
+  - 1.3 (Jun 2026) - Documented release coupling (LB tests/releases first, GL pins exact version after) and prototypes/base CE (.copilot-instructions.md + docs/training/logic_bank_api.md "Rosetta Stone" + logic_bank_patterns.md) - notably the documented FK/relationship-resolution constraints (never derive FK via Rule.formula/copy; attach children via parent.ChildList.append not raw FK) relevant to suspected LB/GL relationship-modeling bug
+  - 1.2 (Jun 2026) - Added Testing: Two Layers section (LB run_tests.py vs GenAI-Logic BLT; nw+/allocation fixtures are separate, similar-not-identical; pointer to GL's own dev-architecture.md for Gold source / BLT mechanics)
+  - 1.1 (Jun 2026) - Added basic_demo_sample.md reference (model + LB activation in a real GenAI-Logic project)
+  - 1.0 (Jun 2026) - Initial CE for LogicBank: links readme_dev.md, references wiki Logic-Walkthrough
+---
+
+# Context Restoration: LogicBank Development
+
+**Purpose:** This file (and sibling files in this folder) establish AI assistant context for working on the LogicBank repo itself — the standalone rules engine consumed by [ApiLogicServer / GenAI-Logic](https://github.com/valhuber/ApiLogicServer).
+
+&nbsp;
+
+## 🎯 What LogicBank Is
+
+LogicBank is a declarative, transactional business-logic engine for SQLAlchemy. Rules (`Rule.constraint()`, `Rule.sum()`, `Rule.formula()`, `Rule.copy()`, etc.) are declared against mapped classes; LogicBank hooks SQLAlchemy's `before_flush` event and executes them via forward-chaining when a commit occurs.
+
+**Consumed by:** ApiLogicServer / GenAI-Logic embeds LogicBank as its rules engine. Changes here propagate to every ApiLogicServer-created project (via the `prototypes/base` template's `logic/` folder and the Rosetta Stone CE in `.copilot-instructions.md`).
+
+**GL's own one-sentence description of the enforcement guarantee** (from `build_and_test/genai-logic/README.md`), worth keeping verbatim since it's the precise technical claim underneath all the "can't be bypassed" marketing language: *"rules aren't called from your code — they're wired into a single SQLAlchemy `before_flush` listener, installed once at server start. Every write, from any path — API, custom endpoint, Kafka consumer, agent — passes through that one listener before it commits. There's no second door."* This is the architectural fact to verify/preserve when touching activation (`LogicBank.activate()`) — GL's entire governance pitch rests on there being exactly one listener, registered once.
+
+&nbsp;
+
+## 📚 Documentation Map
+
+This repo has no `docs/` source tree — documentation lives in two places:
+
+1. **[GitHub Wiki](https://github.com/valhuber/LogicBank/wiki)** — the gold source for conceptual/architecture docs. It's its own git repo (`git clone https://github.com/valhuber/LogicBank.wiki.git`), not generated from anything in this repo.
+   - **[Logic-Walkthrough](https://github.com/valhuber/LogicBank/wiki/Logic-Walkthrough)** — the internals deep-dive: how `RuleBank`, `LogicRow`, forward chaining, cascade, and aggregate-adjustment pruning actually work. Read this before modifying `logic_bank/exec_row_logic` or `logic_bank/exec_trans_logic`. Summary:
+     - Rules are declared as extensions to SQLAlchemy models; engine only acts at commit time (not on raw SQL / bulk updates)
+     - `LogicBank.activate()` registers `before_flush` listeners, loads rules via a declarator function, detects dependency cycles
+     - Each modified row becomes a `LogicRow`; ordered phases: copy → formula → aggregate adjust → constraint → child cascade
+     - Forward chaining propagates across tables (e.g. OrderDetail.Quantity → Amount → Order.AmountTotal → Customer.Balance)
+     - `ParentRoleAdjustor` coalesces multiple sum/count changes into exactly one parent update per role
+     - Formula execution is pruned when referenced attributes haven't changed
+     - Cascade tags *which* parent role changed, so children selectively recompute only affected formulas
+2. **[readme_dev.md](../../readme_dev.md)** (this repo, root) — practical dev guide: test running (`run_tests.py`, VS Code launch configs), why pytest/Test Explorer don't work here, and the full release process (version bump in `logic_bank/rule_bank/rule_bank_setup.py`, `pyproject.toml` build, twine upload).
+3. **README.md** (this repo, root) — public-facing overview/intro.
+4. **[basic_demo_sample.md](basic_demo_sample.md)** — how GenAI-Logic's `manager/samples/basic_demo_sample` defines data models and wires up/activates LogicBank in a real generated project (the canonical "5 rules replace 200 lines" check-credit example, in its actual shipped form).
+5. **[multi-relationship-bug.md](multi-relationship-bug.md)** — confirmed root cause for [GitHub issue #20](https://github.com/valhuber/LogicBank/issues/20): `Rule.sum` ignores `child_role_name` for multi-relationship-to-same-parent cases when models use `back_populates` (the SQLAlchemy 2.0 / ALS-generated style) instead of legacy `backref`. `Rule.count` is unaffected; `Rule.copy` never got the disambiguation parameter at all (raises a `TODO` placeholder exception instead); parent-refs/insert-link path is an open thread.
+
+&nbsp;
+
+## 🧭 Quick Reference
+
+| Need | Where |
+|---|---|
+| How rules execute internally | [Logic-Walkthrough wiki](https://github.com/valhuber/LogicBank/wiki/Logic-Walkthrough) |
+| Run/debug tests | `readme_dev.md` → Testing Framework |
+| Cut a release | `readme_dev.md` → Release Management |
+| Version source | `logic_bank/rule_bank/rule_bank_setup.py` (`__version__`) |
+| Example projects (test fixtures) | `examples/<name>/tests` (banking, nw, copy_children, payment_allocation, referential_integrity, custom_exceptions, insert_parent, tutorial) |
+| Core engine code | `logic_bank/exec_row_logic/`, `logic_bank/exec_trans_logic/`, `logic_bank/rule_bank/` |
+
+&nbsp;
+
+## 🧪 Testing: Two Layers
+
+LogicBank changes are tested in **two separate passes**, against **two separate (but related) test fixtures**:
+
+### 1. LogicBank repo tests (this repo) — engine-level, fast, in-process
+
+Run via `python3 run_tests.py` (see `readme_dev.md` → Testing Framework). Tests instantiate SQLAlchemy sessions directly and call `LogicBank.activate()` in-process — no HTTP, no Flask, no web server. Fixtures: `examples/nw` (the bigger one — Northwind, 16+ tables, exercises relationship edge cases) and `examples/payment_allocation` (the LB-side allocation example), plus banking, copy_children, referential_integrity, custom_exceptions, insert_parent, tutorial.
+
+### 2. GenAI-Logic BLT (Build-Load-Test) — integration-level, slower, full-stack
+
+Run from the **Seminal Manager** (`ApiLogicServer-dev/org_git/ApiLogicServer-src/tests/build_and_test/build_load_and_test.py`). This is GenAI-Logic's own smoke-test suite — it creates ~18 real generated projects (API + Admin UI + DB), starts each as a live server, and validates over real HTTP. It is **not** LogicBank-specific, but it includes the two fixtures most relevant to LogicBank changes:
+
+- **Northwind** — `Config.do_create_api_logic_project` creates `tests/ApiLogicProject` via `ApiLogicServer create --db_url=nw+` (the `+` suffix means "with logic" — see `fix_database_models()` / `fix_nw_datamodel()` in `api_logic_server_cli/api_logic_server.py`). `validate_nw()` then runs **behave tests + live REST calls** (e.g. `GET /filters_cats`, `POST .../get_cats`) against the running server — testing the same check-credit/order logic as LB's `examples/nw`, but end-to-end through the generated API/Admin UI, not via direct SQLAlchemy session calls.
+- **Allocation** — `Config.do_allocation_test` creates `tests/Allocation` via `ApiLogicServer create --db_url=allocation` (builtin fixture: `api_logic_server_cli/database/allocation.sqlite`), starts the server, then runs `sh test.sh` from the project's `test/` folder. Conceptually the same scenario as LB's `examples/payment_allocation`, but it's a **separate, independently-maintained database/project**, not a copy or export of the LB fixture — schemas and test scripts can and do drift apart.
+
+**Update — a third and fourth Northwind-shaped artifact exist too** (per `build_and_test/genai-logic/README.md`, the Manager's own welcome doc): the Manager's `samples/` folder ships **pre-built, human-facing demo projects**, separate again from both LB's `examples/nw` and BLT's `tests/ApiLogicProject`:
+- `samples/nw_sample_nocust` — plain Northwind, `ApiLogicServer create --db-url=nw` (no customizations) — "reflects the results you can expect with your own databases"
+- `samples/nw_sample` — same DB, **with hand-added customizations** (`ApiLogicServer create --db-url=nw+`) — search `#als` to find them; a customization reference, not a test fixture
+- `samples/basic_demo_logic_gov` — yet another basic_demo variant, notable for containing **both** `logic/procedural/credit_service.py` (hand/AI-written procedural code) and `logic/logic_discovery/place_order/check_credit.py` (the 5-rule declarative version) side by side — this is the literal A/B comparison artifact the CE/marketing "44X reduction" claim is measured from
+
+So: **four** Northwind-shaped things exist across the two repos (LB `examples/nw`, BLT `tests/ApiLogicProject` via `nw+`, Manager `samples/nw_sample(_nocust)`), each serving a different purpose (engine unit tests / integration smoke test / human demo+customization reference) and each independently maintained. Don't assume a fix verified in one is verified in another.
+
+**Key implication:** "similar, not identical." Both NW and Allocation exist in both places because they're useful test scenarios for both projects — but they are **independently maintained fixtures**, not the same files. A bug fixed/reproduced against LB's `examples/nw` is not automatically validated against BLT's `nw+` Northwind (and vice versa) unless you explicitly run both passes. **Workflow: test in LogicBank first (`run_tests.py`), then re-test in GenAI-Logic via BLT** before considering a LogicBank change complete — BLT is the integration check that catches consumer-side breakage (generated-model shapes, API-level behavior) that the LB-only suite can't see.
+
+**Where to look things up:** GenAI-Logic's own `dev-architecture.md` (`build_and_test/genai-logic/system/ApiLogicServer-Internal-Dev/dev-architecture.md`) explains the **Gold source** convention and BLT mechanics in detail — read it (or its "Documentation Navigation Map" / "Development Workflow" sections) before assuming a path; BLT regenerates the local workspace on each run, so file locations under `build_and_test/ApiLogicServer/` are transient, while the actual source of truth lives under `org_git/ApiLogicServer-src/`. In particular:
+- BLT script (gold source): `org_git/ApiLogicServer-src/tests/build_and_test/build_load_and_test.py`
+- Per-developer config (which tests run): `org_git/ApiLogicServer-src/tests/build_and_test/env_val.py` (and sibling `env_*.py` files)
+- Northwind/Allocation project folders only exist **after** a BLT run, under `build_and_test/ApiLogicServer/tests/ApiLogicProject` and `.../tests/Allocation` respectively — don't expect to find them pre-existing on disk
+
+&nbsp;
+
+## ⚡ Design Lineage: Why Aggregate Adjustment Is Always On
+
+**Background (from Val):** LogicBank's algorithms are different from Versata's, but the concepts carry forward — both are roughly the same order of architectural complexity as a query optimizer (dependency graph, ordering, pruning, all on declarative input rather than procedural).
+
+**The Versata virtual/stored distinction:** at Versata, a `Sum`/`Count` attribute could be defined **virtual** (computed on read via a live `SELECT SUM(...)`, no stored column) or **stored** (a real column, maintained incrementally on every write by the adjustor — exactly one update per parent per role, no matter how many children changed in the transaction). Switching virtual → stored is what "activated the adjustment logic."
+
+**Two real-world incidents this caused, both the same shape — fine in dev, broke in production at volume:**
+- **Kolk Oil** — an Allocation System built on Versata. Ran fine through dev. At live-volume test, performance went from the 1-2 sec SLA to 3-4 minutes. Root cause: the relevant aggregate was defined virtual — fine against small dev datasets where a live re-aggregate is cheap, catastrophic at production volume where the same aggregate gets recomputed on every dependent read. Fix: switch the attribute to stored, activating the adjustor (O(1) delta-update per write instead of O(n) recompute per read).
+- **State of Utah unemployment system** — a similar minutes-vs-seconds regression, same underlying cause (virtual aggregate recomputation at volume the dev environment never exercised).
+
+**Why this matters for LogicBank today:** LB has **no virtual/stored distinction** — `Rule.sum`/`Rule.count` always materialize into a real, physically-updated column (this is also *why* GL's GenAI prompt engineering insists "if you create sum/count/formula rules, you must create a corresponding column in the data model" — there's no virtual escape hatch to fall back to). The `ParentRoleAdjustor` mechanism (Logic-Walkthrough wiki: "ensures exactly one parent update per role for multiple aggregates... collecting changes from all sums/counts before persisting a single parent update") is **unconditionally active** — there's no mode to accidentally leave in the slow, virtual-equivalent state. This closes off the entire failure class that bit both Kolk Oil and Utah: there's no dev-vs-prod cliff hiding behind a "virtual" setting nobody remembered to flip, because that setting doesn't exist. Worth treating as one of LogicBank's quiet, deliberate simplifications over the Versata design — not just a missing feature.
+
+&nbsp;
+
+## 🏛️ Executable (Governed) Requirements — Top of the Stack
+
+LogicBank is the substrate under GL's highest-level capability pitch: **Executable Requirements**. Worth understanding the scope, since it's the context in which "is LogicBank's enforcement trustworthy" gets tested hardest.
+
+- **Executable** — `docs/requirements/<name>/requirements.md` is not a handoff doc an AI "interprets" once; it's read and directly executed (`implement reqs <name>` in Copilot Agent mode), building the system, then writing `ad-libs.md` back alongside it — an audit trail of every assumption/decision, flagged 🔴 (needs PM/dev review) vs 🟡 (FYI, standard pattern). Designed as a repeatable loop: tighten the spec, rerun, narrow the AI's decision space each cycle. General mechanism documented in `samples/requirements/readme_reqmts.md`; demoed end-to-end via `demo_eai`.
+- **Governed** — the resulting system inherits LogicBank's enforcement guarantee (the "no second door" `before_flush` listener, above) — so the requirement becomes *enforced policy*, not documentation that can drift from the build. Enforcement is itself auditable via the governance/health-check reports (coverage score = weighted rules/table, integrity score = demerits for anti-patterns, red-flag check for un-adopted aggregation rules).
+
+**Two flagship proof points, deliberately different in kind** (`samples/demo_customs_clvs`, `samples/demo_customs_surtax`):
+
+- **CLVS** (`docs/requirements/customs_demo/requirements.md`) — a **Gherkin-scenario** spec with deep EAI integration: subscribe to Kafka (`isdc` topic, CIMCorp shipment XML), parse/persist with field mappings, duplicate-replay policy (`fail|replace`, matched by business key), PK-collision normalization (placeholder `0` IDs → `None` so autoincrement assigns real PKs), then a CLVS-eligibility constraint rule (value threshold, prohibited-commodity check, tariff lookup). Proves the pattern handles **integration-heavy, message-driven** requirements where data-correctness subtleties (replay idempotency, placeholder-ID collisions) matter as much as the business rule itself.
+- **Customs Surtax** (`docs/requirements/cbsa_steel_surtax/requirements.md`) — built directly from **actual government regulation text** (CBSA Steel Derivative Goods Surtax Order, PC Number 2025-0917, citing specific Customs Tariff subsections/paragraphs). 5 tables, 17 rule declarations (3 sum, 6 formula, 7 copy, 1 constraint). Its `governance_report.md` is a worked example of the audit angle: scores Coverage 7.2 / Integrity 94, and — notably — flags that the AI's `declare_logic()` docstring **paraphrased the regulation into an invented eligibility list instead of quoting it verbatim**, which the governance tooling treats as a real finding (docstring-hygiene demerit), not a style nit. Proves the pattern works for **compliance-grade** requirements where fidelity to source legal text is part of correctness, not just the logic.
+
+**Why this matters for LogicBank work:** these two samples are the highest-scrutiny consumers of LB's rule semantics in the whole GL system — Kafka-driven inserts racing against LB's dependency/cascade timing (CLVS), and `Rule.copy` snapshot-vs-live semantics carrying real regulatory weight (Surtax's `country_surtax_rate` is deliberately snapshotted at entry time, not live, "so a rate correction next month doesn't silently re-price last month's filings" — a regulatory argument for `Rule.copy` over `Rule.formula`, not just a style choice). Any LB engine change should be sanity-checked against what these two requirements docs assume about rule firing order and snapshot timing.
+
+&nbsp;
+
+## 🔄 Relationship to ApiLogicServer Dev Workspace
+
+LogicBank is developed, tested, and versioned **independently in this repo first**. The release loop is:
+
+1. Bump version in `logic_bank/rule_bank/rule_bank_setup.py`, run `python3 run_tests.py` here until green
+2. Build + release to PyPI (see `readme_dev.md` → Release Management)
+3. Bump the pinned LogicBank version in GenAI-Logic's `pyproject.toml`/`requirements.txt`
+4. Re-run BLT in GenAI-Logic to validate the new version against the integration fixtures (see Testing: Two Layers, above)
+
+GL does **not** float to latest LB — it pins an exact version, bumped deliberately after LB's own tests pass. So a LB fix isn't "live" for GL until steps 3-4 happen.
+
+### How GenAI-Logic projects actually consume LogicBank: `prototypes/base`
+
+Every project `genai-logic create` (or `ApiLogicServer create`) produces is cloned from **`api_logic_server_cli/prototypes/base`** — the template GL overlays onto a freshly-introspected (or GenAI-generated) data model. This is the "Method 4 / SCS" path referenced in the Manager workspace instructions. `prototypes/base` is also where the CE that teaches AI assistants the LogicBank rule API actually lives — it gets copied into every created project's `.github/` and `docs/training/`, so it's worth knowing what's in it when debugging consumer-side LB usage:
+
+- **`prototypes/base/.github/.copilot-instructions.md`** (~2200 lines, grown from the ~740 noted in GL's own dev-architecture.md) — the per-project CE entry point. Section **"Adding Business Logic"** has a mandatory pre-flight read list before an AI may write any rule:
+  1. `docs/training/logic_bank_patterns.md` (foundation)
+  2. `docs/training/logic_bank_api.md` (the rule API itself — "Read Second")
+  3. `docs/training/allocate.md` (Allocate pattern — distribute/split amounts to children)
+  4. `docs/training/probabilistic_logic.md` (AI-callable rules)
+  5. `docs/training/RequestObjectPattern.md` (integration services)
+  6. `docs/training/eai_subscribe.md` (Kafka EAI consume)
+
+  Also contains a documented, hard rule for child-row insertion relevant to relationship modeling:
+  > ✅ REQUIRED: `parent.ChildList.append(child_row)` or equivalent relationship attach
+  > ❌ FORBIDDEN: `session.add(child_row)` with only raw FK columns set
+  > REAL FAILURE CASE: standalone child insert can trigger "Missing Parent" during flush even though the FK value looks correct.
+
+  This is a GL-side convention layered on top of LogicBank — LB itself doesn't enforce attach-via-relationship, but GL's CE does, because of an observed failure mode. **Worth checking against any reported bug involving child-row creation.**
+
+- **`prototypes/base/docs/training/logic_bank_api.md`** (932 lines, versioned independently — currently "1.0.16") — **the actual "Rosetta Stone."** This is GL's canonical LogicBank rule-syntax reference, the thing AI assistants are required to read before writing any `Rule.*` call in a project. Key content relevant to LB-engine work:
+  - **Core principle:** "path-independent rules = automatic reuse" — one rule covers insert/update/delete/parent-change, no use-case explosion
+  - **Directory/discovery convention:** prompt phrasing → `logic/logic_discovery/<use_case>/<file>.py` (requirements traceability)
+  - **CRITICAL — never derive a foreign key column with `Rule.formula`/`Rule.copy`:** "FK columns drive SQLAlchemy relationship resolution. If LogicBank re-derives an FK mid-transaction it conflicts with how SQLAlchemy manages object identity and relationship loading, producing unpredictable behavior." Correct alternative: set FK values in an `early_row_event` (fires before the rule engine, before relationships are resolved). **This is the single most relevant documented constraint for relationship-modeling bugs** — if a reported bug involves FK columns being touched by rules, this is the documented (and apparently necessary) workaround, which implies LB's relationship-resolution timing is the root sensitivity.
+  - **Sum/Count `where=` clauses:** must not restate FK/PK matching, can only reference child attributes — a documented restriction on what's safe to express, again rooted in how LB resolves parent/child via the relationship (not raw FK comparison)
+  - Snapshot (`Rule.copy`) vs live (`Rule.formula` referencing `row.parent.attr`) semantics for parent-value propagation
+
+- **`prototypes/base/docs/training/logic_bank_patterns.md`** (597 lines) — "The Hitchhiker's Guide": event handler signatures, anti-patterns (e.g., FK/monetary typing — FKs must be `int` not `Decimal`, since SQLite integer columns don't support Decimal), the Request pattern, common mistakes (`Rule.count`/`sum`/`copy` don't have `calling=`, event handlers need all three params, etc.)
+
+**Why this matters for LB engine work:** these two files are where GL *teaches* the assumptions an AI (or developer) should hold about how LogicBank resolves relationships, FKs, and parent/child timing. If the GenAI-Logic bug turns out to be a relationship-modeling mismatch, check whether the generated project's model/rules actually followed these documented constraints — and if they did follow them and still hit a bug, the constraint itself (or LB's underlying timing/resolution behavior) is the thing to fix.
+
+**Other relevant pointers:**
+- Testing a LogicBank change against real projects requires building locally (`python -m build`) and installing the wheel into the ApiLogicServer BLT venv (see `readme_dev.md` → Test Installation) — or, for fast iteration, editing the LB package directly under `venv/lib/python3.13/site-packages/logic_bank/` (mirrors the "quick iteration / venv test" pattern GL itself uses for CE — changes are lost on next BLT/reinstall, propagate back to source before that happens)
+- `prototypes/basic_demo` has its own (tutorial-flavored) copy of `.copilot-instructions.md` — per GL's CE-drift incident note, `base` is the one that matters; `basic_demo` is a copy, not a source, of LogicBank CE content too
+
+&nbsp;
+
+---
+
+**📖 Remember:** This file provides orientation. Sibling files in `system/LogicBank-Internal-Dev/` will hold additional CE as it's developed (e.g. rule-pattern catalogs, contribution guides).
