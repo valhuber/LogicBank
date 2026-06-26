@@ -3,8 +3,11 @@ title: Multi-Relationship Aggregate Bug — Investigation Notes
 Description: Root-cause trail for GitHub issue #20 — Rule.sum ignores child_role_name for multiple relationships to the same parent when models use back_populates
 Source: logic_bank/rule_type/aggregate.py, logic_bank/rule_type/sum.py, logic_bank/rule_type/count.py
 Usage: AI assistants read this before touching aggregate.py / sum.py / count.py / rule_bank_withdraw.py child_role_name logic
-version: 2.2
+version: 2.5
 changelog:
+  - 2.5 (Jun 2026) - Decided: dedicated examples/multi_relns/ folder (own DB, own test data), Dept/Employee as model/guide not a dependency. Pinpointed exact gap in test_add_emp.py - it only asserts on one side (works_for), never checks the other Department (on_loan) - that's likely why it passes despite exercising the affected Rule.sum. New rule for the suite: every multi-role test must assert on ALL parent instances involved, matching the discipline of the GitHub issue repro (checks both store1 and store2).
+  - 2.4 (Jun 2026) - Concretized Val's test plan (Dept/Employee sums+counts both roles, Employee with both copy and live-reference attrs). Ran examples/nw/tests/test_add_emp.py against current (bugged) source - confirmed it PASSES despite asserting on the affected Rule.sum (SalaryTotal) - bug is declaration/usage-pattern-dependent, not universal; existing test is insufficient evidence either way, dedicated regression test still needed. Flagged open question: extend nw's gold DB or new dedicated example dir.
+  - 2.3 (Jun 2026) - Added third direction: live parent-to-child cascade (Rule.formula referencing row.<role>.<attr>). Confirmed GL's own CE (logic_bank_api.md) documents copy-vs-formula semantics but never addresses role disambiguation. Found a same-shape bug in get_referring_children() (rule_bank_withdraw.py:195, resets referring_children list inside the per-relationship loop) plus Val's own pre-existing TODO at logic_row.py:680 flagging this exact untested scenario. Not yet reproduced with a runnable repro - flagged as "likely broken," not confirmed.
   - 2.2 (Jun 2026) - Added Rule.copy (no disambiguation param at all, raises literal TODO on ambiguity - earlier-stage, not buggy) and parent-refs/insert-link (open thread, not fully traced) to the picture. Added summary table of child_role_name support state across Sum/Count/Copy/parent-refs. Trimmed duplicate pre-confirmation narrative.
   - 2.1 (Jun 2026) - Added SQLAlchemy 1.x-straddle-to-2.0 background (Val's note): aggregate.py:224 is the ONE remaining `backref` reference anywhere in logic_bank/ (grep-confirmed), a fossil from the straddling period. Confirmed examples/nw models the Department/Employee multi-relationship case identically to the issue's repro (pure back_populates, no backref) - not a GL-vs-LB modeling mismatch. Identified why nw's own tests never caught this: its multi-relationship rules are all Rule.count (unaffected), never Rule.sum (affected)
   - 2.0 (Jun 2026) - CONFIRMED via https://github.com/valhuber/LogicBank/issues/20 (reporter: alejandromyto). Independently-derived root cause matched exactly; issue additionally identifies that Count is unaffected (honors explicit child_role_name before falling back to get_child_role_name()) while Sum is affected (always calls get_child_role_name() when as_sum_of is an InstrumentedAttribute, overwriting the explicit child_role_name) — sharper fix target than originally proposed
@@ -104,6 +107,38 @@ The **insert/link helper** around `logic_row.py:349-376` (used when inserting/li
 
 &nbsp;
 
+## A third direction: live parent→child cascade (`Rule.formula` referencing `row.<role>.<attr>`)
+
+**Val's prompt that surfaced this:** child tables can reach a parent attribute two ways — `Rule.copy` (snapshot, already covered above) and `Rule.formula(as_expression=lambda row: row.<parent_role>.<attr>)` (**live reference** — parent changes propagate/cascade to the child). GL's own CE (`docs/training/logic_bank_api.md:651-684`) documents the snapshot-vs-live *semantic* choice clearly (when to use `Rule.copy` vs `Rule.formula`) — but **is completely silent on role-name disambiguation for either direction**. It always shows single-relationship examples (`row.order.ready`, `row.hs_code_rate.surtax_rate`) — never a case with 2+ relationships to the same class. So no, the gap is not addressed there.
+
+This matters because live-reference cascade is the **reverse direction** from the `Sum`/`Count`/`Copy` bugs documented above (which are child-aggregates-up-to-parent, or child-copies-from-parent). Cascade is parent-attribute-change-propagates-down-to-children, and it has its own, structurally identical disambiguation problem — found by tracing `_parent_cascade_attribute_changes_to_children()` (`logic_row.py:666-716`):
+
+### Bug, same shape as issue #20: `get_referring_children()` — `rule_bank_withdraw.py:172-219`
+
+```python
+for each_parent_relationship in parent_relationships:  # eg, order has parents cust & emp, child orderdetail
+    if each_parent_relationship.direction == sqlalchemy.orm.interfaces.ONETOMANY:
+        parent_role_name = each_parent_relationship.back_populates
+        parent_rules.referring_children[parent_logic_row.name] = []   # <<< BUG: resets to [] every iteration
+        ...
+        parent_rules.referring_children[parent_logic_row.name].append(
+            (child_class_name, child_role_name, rule_terms[2], parent_role_name))
+```
+
+`parent_rules.referring_children[parent_logic_row.name] = []` sits **inside** the `for each_parent_relationship` loop, keyed only by `parent_logic_row.name` (the parent class name) — not by `parent_role_name`. So if a parent class has 2+ `ONETOMANY` relationships (e.g. `Department.EmployeeWorksForList` and `Department.EmployeeOnLoanList`, both → `Employee`), **each iteration wipes out whatever the previous iteration appended** — only the last relationship's referring-children entries survive the loop. Same "last one wins, silently" shape as the aggregate-side bug, just on the cascade/propagation side instead.
+
+The match itself (lines 205-219) is textual — it scans each child formula's source text (`rule_text.split()`) for a token starting with `"row." + parent_role_name`, so it **can** correctly distinguish which parent role a given child formula references. That part isn't the problem; the dict being clobbered before it's ever consumed is.
+
+### Downstream, also unverified: `cascade_dict` keyed by child role — `logic_row.py:692-715`
+
+Even if the above were fixed, `_parent_cascade_attribute_changes_to_children()`'s `cascade_dict` is keyed by `each_child_role_name` (line 700-702): `if each_child_role_name not in cascade_dict: cascade_dict[each_child_role_name] = (...)`. If two different referring-children tuples ever shared the same child role name but different parent role/attribute (an edge case, but possible once #1 above stops suppressing it), the second would be silently dropped — first-one-wins instead of cascading both.
+
+**Val's own comment, verbatim, line 680:** `Todo: test cascade to multiple children using same parent role name, in alternating order` — i.e., you flagged this exact scenario as untested at the time, not confirmed broken. Given the bug found in `get_referring_children()` above, it's now reasonable to suspect it actually *is* broken, not just untested — but this hasn't been verified with a runnable repro the way issue #20 was.
+
+**Status:** 🔴 Likely broken (same class of bug as issue #20, found by code reading, not yet reproduced with a runnable test). Should get a `Store`/`Transfer`-style minimal repro before filing, to confirm before claiming it as a second issue.
+
+&nbsp;
+
 ## Summary: state of `child_role_name`/role support by rule type
 
 | Rule type | Disambiguation param? | Multi-relationship behavior | Status |
@@ -112,6 +147,7 @@ The **insert/link helper** around `logic_row.py:349-376` (used when inserting/li
 | `Rule.sum` | `child_role_name=` | **Broken** — `get_child_role_name()` always runs when `as_sum_of` is an `InstrumentedAttribute`, silently overwriting the explicit value; internally also compares against the wrong (`backref`) attribute | 🔴 Issue #20 |
 | `Rule.copy` | **none** | Single-relationship: works. Multi-relationship: raises `"TODO / copy - disambiguate relationship"` — feature never implemented | 🟡 Not implemented (loud failure, not silent) |
 | Parent refs / insert-link (`logic_row.py` ~340-376) | **none seen** | Resolves role via `back_populates` (2.0-only, no fossil) but no disambiguator parameter; ambiguity-handling at line ~360 not yet fully traced | ⚪ Open thread — needs follow-up read |
+| `Rule.formula` live cascade (parent attr change → child re-derive), `row.<role>.<attr>` | n/a (role is just the literal accessor in the lambda/string) | **Likely broken** — `get_referring_children()` (`rule_bank_withdraw.py:195`) resets its result list inside the per-relationship loop, so a parent with 2+ `ONETOMANY` relationships only keeps the last one's referring children | 🔴 Found by code reading, not yet reproduced — see dedicated section below |
 
 &nbsp;
 
@@ -139,3 +175,44 @@ Later, support for the multi-relationship case was added by threading a **`role`
 ### Still open: `get_parent_role_from_child_role_name()` (`aggregate.py:53-56`)
 
 Ignores both its parameters and unconditionally returns `self._parent_role_name`, the single mutable field set once by `rule_bank_withdraw.aggregate_rules()` (line 102) per rule object. Currently harmless for `Sum`/`Count` since `child_role_name=` already produces a separate rule object per role — but worth a second look once the primary fix lands, to confirm it stays harmless rather than becoming the next fossil.
+
+## Solution includes tests
+
+We need a test in addition to the code, using the Dept example:
+
+* test db with data
+* Dept has sums/counts of onLoan and worksFor — tests alter & validate
+* Emp has both a copied and referenced attr — tests alter & validate (e.g. is propagated for references, not copies)
+* tests should be part of the test suite
+
+### Why `test_add_emp.py` (existing) doesn't already cover this — checked, confirmed insufficient
+
+`examples/nw/tests/test_add_emp.py` already exists, is explicitly labeled `"Regression test - multi-relns between same 2 tables tests"`, and already asserts on `Department.SalaryTotal` (line 51) — which is a `Rule.sum(..., child_role_name="EmployeeWorksForList")`, the exact rule type broken by issue #20. **Ran it against the current (bugged) source in this checkout — it passes.**
+
+This means the bug does not manifest in this test's specific scenario (one new Employee with `WorksFor=1, OnLoan=2` — two *different* target departments). That's evidence the bug is real but **declaration/usage-pattern-dependent** — it doesn't necessarily corrupt every multi-relationship `Rule.sum`, only specific shapes (the issue's repro uses `Transfer.origin_id`/`dest_id` both able to point at *the same* `Store` in either role, plus two sums on the *same parent class* sharing the *same child summed field* `qty` — closer to a self-referencing pattern than `Department`/`Employee`). **Do not treat `test_add_emp.py` passing as evidence the bug doesn't exist** — it's evidence this particular test doesn't happen to trigger it, which is exactly why a dedicated, issue-#20-shaped regression test is needed rather than relying on this one.
+
+### Decision: dedicated example folder — `examples/multi_relns/` (or similar)
+
+Agreed: this is its own complex area and deserves its own self-contained example, matching the existing convention (`examples/banking`, `examples/payment_allocation`, `examples/referential_integrity`, `examples/copy_children` — each with its own DB, models, logic, tests). The new folder gets its **own small DB and test data**, not a retrofit of nw's general-purpose dataset. `examples/nw`'s `Department`/`Employee` is the **model/guide** for shape (copy what's useful, don't feel bound to it) — not something this new suite depends on or extends in place.
+
+### The precise gap in `test_add_emp.py` that the new suite must not repeat
+
+`test_add_emp.py` already has a same-shaped scenario (one new Employee with `WorksFor=1, OnLoan=2`, i.e. **both FKs populated on the same row** — every Employee row already has both roles active simultaneously, this part is not the gap). The gap is **what it asserts on**: it only checks `works_for` (Department 1)'s aggregates (line 49-52) — it never checks what happened to `on_loan` (Department 2) from that same employee/transaction. That's almost certainly why it passes despite exercising the affected `Rule.sum`: a collapse-onto-the-wrong-role bug is only *observable* if you assert on both sides and confirm each got the correct, distinct value — the same discipline the GitHub issue's repro uses (it explicitly checks **both** `store1` and `store2` after one transfer, and that's exactly what makes the bug visible: `store2` ends up with both `transfer_out` and `transfer_in` set, `store1` gets nothing).
+
+**Rule for the new test suite: every multi-role scenario must assert on *all* parent instances involved, not just one.** A test that only checks the role it expects to be correct will pass even when the engine silently misattributes the adjustment elsewhere.
+
+### Test plan, concretized
+
+1. **`Sum`/`Count` regression (Dept/Employee-style schema, own DB):**
+   - Seed two (or more) Departments; employees with `WorksFor`/`OnLoan` pointing at *different* departments per employee, including at least one employee where they differ (to make a misattributed adjustment land somewhere observably wrong)
+   - Give **both** roles a `Rule.sum` (today's nw only sums `WorksFor`; mirror it onto `OnLoan` too) and **both** roles a `Rule.count`
+   - Alter (insert/update/delete/reparent) Employee rows touching both roles, in the same transaction and across separate transactions
+   - **Assert on both Departments' aggregates after every alteration** — not just the one expected to be right (see gap above)
+
+2. **`Rule.copy` vs `Rule.formula` (live reference) regression — new, neither currently tested for multi-relationship:**
+   - Give the child class both a **copied** attr and a **referenced/live** attr from the *same* multi-relationship parent pair
+   - Alter a parent attribute after the child is created
+   - Assert: the **copied** attribute does NOT change (snapshot) — the **referenced/formula** attribute DOES change (live propagation) — and each picks up the value from the *correct* role's parent, not the other one
+   - Exercises both gaps documented above: `Copy`'s missing disambiguator (raises `TODO` on ambiguity today — test may need to start as an expected-exception test until `Copy`'s fix lands) and the `get_referring_children()` cascade bug (`rule_bank_withdraw.py:195`)
+
+3. **Test data / DB:** own gold DB + seed data, sized to the scenario only (small, per Val's ask) — not nw's broader dataset. Follow the existing pattern (`tests.copy_gold_over_db()`-style gold-DB-copy-per-test) rather than building schema ad hoc in each test file.
