@@ -97,6 +97,12 @@ class Aggregate(Derivation):
             if parent_adjustor.parent_logic_row is None:
                 parent_adjustor.parent_logic_row = \
                     parent_adjustor.child_logic_row._get_parent_logic_row(role_name=self._parent_role_name)
+            if parent_adjustor.parent_logic_row.row is None:
+                # legitimately-null optional parent FK (e.g. no on_loan assignment) - nothing to adjust.
+                # reset to None so ParentRoleAdjuster.save_altered_parents() correctly treats this as
+                # "no adjustment needed" rather than trying to .update() a LogicRow wrapping row=None
+                parent_adjustor.parent_logic_row = None
+                return
             curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
             if curr_value is None:
                 curr_value = 0
@@ -119,6 +125,12 @@ class Aggregate(Derivation):
             if parent_adjustor.parent_logic_row is None:
                 parent_adjustor.parent_logic_row = \
                     parent_adjustor.child_logic_row._get_parent_logic_row(role_name=self._parent_role_name)
+            if parent_adjustor.parent_logic_row.row is None:
+                # legitimately-null optional parent FK (e.g. no on_loan assignment) - nothing to adjust.
+                # reset to None so ParentRoleAdjuster.save_altered_parents() correctly treats this as
+                # "no adjustment needed" rather than trying to .update() a LogicRow wrapping row=None
+                parent_adjustor.parent_logic_row = None
+                return
             curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
             is_do_not_adjust = parent_adjustor.parent_logic_row._is_in_list(do_not_adjust_list)
             if is_do_not_adjust:
@@ -164,6 +176,11 @@ class Aggregate(Derivation):
                     if parent_adjustor.parent_logic_row is None:
                         parent_adjustor.parent_logic_row = \
                             parent_adjustor.child_logic_row._get_parent_logic_row(role_name=self._parent_role_name)
+                if parent_adjustor.parent_logic_row.row is None:
+                    # legitimately-null optional parent FK (e.g. no on_loan assignment) - nothing to adjust.
+                    # reset to None so save_altered_parents() correctly treats this as "no adjustment needed"
+                    parent_adjustor.parent_logic_row = None
+                    return
                 curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
                 if curr_value is None:
                     curr_value = 0
@@ -188,13 +205,20 @@ class Aggregate(Derivation):
                     parent_adjustor.child_logic_row._get_parent_logic_row(
                         role_name=self._parent_role_name)
             if parent_adjustor.parent_logic_row.row is None:  # fix reparent count failure
-                msg = "Unable to Adjust Missing Adopting Parent: " + self._parent_role_name
-                raise ConstraintException(msg)
-            curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
-            if curr_value is None:
-                curr_value = 0
-            setattr(parent_adjustor.parent_logic_row.row, self._column, curr_value + delta)
-            parent_adjustor.append_adjusting_attributes(self._column)
+                if self._fk_is_null(parent_adjustor.child_logic_row.row, self._parent_role_name):
+                    # legitimately-null optional new parent FK (e.g. no on_loan assignment) - nothing
+                    # to adjust on THIS side; reset so save_altered_parents() skips it, but do NOT
+                    # return - the old-parent (previous_parent_logic_row) block below still needs to run
+                    parent_adjustor.parent_logic_row = None
+                else:
+                    msg = "Unable to Adjust Missing Adopting Parent: " + self._parent_role_name
+                    raise ConstraintException(msg)
+            else:
+                curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
+                if curr_value is None:
+                    curr_value = 0
+                setattr(parent_adjustor.parent_logic_row.row, self._column, curr_value + delta)
+                parent_adjustor.append_adjusting_attributes(self._column)
 
         where = self._where_cond(parent_adjustor.child_logic_row.old_row)
         delta = get_old_summed_field()
@@ -204,9 +228,29 @@ class Aggregate(Derivation):
                     parent_adjustor.child_logic_row._get_parent_logic_row(
                         role_name=self._parent_role_name,
                         from_row=parent_adjustor.child_logic_row.old_row)
-            curr_value = getattr(parent_adjustor.previous_parent_logic_row.row, self._column)
-            setattr(parent_adjustor.previous_parent_logic_row.row, self._column, curr_value - delta)
-            parent_adjustor.append_adjusting_attributes(self._column)
+            if parent_adjustor.previous_parent_logic_row.row is None:
+                # old FK was legitimately null (no previous parent to decrement) - nothing to adjust.
+                # reset to None so save_altered_parents() correctly treats this as "no adjustment needed"
+                parent_adjustor.previous_parent_logic_row = None
+            else:
+                curr_value = getattr(parent_adjustor.previous_parent_logic_row.row, self._column)
+                setattr(parent_adjustor.previous_parent_logic_row.row, self._column, curr_value - delta)
+                parent_adjustor.append_adjusting_attributes(self._column)
+
+    @staticmethod
+    def _fk_is_null(child_row, role_name: str) -> bool:
+        """ True iff the FK column(s) backing role_name are null on child_row -
+        distinguishes "no parent expected" (nullable FK, not an error) from
+        "FK references a parent that can't be found" (data integrity error).
+        """
+        my_mapper = object_mapper(child_row)
+        role_def = my_mapper.relationships.get(role_name)
+        if role_def is None:
+            return False
+        for each_child_col, each_parent_col in role_def.local_remote_pairs:
+            if getattr(child_row, each_child_col.name) is not None:
+                return False
+        return True
 
     def get_child_role_name(self, child_attrs):
         """ return parent.<attr-name> that returns list of children """
@@ -220,11 +264,11 @@ class Aggregate(Derivation):
                     if self._child_role_name == "":     # no role name - ensure only 1 reln to parent
                         if found_attr is not None:
                             raise Exception(f"Ambiguous Relationship - add 'child_role_name' for {self}")
-                    else:                               # role name
-                        if each_attr.backref == self._child_role_name:
+                        found_attr = each_attr
+                    else:                               # role name - match SQLAlchemy 2.0 back_populates (or legacy backref)
+                        if self._child_role_name in (each_attr.backref, each_attr.back_populates, each_attr.key):
                             found_attr = each_attr
                             break
-                    found_attr = each_attr
         if found_attr is None:
             raise Exception("Invalid sum/count - no relationship to: " + self.table +
                             " in " + self.__str__())

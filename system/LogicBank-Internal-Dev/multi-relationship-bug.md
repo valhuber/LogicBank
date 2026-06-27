@@ -3,8 +3,10 @@ title: Multi-Relationship Aggregate Bug — Investigation Notes
 Description: Root-cause trail for GitHub issue #20 — Rule.sum ignores child_role_name for multiple relationships to the same parent when models use back_populates
 Source: logic_bank/rule_type/aggregate.py, logic_bank/rule_type/sum.py, logic_bank/rule_type/count.py
 Usage: AI assistants read this before touching aggregate.py / sum.py / count.py / rule_bank_withdraw.py child_role_name logic
-version: 2.6
+version: 3.1
 changelog:
+  - 3.1 (Jun 2026) - Fixed and tested the null-optional-FK crash too (separate bug from issue #20, found while building the suite). All 5 adjust_from_* sites in aggregate.py now distinguish "FK is validly null" (skip, via new _fk_is_null() helper) from "FK is non-null but parent missing" (still raises, unchanged). Caught and fixed an early-return bug in adjust_from_updated_reparented_child that was skipping the old-parent decrement. New test_null_optional_fk.py (3 tests). Full suite: zero regressions.
+  - 3.0 (Jun 2026) - FIX LANDED AND VERIFIED. sum.py: Sum now honors explicit child_role_name before falling back to get_child_role_name() (mirrors Count's existing precedence). aggregate.py get_child_role_name(): matches back_populates/key in addition to legacy backref, and the previously-unconditional found_attr fallthrough is now correctly scoped to the no-child_role_name branch only. New examples/multi_relns/ suite (own gold db, 3 departments/3 employees, 5 test files, 11 test methods covering all 6 test-plan cases) - confirmed FAILS (2/11) without the fix, PASSES (11/11) with it. Full repo suite (python3 run_tests.py) - zero regressions, all 9 example dirs pass. NOTE: building the suite surfaced a new, separate, unfixed bug - a null optional parent FK (on_loan_id=None) crashes the aggregate adjustor outright (AttributeError, aggregate.py:100) - documented as a deliberate non-goal in db/create_db.py, not yet filed.
   - 2.6 (Jun 2026) - Added 3 test cases missing from Val's original sketch: (4) reparenting - same-role-different-parent AND different-role moves, asserting all 3 departments touched; (5) multiple aggregates on the same role adjusted together in one transaction, intersecting the ParentRoleAdjustor coalescing mechanism; (6) delete as its own dedicated case (separate code path, do_not_adjust_list), not assumed-covered by update tests
   - 2.5 (Jun 2026) - Decided: dedicated examples/multi_relns/ folder (own DB, own test data), Dept/Employee as model/guide not a dependency. Pinpointed exact gap in test_add_emp.py - it only asserts on one side (works_for), never checks the other Department (on_loan) - that's likely why it passes despite exercising the affected Rule.sum. New rule for the suite: every multi-role test must assert on ALL parent instances involved, matching the discipline of the GitHub issue repro (checks both store1 and store2).
   - 2.4 (Jun 2026) - Concretized Val's test plan (Dept/Employee sums+counts both roles, Employee with both copy and live-reference attrs). Ran examples/nw/tests/test_add_emp.py against current (bugged) source - confirmed it PASSES despite asserting on the affected Rule.sum (SalaryTotal) - bug is declaration/usage-pattern-dependent, not universal; existing test is insufficient evidence either way, dedicated regression test still needed. Flagged open question: extend nw's gold DB or new dedicated example dir.
@@ -16,6 +18,29 @@ changelog:
 ---
 
 # Multi-Relationship Aggregate Bug — Investigation Notes
+
+## ✅ Status: Fixed and verified (issue #20 scope)
+
+**Code changes:**
+- `logic_bank/rule_type/sum.py` — `Sum.__init__` now checks `child_role_name` first (same precedence `Count` already had), only calling `get_child_role_name()` as a fallback.
+- `logic_bank/rule_type/aggregate.py` — `get_child_role_name()`'s ambiguous-role-name branch now matches `back_populates` and `key` (not just legacy `backref`), and the `found_attr = each_attr` fallthrough that previously ran on every iteration regardless of branch is now correctly scoped to the no-`child_role_name` (single-relationship) branch only.
+
+**New regression suite:** `examples/multi_relns/` — own gold DB (`Department`/`Employee`, 3 departments, 3 employees seeded with varied works_for/on_loan combinations), own rules (`Rule.sum` + `Rule.count` on both roles, one `Rule.formula` live-reference), 5 test files / 11 test methods covering all 6 cases from the test plan below. Verified:
+- **Without the fix:** 2 of 11 tests fail (the `Rule.sum` collapse-onto-wrong-role symptom, reproduced cleanly)
+- **With the fix:** 11 of 11 pass
+- **Full repo suite** (`python3 run_tests.py`): zero regressions — all 9 example directories (including `examples/nw`) pass
+
+**A second, separate bug surfaced while building the suite — also now fixed and tested:** a null optional parent FK (e.g. `Employee.on_loan_id = None`, meaning "not currently on loan to anyone") used to crash the aggregate adjustor outright — `AttributeError: 'NoneType' object has no attribute '<column>'` (insert/delete/update-in-place paths) or incorrectly raise `ConstraintException("Unable to Adjust Missing Adopting Parent")` (reparent path, which conflated "FK is validly null" with "FK points at a row that doesn't exist" — a real data-integrity case that correctly should keep raising).
+
+- **Fix:** all 5 `adjust_from_*` call sites in `aggregate.py` now check `parent_logic_row.row is None` (or `previous_parent_logic_row.row is None`) and, when the underlying FK column is itself null (new `Aggregate._fk_is_null()` helper, checks `local_remote_pairs` on the relationship), reset the adjustor's field back to `None` and skip — rather than proceeding to `getattr()`/`setattr()` on a `None` row, or (reparent case) raising. The reparent path's existing raise is preserved for the genuine integrity-violation case (FK is non-null but doesn't resolve to a real parent row) — only the legitimately-null-FK case was changed.
+- **One bug found and fixed while fixing this:** an early `return` in `adjust_from_updated_reparented_child`'s new-parent-null branch incorrectly skipped the unrelated old-parent (`previous_parent_logic_row`) decrement block later in the same method — caught by `test_update_employee_to_null_on_loan_id` asserting the *old* department's count actually decremented, not just "no crash."
+- **Tests:** `examples/multi_relns/tests/test_null_optional_fk.py` — insert/update-to-null/delete cases, 3 tests. Confirmed: 3 errors without the fix, 0 with it. Full repo suite: zero regressions.
+
+**What's still open (not fixed, scope of this doc's later sections):** `Rule.copy` still has no role-disambiguation parameter at all (raises `TODO` on ambiguity — `test_copy_ambiguous.py` documents this as current, expected behavior). The `get_referring_children()` cascade bug (multi-relationship live-reference propagation, "A third direction" section below) is also **not yet fixed** — `examples/multi_relns/logic/rules_bank.py` deliberately declares only one `Rule.formula` to avoid triggering it, pending that fix.
+
+&nbsp;
+
+---
 
 ## Confirmed: GitHub Issue #20
 

@@ -33,8 +33,11 @@ class Sum(Aggregate):
             class_attr = str(self._as_sum_of).split(".")
             self._child_summed_field = as_sum_of.key
             self._child_class = class_attr[0]
-            child_attrs = as_sum_of.parent.attrs
-            self._child_role_name = self.get_child_role_name(child_attrs=child_attrs)
+            if child_role_name is not None and child_role_name != "":
+                self._child_role_name = child_role_name  # honor explicit disambiguator (mirrors Count)
+            else:
+                child_attrs = as_sum_of.parent.attrs
+                self._child_role_name = self.get_child_role_name(child_attrs=child_attrs)
         else:
             self._load_error = "'derive' attribute not a class.attribute: " + str(derive)
             # raise Exception("as_sum_of must be either string, or <mapped-class.column>: " + str(as_sum_of))

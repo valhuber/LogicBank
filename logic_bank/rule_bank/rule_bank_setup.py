@@ -15,7 +15,7 @@ from sqlalchemy.orm import session
 from sqlalchemy.orm import mapper
 import logging
 
-__version__ = "1.31.02"  # add allow_event_nesting to prevent unintended event re-fire on same row in flush cycle, reduced log
+__version__ = "1.31.03"  # add allow_event_nesting to prevent unintended event re-fire on same row in flush cycle, reduced log, multi-reln
 
 logic_logger = logging.getLogger("logic_logger")
 
