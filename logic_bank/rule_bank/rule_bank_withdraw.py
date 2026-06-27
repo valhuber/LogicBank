@@ -185,6 +185,10 @@ def get_referring_children(parent_logic_row: LogicRow) -> dict:
         parent_rules = rule_bank.orm_objects[parent_logic_row.name]
         result = parent_rules.referring_children
         parent_rules.referring_children = {}  # clear...?
+        parent_rules.referring_children[parent_logic_row.name] = []  # accumulates across ALL relationships below -
+        # must be initialized once here, NOT inside the loop (previously reset per-relationship, so a parent class
+        # with 2+ ONETOMANY relationships - e.g. Department.EmployeeWorksForList + EmployeeOnLoanList - only kept
+        # the LAST relationship's referring children, silently dropping cascade for the others)
         parent_mapper = object_mapper(parent_logic_row.row)
         parent_relationships = parent_mapper.relationships
         if parent_logic_row.name == "Order":
@@ -192,7 +196,6 @@ def get_referring_children(parent_logic_row: LogicRow) -> dict:
         for each_parent_relationship in parent_relationships:  # eg, order has parents cust & emp, child orderdetail
             if each_parent_relationship.direction == sqlalchemy.orm.interfaces.ONETOMANY:  # cust, emp
                 parent_role_name = each_parent_relationship.back_populates  # eg, OrderList
-                parent_rules.referring_children[parent_logic_row.name] = []
                 child_role_name = each_parent_relationship.key
                 child_class_name = get_child_class_name(each_parent_relationship)  # eg, OrderDetail
                 if child_class_name not in rule_bank.orm_objects:

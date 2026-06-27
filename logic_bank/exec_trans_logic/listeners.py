@@ -166,23 +166,23 @@ def temp_debug(a_session, bug_explore, row_cache):
     order_detail_first = False  # true triggers defer
     if order_detail_first:
         each_instance = bug_explore[0]
-        old_row = get_old_row(each_instance)
+        old_row = get_old_row(each_instance, a_session)
         logic_row = LogicRow(row=each_instance, old_row=old_row, ins_upd_dlt="upd",
                              nest_level=0, a_session=a_session, row_sets=row_cache)
         logic_row.update(reason="client")
         each_instance = bug_explore[1]
-        old_row = get_old_row(each_instance)
+        old_row = get_old_row(each_instance, a_session)
         logic_row = LogicRow(row=each_instance, old_row=old_row, ins_upd_dlt="upd",
                              nest_level=0, a_session=a_session, row_sets=row_cache)
         logic_row.update(reason="client")
     else:
         each_instance = bug_explore[1]
-        old_row = get_old_row(each_instance)
+        old_row = get_old_row(each_instance, a_session)
         logic_row = LogicRow(row=each_instance, old_row=old_row, ins_upd_dlt="upd",
                              nest_level=0, a_session=a_session, row_sets=row_cache)
         logic_row.update(reason="client")
         each_instance = bug_explore[0]
-        old_row = get_old_row(each_instance)
+        old_row = get_old_row(each_instance, a_session)
         logic_row = LogicRow(row=each_instance, old_row=old_row, ins_upd_dlt="upd",
                              nest_level=0, a_session=a_session, row_sets=row_cache)
         logic_row.update(reason="client")

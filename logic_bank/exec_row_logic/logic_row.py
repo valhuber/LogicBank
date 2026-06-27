@@ -328,7 +328,7 @@ class LogicRow:
             raise Exception(f"FIXME invalid role name {parent_role_name}")
         return role_def
 
-    def link(self, to_parent: 'LogicRow', is_copy: bool = False):
+    def link(self, to_parent: 'LogicRow', is_copy: bool = False, child_role_name: str = ""):
         """
         set self.to_parent (parent_accessor) = to_parent
 
@@ -342,6 +342,9 @@ class LogicRow:
         Args:
             to_parent: mapped class that is parent to this logic_row
             is_copy: optional, suppress FK not null (eg, copy_children)
+            child_role_name: parent's child accessor attribute (required only for disambiguation,
+                e.g. 2+ relationships from to_parent's class to this class - mirrors Rule.sum/
+                Rule.count/Rule.copy's child_role_name)
 
         """
         parent_mapper = object_mapper(to_parent.row)
@@ -357,11 +360,14 @@ class LogicRow:
                     each_relationship.entity.class_.__name__)  # eg., <class 'models.PaymentAllocation'>
                 # instance fails - see https://github.com/valhuber/LogicBank/issues/6
                 if child_row_class_name == child_reln_class_name:
-                    if parent_role_name is not None:
-                        raise Exception("TODO - disambiguate relationship from Provider: <" +
+                    if child_role_name is not None and child_role_name != "":
+                        # explicit disambiguator supplied - only accept the matching relationship
+                        if each_relationship.key != child_role_name:
+                            continue
+                    elif parent_role_name is not None:
+                        raise Exception("Ambiguous Relationship - add 'child_role_name' from Provider: <" +
                                         to_parent.name +
                                         "> to Allocation: " + str(type(child)))
-                    parent_role_name = parent_mapper.class_.__name__  # default TODO design review
                     parent_role_name = each_relationship.back_populates
                     parent_reln_to_child_db = each_relationship
         if parent_role_name is None:
@@ -1369,60 +1375,52 @@ class ParentRoleAdjuster:
         else:
             self.adjusting_attributes += f', {attribute_name}'
 
+    def _should_defer_chaining(self, parent_logic_row: 'LogicRow') -> bool:
+        """
+        True iff parent_logic_row was directly edited by the client this transaction
+        but hasn't been processed yet - in that case, the parent's own (later) processing
+        pass will run the chaining logic, so don't run it twice here.
+
+        Background ("Dragons lurk herein"): SQLAlchemy's session.dirty (the set of rows a
+        before_flush listener iterates) is NOT ordered. A transaction that reparents a child
+        AND changes a sum-contributing attribute on it in the same commit (eg upd_order_reuse:
+        OrderDetail.ProductId changes, Order.CustomerId changes) gets a different, sometimes
+        WRONG, answer depending purely on which row SQLAlchemy hands the listener first -
+        about half the time, the wrong order produced a silently incorrect balance (adjusted
+        the new parent prematurely, using a stale delta, then adjusted it again when the
+        parent's own update ran - double-adjusting the new parent, never decrementing the old
+        one). This check prevents that: skip chaining here if the parent will be processed as
+        its own client-submitted row later in this same flush.
+
+        See system/LogicBank-Internal-Dev/dragons-deferred-adjustment.md for the full
+        investigation, log traces, and a (currently bit-rotted) reproduction hook
+        (listeners.py's bug_explore/temp_debug). DO NOT remove or "simplify" this check
+        without re-running examples/nw/tests/test_upd_order_reuse.py - it's the regression
+        test for exactly this bug, and it only reproduces about half the time, so a single
+        passing run proves much less than it looks like it does.
+        """
+        row_sets = parent_logic_row.row_sets
+        is_parent_submitted = parent_logic_row.row in row_sets.submitted_row
+        is_parent_row_processed = parent_logic_row.row in row_sets.processed_rows
+        return is_parent_submitted and not is_parent_row_processed
+
     def save_altered_parents(self, do_not_adjust_list: List = None):
         """
         Save (chain) parent iff parent_logic_row has been set by sum/count executor.
         This can update parent, and previous parent (ie, foreign key changed)
 
-        Dragons lurk herein
-        ===================
-            upd_order_reuse changes OrderDetail.ProductId, and Order.CustomerId
-            listeners do not guarantee order
-            Failures were seen for OrderDetail first
-                It adjusted to the New Customer
-            Fix is defer adjustment chaining logic iff the parent row is in the row_sets.submitted_row
-                That is, the adjustment is done, but we don't run chaining logic (parent_logic_row.update())
-                That's because the chaining logic will be run later in listeners (row_sets.submitted_row)
-
-            Examples:
-                upd_order_reuse - occurs half the time, see listeners-bug_explore to force
-                test_add_order
-                    first, note OrderDetails are **sometimes** processed before Order (it varies!)
-                    it's easy when the order is first
-                    if OrderDetail is first then "debug_info" will see....
-                        do_defer_adjustment: True, is_parent_submitted: True, is_parent_row_processed: False
-                            adjustment occurs, but *not* the update() logic (since will occur when processed)
-                ApiLogicServer - place_order.py, scenario: Clone Existing Order
-                    the order is first (only), so requires do_defer_adjustment is false, so...
-                    do_defer_adjustment: False, is_parent_submitted: True, is_parent_row_processed: True
+        See _should_defer_chaining() for why this may skip chaining logic for an altered parent.
         """
         if self.parent_logic_row is None:  # save *only altered* parents (often does nothing)
             pass
             # self.child_logic_row.log("adjust not required for parent_logic_row: " + str(self))
         else:
             parent_logic_row = self.parent_logic_row
-            row_sets = parent_logic_row.row_sets
-            parent_row_debug = self.parent_logic_row.row
-            is_parent_submitted = parent_logic_row.row in row_sets.submitted_row
-            is_parent_row_processed = parent_logic_row.row in row_sets.processed_rows
-            do_defer_adjustment = is_parent_submitted and not is_parent_row_processed
-            if self.child_logic_row.name == 'OrderDetailXX':
-                self.child_logic_row.log(f'do_defer_adjustment: {do_defer_adjustment}'
-                                         f', is_parent_submitted: {is_parent_submitted}'
-                                         f', is_parent_row_processed: {is_parent_row_processed}')
-                debug_info = "target child defer adjustment check..."
-            enable_deferred_adjusts = True
-            if do_defer_adjustment and enable_deferred_adjusts:  # see dragon alert, above
-                self.parent_logic_row.log(f'Adjustment logic chaining deferred for this parent parent '
-                                          f'do_defer_adjustment: {do_defer_adjustment}'
-                                          f', is_parent_submitted: {is_parent_submitted}'
-                                          f', is_parent_row_processed: {is_parent_row_processed}, ' +
-                                          self.parent_role_name)
-                debug_info = "target child defer adjustment!"
+            do_defer_adjustment = self._should_defer_chaining(parent_logic_row)
+            if do_defer_adjustment:
+                self.parent_logic_row.log(f'Adjustment logic chaining deferred for this parent ({self.parent_role_name}) '
+                                          f'- will run when the parent itself is processed this transaction')
             else:
-                if do_defer_adjustment:  # just for debug when enable_deferred_adjusts is false
-                    self.child_logic_row.log(
-                        "Adjustment deferred DISABLED (DEBUG ONLY!!) for parent" + self.parent_role_name)
                 is_do_not_adjust_deleted_parent = self.parent_logic_row._is_in_list(do_not_adjust_list)
                 if is_do_not_adjust_deleted_parent:
                     self.child_logic_row.log(f'No adjustment on deleted parent: {self.parent_role_name}')

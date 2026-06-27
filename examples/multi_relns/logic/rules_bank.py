@@ -23,19 +23,20 @@ def declare_logic():
                child_role_name="EmployeeOnLoanList")
 
     """
-    Live reference (Rule.formula) on the on_loan role - parent changes cascade.
-    Exercises get_referring_children() multi-relationship disambiguation.
+    Live reference (Rule.formula) on BOTH roles - parent changes cascade independently.
+    Exercises get_referring_children() multi-relationship disambiguation (rule_bank_withdraw.py)
+    - previously, only the LAST-declared relationship's referring children survived, so only one
+    of these two formulas would ever cascade correctly. See multi-relationship-bug.md "A third
+    direction" / Status section.
     """
     Rule.formula(derive=Employee.on_loan_dept_name_live,
                  as_expression=lambda row: row.on_loan_dept.name if row.on_loan_dept else None)
+    Rule.formula(derive=Employee.works_for_dept_name_live,
+                 as_expression=lambda row: row.works_for_dept.name if row.works_for_dept else None)
 
     """
-    NOTE: Rule.copy(derive=Employee.works_for_dept_name_copy, from_parent=Department.name)
-    is deliberately NOT declared here.
-
-    Rule.copy has no child_role_name / role disambiguation parameter at all (unlike
-    Rule.sum/Rule.count) - declaring it against this schema raises:
-        LBActivateException: [Exception('TODO / copy - disambiguate relationship')]
-    See test_copy_ambiguous.py, which asserts this exception is raised (documenting
-    the current, honestly-unfinished state) rather than silently working around it.
+    Rule.copy snapshot, disambiguated via child_role_name (now supported - see test_copy_ambiguous.py
+    for the pre-fix ambiguity-detection behavior, still verified for the no-child_role_name case).
     """
+    Rule.copy(derive=Employee.works_for_dept_name_copy, from_parent=Department.name,
+              child_role_name="works_for_dept")

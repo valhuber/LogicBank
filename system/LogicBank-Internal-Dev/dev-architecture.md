@@ -2,8 +2,11 @@
 title: Developer Architecture for LogicBank
 Description: Enables AI assistants to be co-designers for LogicBank development
 Usage: AI assistants read this to understand project structure, development workflow, testing, and release process
-version: 1.0
+version: 1.12
 changelog:
+  - 1.12 (Jun 2026) - Added forward-looking flag: Val is considering retiring WebGenAI (replaced by a simplified VS Code-like shell), now that Claude rarely produces the malformed-rule failures WebGenAI's web-UI-as-error-surface design existed to handle. Flagged as a reason to re-check whether LBActivateException's structured-error contract is still load-bearing, if/when that happens - not acted on, just don't assume the constraint is permanent.
+  - 1.11 (Jun 2026) - Added dragons-deferred-adjustment.md reference: a separate, already-fixed killer bug (nondeterministic session.dirty order causing wrong-parent aggregate adjustment, ~50% reproduction rate). Promoted from $readme.txt scratch notes (deleted) to a proper doc; verified the bug_explore reproduction hook in listeners.py still exists but is bit-rotted (get_old_row() signature mismatch) - documented as broken, not working, after testing it directly.
+  - 1.10 (Jun 2026) - readme_dev.md split: testing content moved to run_tests_readme.md (repo root, stays human-discoverable), release-management content moved to system/LogicBank-Internal-Dev/release-management.md (new file). Updated all cross-references in this file, CLAUDE.md, and basic_demo_sample.md accordingly. Added CLAUDE.md at repo root as the bootstrap entry point.
   - 1.9 (Jun 2026) - multi-relationship-bug.md now covers full blast radius: Rule.copy (no role param, raises TODO on ambiguity) and parent-refs/insert-link (open thread) added alongside Sum/Count
   - 1.8 (Jun 2026) - CONFIRMED multi-relationship-bug.md against github.com/valhuber/LogicBank/issues/20 - root cause matched exactly; issue narrows fix to Sum only (Count already has correct precedence: explicit child_role_name wins before falling back to get_child_role_name())
   - 1.7 (Jun 2026) - Added multi-relationship-bug.md reference: root-caused the suspected GenAI-Logic bug to a fallthrough/wrong-attribute defect in aggregate.py get_child_role_name() that defeats the child_role_name disambiguator for multi-relationship-to-same-parent cases
@@ -19,6 +22,8 @@ changelog:
 # Context Restoration: LogicBank Development
 
 **Purpose:** This file (and sibling files in this folder) establish AI assistant context for working on the LogicBank repo itself — the standalone rules engine consumed by [ApiLogicServer / GenAI-Logic](https://github.com/valhuber/ApiLogicServer).
+
+**See also [run_tests_readme.md](../../run_tests_readme.md)** (repo root) — the human-facing testing guide: how to run tests and debug failures. And **[release-management.md](release-management.md)** (this folder) — version bump, build, and PyPI release process (split out of the old `readme_dev.md`). This file and its siblings are AI-context-first (architecture, lineage, bug investigations); `run_tests_readme.md` stays at repo root since it's the conventional, human-discoverable "how do I test this" doc. They're complementary, not duplicates — this file points *to* them rather than restating their content (see "Testing: Two Layers" below).
 
 &nbsp;
 
@@ -45,10 +50,12 @@ This repo has no `docs/` source tree — documentation lives in two places:
      - `ParentRoleAdjustor` coalesces multiple sum/count changes into exactly one parent update per role
      - Formula execution is pruned when referenced attributes haven't changed
      - Cascade tags *which* parent role changed, so children selectively recompute only affected formulas
-2. **[readme_dev.md](../../readme_dev.md)** (this repo, root) — practical dev guide: test running (`run_tests.py`, VS Code launch configs), why pytest/Test Explorer don't work here, and the full release process (version bump in `logic_bank/rule_bank/rule_bank_setup.py`, `pyproject.toml` build, twine upload).
-3. **README.md** (this repo, root) — public-facing overview/intro.
-4. **[basic_demo_sample.md](basic_demo_sample.md)** — how GenAI-Logic's `manager/samples/basic_demo_sample` defines data models and wires up/activates LogicBank in a real generated project (the canonical "5 rules replace 200 lines" check-credit example, in its actual shipped form).
-5. **[multi-relationship-bug.md](multi-relationship-bug.md)** — confirmed root cause for [GitHub issue #20](https://github.com/valhuber/LogicBank/issues/20): `Rule.sum` ignores `child_role_name` for multi-relationship-to-same-parent cases when models use `back_populates` (the SQLAlchemy 2.0 / ALS-generated style) instead of legacy `backref`. `Rule.count` is unaffected; `Rule.copy` never got the disambiguation parameter at all (raises a `TODO` placeholder exception instead); parent-refs/insert-link path is an open thread.
+2. **[run_tests_readme.md](../../run_tests_readme.md)** (this repo, root) — practical testing guide: test running (`run_tests.py`, VS Code launch configs), why pytest/Test Explorer don't work here.
+3. **[release-management.md](release-management.md)** (this folder) — the full release process (version bump in `logic_bank/rule_bank/rule_bank_setup.py`, `pyproject.toml` build, twine upload).
+4. **README.md** (this repo, root) — public-facing overview/intro.
+5. **[basic_demo_sample.md](basic_demo_sample.md)** — how GenAI-Logic's `manager/samples/basic_demo_sample` defines data models and wires up/activates LogicBank in a real generated project (the canonical "5 rules replace 200 lines" check-credit example, in its actual shipped form).
+6. **[multi-relationship-bug.md](multi-relationship-bug.md)** — investigation, fix, and 21-test regression suite for the multi-relationship-to-same-parent-class bug family ([GitHub issue #20](https://github.com/valhuber/LogicBank/issues/20) and related): `Rule.sum`, `Rule.count`, `Rule.copy`, `Rule.formula` live-cascade, `LogicRow.link()`, and a null-optional-FK adjustor crash found along the way — all fixed and tested.
+7. **[dragons-deferred-adjustment.md](dragons-deferred-adjustment.md)** — a different, older, *already-fixed* killer bug: nondeterministic `session.dirty` iteration order could cause an aggregate adjustment to land on the wrong (or both, or neither) parent when a transaction reparents a child AND changes a sum-contributing attribute in the same commit. Silent wrong-answer, ~50% reproduction rate. Read before touching `LogicRow.save_altered_parents()` or `listeners.py`'s row-iteration logic.
 
 &nbsp;
 
@@ -57,8 +64,8 @@ This repo has no `docs/` source tree — documentation lives in two places:
 | Need | Where |
 |---|---|
 | How rules execute internally | [Logic-Walkthrough wiki](https://github.com/valhuber/LogicBank/wiki/Logic-Walkthrough) |
-| Run/debug tests | `readme_dev.md` → Testing Framework |
-| Cut a release | `readme_dev.md` → Release Management |
+| Run/debug tests | `run_tests_readme.md` (repo root) |
+| Cut a release | `release-management.md` (this folder) |
 | Version source | `logic_bank/rule_bank/rule_bank_setup.py` (`__version__`) |
 | Example projects (test fixtures) | `examples/<name>/tests` (banking, nw, copy_children, payment_allocation, referential_integrity, custom_exceptions, insert_parent, tutorial) |
 | Core engine code | `logic_bank/exec_row_logic/`, `logic_bank/exec_trans_logic/`, `logic_bank/rule_bank/` |
@@ -71,7 +78,7 @@ LogicBank changes are tested in **two separate passes**, against **two separate 
 
 ### 1. LogicBank repo tests (this repo) — engine-level, fast, in-process
 
-Run via `python3 run_tests.py` (see `readme_dev.md` → Testing Framework). Tests instantiate SQLAlchemy sessions directly and call `LogicBank.activate()` in-process — no HTTP, no Flask, no web server. Fixtures: `examples/nw` (the bigger one — Northwind, 16+ tables, exercises relationship edge cases) and `examples/payment_allocation` (the LB-side allocation example), plus banking, copy_children, referential_integrity, custom_exceptions, insert_parent, tutorial.
+Run via `python3 run_tests.py` (see `run_tests_readme.md`, repo root). Tests instantiate SQLAlchemy sessions directly and call `LogicBank.activate()` in-process — no HTTP, no Flask, no web server. Fixtures: `examples/nw` (the bigger one — Northwind, 16+ tables, exercises relationship edge cases) and `examples/payment_allocation` (the LB-side allocation example), plus banking, copy_children, referential_integrity, custom_exceptions, insert_parent, tutorial.
 
 ### 2. GenAI-Logic BLT (Build-Load-Test) — integration-level, slower, full-stack
 
@@ -126,12 +133,20 @@ LogicBank is the substrate under GL's highest-level capability pitch: **Executab
 
 &nbsp;
 
+## 🚩 Forward-looking flag: WebGenAI may be retired — watch for downstream LB scaffolding becoming dead weight
+
+**Val's stated direction (Jun 2026), not yet decided/acted on:** WebGenAI ("WebGenie") was built to solve a specific problem — early OpenAI-generated rules routinely failed (malformed/missing attributes), and WebGenAI's web UI had no IDE and no developer in the loop, so it had to *be* the error-surfacing and recovery mechanism itself (see the `LBActivateException.invalid_rules`/`.missing_attributes` background in `basic_demo_sample.md` → "Why this matters for LogicBank Engine Changes"). Val's instinct: now that Claude rarely fails at this kind of generation, that whole problem may be largely solved at a different layer — replace WebGenAI with something closer to a simplified VS Code shell ("hides the sharp knives") rather than maintaining a bespoke web UI + fixup pipeline built around an AI failure mode that's becoming rare.
+
+**Why this is flagged here, not just a GL-side note:** if WebGenAI retires, the GenAI-pipeline-specific scaffolding *inside LogicBank* that exists solely to serve it — the structured `LBActivateException` fields, anything else found to be fixup-loop-specific — becomes a second-order cleanup candidate. Not urgent, not decided, but worth re-checking this assumption (`LBActivateException`'s structured-error contract being load-bearing for a live consumer) if WebGenAI's retirement actually happens — what's "a consumed public API, don't break it" today may become "dead code, safe to simplify" later. Don't act on this preemptively; just don't assume the constraint is permanent when revisiting that exception's design.
+
+&nbsp;
+
 ## 🔄 Relationship to ApiLogicServer Dev Workspace
 
 LogicBank is developed, tested, and versioned **independently in this repo first**. The release loop is:
 
 1. Bump version in `logic_bank/rule_bank/rule_bank_setup.py`, run `python3 run_tests.py` here until green
-2. Build + release to PyPI (see `readme_dev.md` → Release Management)
+2. Build + release to PyPI (see `release-management.md`)
 3. Bump the pinned LogicBank version in GenAI-Logic's `pyproject.toml`/`requirements.txt`
 4. Re-run BLT in GenAI-Logic to validate the new version against the integration fixtures (see Testing: Two Layers, above)
 
@@ -168,7 +183,7 @@ Every project `genai-logic create` (or `ApiLogicServer create`) produces is clon
 **Why this matters for LB engine work:** these two files are where GL *teaches* the assumptions an AI (or developer) should hold about how LogicBank resolves relationships, FKs, and parent/child timing. If the GenAI-Logic bug turns out to be a relationship-modeling mismatch, check whether the generated project's model/rules actually followed these documented constraints — and if they did follow them and still hit a bug, the constraint itself (or LB's underlying timing/resolution behavior) is the thing to fix.
 
 **Other relevant pointers:**
-- Testing a LogicBank change against real projects requires building locally (`python -m build`) and installing the wheel into the ApiLogicServer BLT venv (see `readme_dev.md` → Test Installation) — or, for fast iteration, editing the LB package directly under `venv/lib/python3.13/site-packages/logic_bank/` (mirrors the "quick iteration / venv test" pattern GL itself uses for CE — changes are lost on next BLT/reinstall, propagate back to source before that happens)
+- Testing a LogicBank change against real projects requires building locally (`python -m build`) and installing the wheel into the ApiLogicServer BLT venv (see `release-management.md` → Test Installation) — or, for fast iteration, editing the LB package directly under `venv/lib/python3.13/site-packages/logic_bank/` (mirrors the "quick iteration / venv test" pattern GL itself uses for CE — changes are lost on next BLT/reinstall, propagate back to source before that happens)
 - `prototypes/basic_demo` has its own (tutorial-flavored) copy of `.copilot-instructions.md` — per GL's CE-drift incident note, `base` is the one that matters; `basic_demo` is a copy, not a source, of LogicBank CE content too
 
 &nbsp;

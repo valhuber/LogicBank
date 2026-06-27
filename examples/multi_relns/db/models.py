@@ -61,7 +61,8 @@ class Employee(Base):
     # Rule.copy snapshot - from works_for_dept (frozen at insert/update time)
     works_for_dept_name_copy = Column(String(40))
 
-    # Rule.formula live reference - from on_loan_dept (re-derives if parent changes)
+    # Rule.formula live reference, BOTH roles - re-derives if either parent changes
+    works_for_dept_name_live = Column(String(40))
     on_loan_dept_name_live = Column(String(40))
 
     # parent relationships (access parent) - two distinct relationships to Department

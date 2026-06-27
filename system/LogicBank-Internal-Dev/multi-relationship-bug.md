@@ -3,8 +3,10 @@ title: Multi-Relationship Aggregate Bug — Investigation Notes
 Description: Root-cause trail for GitHub issue #20 — Rule.sum ignores child_role_name for multiple relationships to the same parent when models use back_populates
 Source: logic_bank/rule_type/aggregate.py, logic_bank/rule_type/sum.py, logic_bank/rule_type/count.py
 Usage: AI assistants read this before touching aggregate.py / sum.py / count.py / rule_bank_withdraw.py child_role_name logic
-version: 3.1
+version: 4.1
 changelog:
+  - 4.1 (Jun 2026) - Resolved the final open thread: "parent refs / insert-link" identified precisely as LogicRow.link() (logic_bank/exec_row_logic/logic_row.py) - used by the Allocation extension and manual audit-copy patterns. Distinguished from GitHub issue #6 (closed, separately, in this session - an unrelated isinstance/nodal-name bug in the same method, already fixed in the codebase before this round). link() gained a child_role_name parameter (same pattern as Copy); existing no-disambiguator ambiguous case still correctly raises, message reworded to "Ambiguous Relationship" for consistency with Sum/Count/Copy. New test_link_disambiguation.py (3 tests) - confirmed fail-without/pass-with the fix. 21 tests total in examples/multi_relns/, full repo suite zero regressions. All identified multi-relationship directions are now fixed.
+  - 4.0 (Jun 2026) - FIXED AND TESTED both remaining child<->parent directions. (a) get_referring_children() (rule_bank_withdraw.py) - the dict-reset-inside-the-loop bug (same shape as issue #20, on the cascade/live-Rule.formula side) - moved the reset to once-before-the-loop. rules_bank.py now declares Rule.formula on BOTH roles (works_for_dept_name_live + on_loan_dept_name_live); 4 new/updated tests in test_formula_cascade.py prove both cascade independently (previously only the last-declared role ever did). (b) Rule.copy gained a child_role_name parameter (logic_bank.py + copy.py), mirroring Sum/Count's pattern - Copy.__init__ honors it directly, only falling back to the ambiguity-detecting loop when absent (still correctly raises "Ambiguous Relationship" there, by design). Fixed a landmine found while testing: the ambiguity exception message referenced {self} via __str__(), which itself reads self._from_parent_role - not yet set at the point the exception fires, so it raised a misleading AttributeError instead of the intended message; switched to get_derived_attribute_name(). rules_bank.py now declares Rule.copy(child_role_name="works_for_dept"); test_copy_ambiguous.py rewritten to test correct resolution (both roles) plus the still-correct no-child_role_name fail-fast. 18 tests total in examples/multi_relns/ (up from 14), full repo suite zero regressions.
   - 3.1 (Jun 2026) - Fixed and tested the null-optional-FK crash too (separate bug from issue #20, found while building the suite). All 5 adjust_from_* sites in aggregate.py now distinguish "FK is validly null" (skip, via new _fk_is_null() helper) from "FK is non-null but parent missing" (still raises, unchanged). Caught and fixed an early-return bug in adjust_from_updated_reparented_child that was skipping the old-parent decrement. New test_null_optional_fk.py (3 tests). Full suite: zero regressions.
   - 3.0 (Jun 2026) - FIX LANDED AND VERIFIED. sum.py: Sum now honors explicit child_role_name before falling back to get_child_role_name() (mirrors Count's existing precedence). aggregate.py get_child_role_name(): matches back_populates/key in addition to legacy backref, and the previously-unconditional found_attr fallthrough is now correctly scoped to the no-child_role_name branch only. New examples/multi_relns/ suite (own gold db, 3 departments/3 employees, 5 test files, 11 test methods covering all 6 test-plan cases) - confirmed FAILS (2/11) without the fix, PASSES (11/11) with it. Full repo suite (python3 run_tests.py) - zero regressions, all 9 example dirs pass. NOTE: building the suite surfaced a new, separate, unfixed bug - a null optional parent FK (on_loan_id=None) crashes the aggregate adjustor outright (AttributeError, aggregate.py:100) - documented as a deliberate non-goal in db/create_db.py, not yet filed.
   - 2.6 (Jun 2026) - Added 3 test cases missing from Val's original sketch: (4) reparenting - same-role-different-parent AND different-role moves, asserting all 3 departments touched; (5) multiple aggregates on the same role adjusted together in one transaction, intersecting the ParentRoleAdjustor coalescing mechanism; (6) delete as its own dedicated case (separate code path, do_not_adjust_list), not assumed-covered by update tests
@@ -19,7 +21,21 @@ changelog:
 
 # Multi-Relationship Aggregate Bug — Investigation Notes
 
-## ✅ Status: Fixed and verified (issue #20 scope)
+## ✅ Status: All directions fixed and verified, including the "parent refs" thread
+
+| Direction | Mechanism | Status |
+|---|---|---|
+| Child aggregates up to parent | `Rule.sum` / `Rule.count` | ✅ Fixed (issue #20) |
+| Parent FK validity (adjacent bug, found while testing) | aggregate adjustor, null optional FK | ✅ Fixed |
+| Child copies from parent (snapshot) | `Rule.copy` | ✅ Fixed (gained `child_role_name`) |
+| Parent cascades live to child | `Rule.formula` referencing `row.<role>.<attr>` | ✅ Fixed (`get_referring_children()`) |
+| Manual programmatic link (Allocation, audit-copy patterns) | `LogicRow.link()` | ✅ Fixed (gained `child_role_name`) — see also [issue #6](https://github.com/valhuber/LogicBank/issues/6), closed separately, an unrelated `isinstance`/nodal-name bug in the same method |
+
+`examples/multi_relns/` now has 21 tests across 7 files, all passing; full repo suite (`python3 run_tests.py`) shows zero regressions across all 9 example directories.
+
+&nbsp;
+
+### Issue #20 scope (child→parent aggregates)
 
 **Code changes:**
 - `logic_bank/rule_type/sum.py` — `Sum.__init__` now checks `child_role_name` first (same precedence `Count` already had), only calling `get_child_role_name()` as a fallback.
@@ -36,7 +52,11 @@ changelog:
 - **One bug found and fixed while fixing this:** an early `return` in `adjust_from_updated_reparented_child`'s new-parent-null branch incorrectly skipped the unrelated old-parent (`previous_parent_logic_row`) decrement block later in the same method — caught by `test_update_employee_to_null_on_loan_id` asserting the *old* department's count actually decremented, not just "no crash."
 - **Tests:** `examples/multi_relns/tests/test_null_optional_fk.py` — insert/update-to-null/delete cases, 3 tests. Confirmed: 3 errors without the fix, 0 with it. Full repo suite: zero regressions.
 
-**What's still open (not fixed, scope of this doc's later sections):** `Rule.copy` still has no role-disambiguation parameter at all (raises `TODO` on ambiguity — `test_copy_ambiguous.py` documents this as current, expected behavior). The `get_referring_children()` cascade bug (multi-relationship live-reference propagation, "A third direction" section below) is also **not yet fixed** — `examples/multi_relns/logic/rules_bank.py` deliberately declares only one `Rule.formula` to avoid triggering it, pending that fix.
+### `Rule.copy` and live `Rule.formula` cascade — also now fixed
+
+**`Rule.copy`:** gained a `child_role_name` parameter (`logic_bank.py` + `copy.py`), mirroring `Sum`/`Count` — `Copy.__init__` honors it directly when supplied, falling back to the original ambiguity-detecting loop (still correctly raises `"Ambiguous Relationship"`, by design, when no disambiguator is given). One landmine found and fixed while testing: the ambiguity exception's message referenced `{self}` via `__str__()`, which itself reads `self._from_parent_role` — not yet set at the point the exception fires — so it raised a misleading `AttributeError` instead of the intended message. Fixed by using `get_derived_attribute_name()` instead. `rules_bank.py` now declares `Rule.copy(..., child_role_name="works_for_dept")`; `test_copy_ambiguous.py` tests correct resolution on both roles plus the still-correct no-`child_role_name` fail-fast (4 tests).
+
+**`get_referring_children()` cascade bug** (`rule_bank_withdraw.py`, "A third direction" section below): fixed — the dict-reset that was happening *inside* the per-relationship loop now happens once, before the loop, so referring-children entries from all `ONETOMANY` relationships on a parent class accumulate instead of the last one clobbering the rest. `rules_bank.py` now declares `Rule.formula` on **both** roles (`works_for_dept_name_live` + `on_loan_dept_name_live`); `test_formula_cascade.py` (4 tests) proves both cascade independently — confirmed the `works_for` side specifically failed without the fix (it was declared second-to-last and was the one being silently dropped).
 
 &nbsp;
 
@@ -105,6 +125,8 @@ So even before `get_child_role_name()`'s internal `backref`-vs-`back_populates` 
 
 ### `Rule.copy` — confirmed: not buggy, simply never finished (further behind than Sum/Count, not differently broken)
 
+> **✅ Now fixed** — see "Status" section at the top. `Rule.copy` gained a `child_role_name` parameter; this section is kept as the original investigation record (the *why* it needed fixing), not the current state.
+
 Checked `logic_bank/rule_type/copy.py` per Val's recollection ("role added to aggregates, copy, and parent refs") — **`Rule.copy()` has no `child_role_name`/role disambiguation parameter at all.** Compare signatures:
 
 ```python
@@ -127,9 +149,11 @@ So `Rule.copy` is in an *earlier* state than `Sum`/`Count`, not a buggy one: the
 
 ### "Parent refs" — `LogicRow._get_parent_logic_row()` and `_get_parent_role_def()` (`exec_row_logic/logic_row.py`)
 
+> **✅ Now fixed** — the insert/link helper turned out to be `LogicRow.link()`. See "Status" section at the top. This section is kept as the original investigation record (the close read that found it was *not yet* fully traced, and the next-session follow-up that closed it).
+
 These take an explicit `role_name: str` parameter directly (`logic_row.py:248`, `:323`) — they're the *consumer* side, trusting whatever role name was already resolved upstream by the caller (e.g. `aggregate.py`'s `_parent_role_name`, or copy-rule iteration at `logic_row.py:296-309` which iterates `copy_rules.items()` keyed by role). They are not where ambiguity gets resolved, and are not bugged in the way `aggregate.py` is.
 
-The **insert/link helper** around `logic_row.py:349-376` (used when inserting/linking a new child row to a parent) resolves a role name itself via `each_relationship.back_populates` (2.0-only, no `backref` fossil here) — but **has no disambiguation parameter either**, and unlike `Copy`, doesn't even raise on ambiguity; line 360's `if parent_role_name is not None: ...` (truncated in this read — worth a closer look) suggests some ambiguity handling exists, but it wasn't fully traced this session. **Flagged as the one remaining open thread** — worth a dedicated read of `logic_row.py:340-376` before considering "parent refs" fully accounted for.
+The **insert/link helper** (`LogicRow.link()`, around `logic_row.py:331-378`, used when inserting/linking a new child row to a parent) resolves a role name itself via `each_relationship.back_populates` (2.0-only, no `backref` fossil here) — and **did** have ambiguity handling: `if parent_role_name is not None: raise Exception("TODO - disambiguate relationship...")`, same fail-fast shape as `Copy`'s original. **Confirmed unrelated to [GitHub issue #6](https://github.com/valhuber/LogicBank/issues/6)** (closed separately this session) — issue #6 was an `isinstance(child, each_relationship.entity.class_)` vs. nodal-name bug in the *same method*, already fixed in the codebase before this round of work; the `"TODO - disambiguate"` exception survived that fix untouched, and is what was actually fixed here (gained `child_role_name=`, mirroring `Copy`).
 
 &nbsp;
 
@@ -140,6 +164,8 @@ The **insert/link helper** around `logic_row.py:349-376` (used when inserting/li
 This matters because live-reference cascade is the **reverse direction** from the `Sum`/`Count`/`Copy` bugs documented above (which are child-aggregates-up-to-parent, or child-copies-from-parent). Cascade is parent-attribute-change-propagates-down-to-children, and it has its own, structurally identical disambiguation problem — found by tracing `_parent_cascade_attribute_changes_to_children()` (`logic_row.py:666-716`):
 
 ### Bug, same shape as issue #20: `get_referring_children()` — `rule_bank_withdraw.py:172-219`
+
+> **✅ Now fixed** — see "Status" section at the top. The dict reset moved to once-before-the-loop. This section is kept as the original investigation record.
 
 ```python
 for each_parent_relationship in parent_relationships:  # eg, order has parents cust & emp, child orderdetail
@@ -161,19 +187,20 @@ Even if the above were fixed, `_parent_cascade_attribute_changes_to_children()`'
 
 **Val's own comment, verbatim, line 680:** `Todo: test cascade to multiple children using same parent role name, in alternating order` — i.e., you flagged this exact scenario as untested at the time, not confirmed broken. Given the bug found in `get_referring_children()` above, it's now reasonable to suspect it actually *is* broken, not just untested — but this hasn't been verified with a runnable repro the way issue #20 was.
 
-**Status:** 🔴 Likely broken (same class of bug as issue #20, found by code reading, not yet reproduced with a runnable test). Should get a `Store`/`Transfer`-style minimal repro before filing, to confirm before claiming it as a second issue.
+**Status:** ✅ Fixed and confirmed with a runnable test (`test_formula_cascade.py`'s `test_renaming_works_for_parent_cascades_only_works_for_side` — failed without the fix, passes with it). The `cascade_dict` keyed-by-child-role concern above did not manifest as a separate bug once the producer-side fix landed — `examples/multi_relns`'s two `Rule.formula` rules target different child roles already (the `Employee` class only has one row per role pairing), so this specific edge case (two referring-children tuples sharing a child role but differing parent role/attribute) remains theoretically possible but unexercised; worth a dedicated test if a concrete scenario for it is found.
 
 &nbsp;
 
-## Summary: state of `child_role_name`/role support by rule type
+## Summary: state of `child_role_name`/role support by rule type (post-fix)
 
 | Rule type | Disambiguation param? | Multi-relationship behavior | Status |
 |---|---|---|---|
-| `Rule.count` | `child_role_name=` | **Correct** — explicit value takes precedence over `get_child_role_name()` | ✅ Working |
-| `Rule.sum` | `child_role_name=` | **Broken** — `get_child_role_name()` always runs when `as_sum_of` is an `InstrumentedAttribute`, silently overwriting the explicit value; internally also compares against the wrong (`backref`) attribute | 🔴 Issue #20 |
-| `Rule.copy` | **none** | Single-relationship: works. Multi-relationship: raises `"TODO / copy - disambiguate relationship"` — feature never implemented | 🟡 Not implemented (loud failure, not silent) |
-| Parent refs / insert-link (`logic_row.py` ~340-376) | **none seen** | Resolves role via `back_populates` (2.0-only, no fossil) but no disambiguator parameter; ambiguity-handling at line ~360 not yet fully traced | ⚪ Open thread — needs follow-up read |
-| `Rule.formula` live cascade (parent attr change → child re-derive), `row.<role>.<attr>` | n/a (role is just the literal accessor in the lambda/string) | **Likely broken** — `get_referring_children()` (`rule_bank_withdraw.py:195`) resets its result list inside the per-relationship loop, so a parent with 2+ `ONETOMANY` relationships only keeps the last one's referring children | 🔴 Found by code reading, not yet reproduced — see dedicated section below |
+| `Rule.count` | `child_role_name=` | **Correct** — explicit value takes precedence over `get_child_role_name()` | ✅ Working (always was) |
+| `Rule.sum` | `child_role_name=` | **Fixed** — now mirrors `Count`'s precedence; `get_child_role_name()` also fixed (matches `back_populates`, fallthrough scoped correctly) | ✅ Fixed (issue #20) |
+| `Rule.copy` | `child_role_name=` (new) | **Fixed** — `Copy.__init__` honors it directly; no-`child_role_name` ambiguous case still correctly raises (by design) | ✅ Fixed |
+| `LogicRow.link()` (manual programmatic link, used by Allocation/`nw_copy.py`) | `child_role_name=` (new) | **Fixed** — same pattern as `Copy`; no-`child_role_name` ambiguous case still correctly raises, message reworded from `"TODO - disambiguate"` to `"Ambiguous Relationship"` for consistency. NOT the same as issue #6 (closed separately — that was an `isinstance`/nodal-name bug in the same method, unrelated, already fixed before this session) | ✅ Fixed |
+| `Rule.formula` live cascade (parent attr change → child re-derive), `row.<role>.<attr>` | n/a (role is just the literal accessor in the lambda/string) | **Fixed** — `get_referring_children()`'s dict reset moved outside the per-relationship loop | ✅ Fixed |
+| Null optional parent FK (any aggregate, insert/update/delete) | n/a | **Fixed** — `adjust_from_*` methods now distinguish "FK validly null" (skip) from "FK non-null but parent missing" (still raises) | ✅ Fixed (separate bug, found while testing #20) |
 
 &nbsp;
 

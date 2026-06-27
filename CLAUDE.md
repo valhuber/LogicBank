@@ -1,0 +1,19 @@
+# LogicBank — Claude Code Instructions
+
+LogicBank is a declarative, transactional business-logic engine for SQLAlchemy — rules (`Rule.sum`, `Rule.count`, `Rule.formula`, `Rule.copy`, etc.) hook SQLAlchemy's `before_flush` event and execute via forward-chaining on commit. It's consumed as the rules engine inside [ApiLogicServer / GenAI-Logic](https://github.com/valhuber/ApiLogicServer).
+
+## Read this first, in order
+
+1. **[system/LogicBank-Internal-Dev/dev-architecture.md](system/LogicBank-Internal-Dev/dev-architecture.md)** — architecture, design lineage (Versata heritage), GenAI-Logic integration/release coupling, Executable Requirements context, and pointers to sibling docs in that folder. Read this to understand *why* the engine is shaped the way it is before changing it.
+2. **[run_tests_readme.md](run_tests_readme.md)** — how to run tests (`python3 run_tests.py`) and debug a failing suite. Read this when you need to *run something*, not just understand context.
+3. **[system/LogicBank-Internal-Dev/release-management.md](system/LogicBank-Internal-Dev/release-management.md)** — version bump, build, and PyPI release process. Read this when cutting a release.
+4. **Sibling files in `system/LogicBank-Internal-Dev/`** as needed — e.g. `multi-relationship-bug.md` (a worked bug-investigation example: root cause, fix, and regression-test methodology for the multi-relationship-to-same-parent class of bugs) and `dragons-deferred-adjustment.md` (a subtle, silent, ~50%-reproduction-rate wrong-answer bug from nondeterministic listener ordering — already fixed, but the fix looks like unnecessary complexity unless you read why). New investigation docs accumulate here.
+
+## Conventions to follow
+
+- **Don't run `genai-logic genai`** in this repo — irrelevant here, it's an ApiLogicServer/GenAI-Logic CLI command, not part of LogicBank's own toolchain.
+- **Test via `run_tests.py`, not pytest/Test Explorer** — each example under `examples/<name>/tests` activates `LogicBank.activate()` at import time; running multiple example dirs in one pytest/discovery process causes conflicting activations. See `run_tests_readme.md` → "pytest / VS Code Test Explorer Compatibility" for the full explanation.
+- **New example/regression suites get their own folder** under `examples/`, with their own gold DB, models, logic, and tests — mirroring `examples/banking`, `examples/insert_parent`, `examples/multi_relns`, etc. Don't retrofit an existing example's dataset for an unrelated scenario.
+- **Multi-relationship-to-same-parent-class bugs are a known fragile area** — `child_role_name=` disambiguation exists on `Rule.sum`/`Rule.count`/`Rule.copy`/`LogicRow.link()`. Before touching any of `aggregate.py`, `sum.py`, `count.py`, `copy.py`, `rule_bank_withdraw.py`, or `logic_row.py`'s `link()`/`get_referring_children()`-adjacent code, read `system/LogicBank-Internal-Dev/multi-relationship-bug.md` — it documents the exact failure shape (silent wrong-answer vs. loud fail-fast) and the test discipline required (assert on *all* parent instances touched, not just the expected one) to avoid shipping a fix that looks right but isn't.
+- **When you fix a bug here, add a regression test** in the relevant `examples/<name>/tests/` — confirm it fails without the fix and passes with it before considering the work done.
+- **`LogicRow.save_altered_parents()` and `listeners.py`'s row-iteration logic are fragile in a specific, non-obvious way** — read `system/LogicBank-Internal-Dev/dragons-deferred-adjustment.md` before touching either. A transaction that reparents a child AND changes a sum-contributing attribute on it in the same commit is order-sensitive against SQLAlchemy's unordered `session.dirty`; the existing defer-on-submitted-parent logic exists specifically to prevent a silent wrong-balance bug that only reproduced ~50% of the time.

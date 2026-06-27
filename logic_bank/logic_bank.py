@@ -38,42 +38,11 @@ from logic_bank.rule_type.parent_check import ParentCheck
 from logic_bank.rule_type.row_event import EarlyRowEvent, RowEvent, CommitRowEvent, AfterFlushRowEvent
 from logic_bank.rule_type.sum import Sum
 from logic_bank import engine_logger
-import functools
 import logging
-import traceback
-import os
 from .exceptions import LBActivateException
 from .rule_bank.rule_bank import RuleBank
 
 logic_logger = logging.getLogger("logic_logger")
-
-
-def failsafe(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        """
-            Wrapper for LoigcBank Rules
-            - report logicbank activation errors
-            - continue in case $LOGICBANK_FAILSAFE is set
-        """
-        if make_inactive := True:  # set to True to activate failsafe        
-            return func(*args, **kwargs)
-        try:
-            return func(*args, **kwargs)
-        except Exception as e:
-            tb = traceback.extract_stack()
-            for frame in tb:
-                if '/logic/' in frame.filename:  # project errors (typically in declare_logic.py)
-                    logic_logger.error(f"Rule error: {frame.filename}, Line: {frame.lineno}")
-                    break
-            else:
-                logic_logger.error(f"Rule error in unknown file")
-            logic_logger.error(f"LogicBank activate error occurred: {e}")
-            if os.getenv("LOGICBANK_FAILSAFE") == "true":
-                return None
-            raise e
-
-    return wrapper
 
 
 class LogicBank:
@@ -200,7 +169,6 @@ class Rule:
     Use code completion to discover rules and their parameters.
     """
 
-    @failsafe
     @staticmethod
     def sum(derive: Column, as_sum_of: any, where: any = None, child_role_name: str = "", insert_parent: bool = False):
         """
@@ -226,7 +194,6 @@ class Rule:
         """
         return Sum(derive, as_sum_of, where, child_role_name, insert_parent)
 
-    @failsafe
     @staticmethod
     def count(derive: Column, as_count_of: object, where: any = None, child_role_name: str = "",
               insert_parent: bool = False):
@@ -314,7 +281,6 @@ class Rule:
         """
         return ParentCheck(validate=validate, error_msg=error_msg, enable=enable)
 
-    @failsafe
     @staticmethod
     def formula(derive: Column,
                 as_exp: str = None,  # string (for very short expression)
@@ -344,9 +310,8 @@ class Rule:
                        calling=calling, as_exp=as_exp, as_expression=as_expression,
                        no_prune=no_prune)
 
-    @failsafe
     @staticmethod
-    def copy(derive: Column, from_parent: any):
+    def copy(derive: Column, from_parent: any, child_role_name: str = ""):
         """
         Copy declares child column copied from parent column
 
@@ -360,8 +325,10 @@ class Rule:
         Args:
             derive: <class.attribute> being copied into
             from_parent: <parent-class.attribute> source of copy
+            child_role_name: child's parent accessor attribute (required only for disambiguation,
+                e.g. 2+ relationships from this class to the same parent class)
         """
-        return Copy(derive=derive, from_parent=from_parent)
+        return Copy(derive=derive, from_parent=from_parent, child_role_name=child_role_name)
 
     @staticmethod
     def early_row_event(on_class: object, calling: Callable = None, allow_event_nesting: bool = False):

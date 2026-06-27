@@ -5,6 +5,7 @@ Source: ApiLogicServer-src/api_logic_server_cli/prototypes/manager/samples/basic
 Usage: AI assistants read this to see a real, working example of model + rule + activation wiring, as consumed by GenAI-Logic
 version: 1.0
 changelog:
+  - 1.3 (Jun 2026) - Added background on WHY LBActivateException carries structured invalid_rules/missing_attributes fields (Val's explanation): WebGenAI/GenAI has no IDE/developer, so errors must be machine-actionable for the web UI / genai-utils --fixup loop, not just human-readable text. Reframes the "inconsistent error handling" observation from a prior session as a convention applied where the GenAI consumer needed it, not yet generalized everywhere.
   - 1.2 (Jun 2026) - Added genai-utils --fixup concrete example (real LBActivateException error text, from build_and_test/genai-logic/README.md)
   - 1.1 (Jun 2026) - Added comparison vs examples/nw model files (relationship-modeling edge cases: multi-FK-to-same-parent, self-ref, virtual/no-FK relationships) - relevant to a reported GenAI-Logic bug possibly involving LB/GL relationship assumptions
   - 1.0 (Jun 2026) - Initial notes from basic_demo_sample: models.py, declare_logic.py, discovery, activate_logicbank.py
@@ -99,6 +100,10 @@ Missing Attrs (try genai-logic genai-utils --fixup): ['Customer.balance: constra
 
 This happens when a rule references an attribute the data model doesn't have (typically: GenAI declared a rule like `Rule.constraint` against `Customer.balance` but never added the `balance` column to `models.py`/test data). `genai-utils --fixup` collects model + rules + test data, asks ChatGPT to resolve the missing columns, and produces a `docs/fixup/response_fixup.json` used to rebuild the project. Confirms `LBActivateException.invalid_rules` / `.missing_attributes` (documented in `basic_demo_sample.md`'s Activation section above) are exactly what's surfaced here — this is a **consumed, user-visible error format**, not just an internal exception shape.
 
+**Why `LBActivateException` carries structured fields, not just a message string (background from Val):** WebGenAI/GenAI has no IDE, no developer reading a stack trace — early on, OpenAI-generated rules would routinely reference attributes that didn't exist or were misspelled, and the *only* surface available to tell a non-technical end user what went wrong was the web UI itself. That requirement — "the error must be machine-actionable enough for a UI (or the `--fixup` automation) to act on it, not just print it" — is why `LBActivateException.__init__(self, invalid_rules = [], missing_attributes = [])` (`logic_bank/exceptions.py`) keeps these as **separate, typed lists** on the exception object, not folded into one message string. The `genai-utils --fixup` loop above is a direct example of that contract being exercised: it feeds `missing_attributes` back into a ChatGPT call to generate the missing columns, which only works because the field is structured data, not prose to re-parse.
+
+This also explains an asymmetry that might otherwise look like inconsistent design: rule types involved early in the GenAI pipeline (`Rule.constraint`/`Rule.sum`/`Rule.count` missing-attribute cases) got this structured, fixup-loop-integrated error path because that loop actually needed it. The multi-relationship bugs documented in `multi-relationship-bug.md` — silent wrong-answer rather than a structured exception — went unnoticed for years specifically because GenAI's training/prompting never produced the multi-relationship-to-same-parent pattern that triggers them; only a human-authored project surfaced it. Not a missing convention so much as a convention applied exactly where the GenAI/WebGenAI consumer needed it, and not yet generalized to every rule type's every failure mode.
+
 &nbsp;
 
 ## Why This Matters for LogicBank Engine Changes
@@ -126,7 +131,7 @@ This happens when a rule references an attribute the data model doesn't have (ty
 | **Renamed/overridden accessors** | Accessor names always match the natural relationship name (`order`, `customer`, `product`) | `Order.OrderHeader` (not `order`) on `OrderDetail`, `Order.SalesRep` (not `employee`) — accessor name deliberately decoupled from both the FK column name and the target class name |
 | **Class name ≠ table name** | Always equal | `OrderClass` class ↔ `__tablename__ = 'OrderZ'` — explicit test of name-mapping independent of class/table identity |
 | **SQL-expression virtual attributes** | None | `Customer.total_ordered_sql` and `Employee.order_count_sql` are SQLAlchemy `column_property()` (raw correlated-subquery SQL), not LogicBank rules — used to test that LogicBank rules can read/reference attributes that are themselves *not* LogicBank-derived |
-| **Bad-rule / missing-attribute test scaffolding** | None | `LOGICBANK_LOAD_BAD_RULES` env var path deliberately declares rules with typo'd attribute names, to test `LBActivateException` (see `readme_dev.md` → `test_missing_attrs` special case) |
+| **Bad-rule / missing-attribute test scaffolding** | None | `LOGICBANK_LOAD_BAD_RULES` env var path deliberately declares rules with typo'd attribute names, to test `LBActivateException` (see `run_tests_readme.md` → `test_missing_attrs` special case) |
 | **Cascade declared explicitly** | Not present | `cascade="all, delete"` on `Customer.OrderList` and `Order.OrderDetailList` |
 
 ### Why this matters for the GenAI-Logic bug
