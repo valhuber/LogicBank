@@ -116,6 +116,11 @@ def after_flush(a_session: session, a_flush_context):   #, an_instances):
         for each_row_event in after_flush_row_events:
             each_logic_row.log("AfterFlush Event")
             each_row_event.execute(each_logic_row)
+        if hasattr(each_logic_row.row, '_lb_fired_events'):
+            # clear the RowEvent nesting-guard (row_event.py) - it must only suppress
+            # re-fire *within* this flush cycle (e.g., an Allocate cascade loop), not
+            # across separate commits on the same session-resident row instance.
+            del each_logic_row.row._lb_fired_events
 
     use_session_lists = False
     if use_session_lists:

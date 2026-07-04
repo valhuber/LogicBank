@@ -83,8 +83,8 @@ class AfterFlushRowEvent(AbstractRowEvent):
                  with_args: dict = None,
                  allow_event_nesting: bool = False):
         super(AfterFlushRowEvent, self).__init__(on_class=on_class, calling=calling, allow_event_nesting=allow_event_nesting)
-        self.if_condition = lambda row: eval(if_condition)
-        self.when_condition = lambda row: eval(when_condition)
+        self.if_condition = if_condition
+        self.when_condition = when_condition
         self.with_args = with_args
 
     def execute(self, logic_row: LogicRow):
@@ -92,15 +92,13 @@ class AfterFlushRowEvent(AbstractRowEvent):
         if not self._check_and_mark_fired(logic_row):
             return
         do_event = True
-        if self.if_condition is not None and self.when_condition is not None:
-            pass
-        elif self.as_condition is not None:
-            do_event = self._as_condition(row=logic_row.row)
+        if self.if_condition is not None:
+            do_event = self.if_condition(logic_row.row) == True
         elif self.when_condition is not None:
-            current_row = self._when_condition(row=logic_row.row)
+            current_row = self.when_condition(logic_row.row)
             old_row = False
-            if logic_row.is_update:
-                old_row = self._when_condition(row=logic_row.old_row)
+            if logic_row.is_updated():
+                old_row = self.when_condition(logic_row.old_row)
             do_event = current_row == True and old_row == False
         if do_event:
             if self.with_args is None:
