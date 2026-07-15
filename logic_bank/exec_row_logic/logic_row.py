@@ -422,7 +422,7 @@ class LogicRow:
                                                         a_session=self.session,
                                                         row_sets=self.row_sets)
                         each_child_logic_row.delete(reason="Cascade Delete to run rules on - " + child_role_name,
-                                                    do_not_adjust=self)
+                                                    do_not_adjust_list=[self])
                         self.session.delete(each_child_row)  # deletes in beforeFlush are not re-queued
         enforce_cascade = False
         if enforce_cascade:  # disabled - SQLAlchemy DOES enforce cascade delete/nullify; prevent way less important
