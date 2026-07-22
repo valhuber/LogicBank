@@ -36,6 +36,12 @@ Practical impact: if a rule's *only* reference to some attribute is via `old_row
 
 The scan is a naive substring/token match over the function's own source — it does not follow calls into helper functions. If a `calling=` function delegates real attribute access to a helper (`return compute(row)` instead of `return row.X + row.Y`), or aliases `row` to another variable name before accessing attributes (`r = row; ... r.X`), those dependencies are missed, because only the top-level function's literal source text is inspected — nothing it calls is walked.
 
+**Documented workaround** (ratified, see [spurious-parent-dependency.md](spurious-parent-dependency.md)): because the scan reads `inspect.getsource()`'s complete text — comments included — a `# deps: row.parent.attr` comment directly in the `calling` function's body satisfies the scan exactly as if the reference appeared in executable code, restoring both pruning and parent-cascade registration. This is now the documented, supported fix for this gap (see the `Rule.formula` docstring in `logic_bank.py`), not merely an accident to route around some other way.
+
+## Related: spurious dependencies from non-relationship chains (GitHub issue #21)
+
+The mirror-image problem: a chained `row.X.Y` token where `X` is a real column (not a relationship) — e.g. `row.code.zfill(8)` — used to be wrongly registered as a *parent* dependency purely by node-counting, causing either a runtime crash on update or an activation-time failure for the entire rule set. Fixed via `AbstractRule._is_relationship_node()` — see [spurious-parent-dependency.md](spurious-parent-dependency.md) for the full root cause and fix.
+
 ## Where to look if extending this
 
 - `logic_bank/rule_type/abstractrule.py::parse_dependencies` — the tokenizer itself

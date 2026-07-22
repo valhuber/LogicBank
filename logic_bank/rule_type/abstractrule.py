@@ -72,6 +72,17 @@ class AbstractRule(object):
         Fix: strip ALL leading '(' and trailing ')', '),', ',' from the_word
         using the_word consistently (not each_word) to handle multiple parens
         like ((row.foo)) or (row.foo),
+
+        A 3+-node token (row.X.Y...) is only a genuine parent reference if X is
+        an actual relationship on the mapped class - see _is_relationship_node().
+        Without this check, any chained attribute access on a plain column
+        (row.code.zfill(8), or a sub-query fragment like
+        row.id_customer).scalar()) is wrongly registered as a dependency: it
+        either passes validation and later crashes _get_parent_role_def
+        ("FIXME invalid role name") on every update, or fails validation and
+        kills LogicBank.activate() outright for the WHOLE rule set - see
+        https://github.com/valhuber/LogicBank/issues/21 and
+        system/LogicBank-Internal-Dev/spurious-parent-dependency.md.
         """
         words = rule_text.split()
         # if 'row.CreditLimit)' in rule_text:
@@ -83,10 +94,29 @@ class AbstractRule(object):
                     dependencies = the_word.split('.')
                     if len(dependencies) == 2:
                         self._dependencies.append(dependencies[1])
-                    else:
+                    elif self._is_relationship_node(dependencies[1]):
                         self._dependencies.append(dependencies[1] +
                                                   "." + dependencies[2])
                         self.update_referenced_parent_attributes(dependencies)
+                    # else: not a real relationship (eg row.code.zfill(8), or a
+                    # sub-query fragment like row.id_customer).scalar()) - drop it
+
+    def _is_relationship_node(self, node_name: str) -> bool:
+        """
+        True iff node_name is an actual SQLAlchemy relationship on this rule's
+        mapped class (self._decl_meta) - ie, row.<node_name>.<attr> is really a
+        parent/child reference, not a chained method/attribute call on a plain
+        column (row.code.zfill) or a parenthesis-stripping artifact
+        (row.id_customer).scalar - see parse_dependencies() and issue #21).
+        """
+        decl_meta = getattr(self, '_decl_meta', None)
+        if decl_meta is None:
+            return False
+        try:
+            mapper = sqlalchemy.orm.class_mapper(decl_meta)
+        except sqlalchemy.exc.SQLAlchemyError:
+            return False
+        return node_name in mapper.relationships
 
     def update_referenced_parent_attributes(self, dependencies: list):
         """

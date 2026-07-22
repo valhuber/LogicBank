@@ -347,6 +347,25 @@ class Rule:
 
         The `calling` function must return a value (else column is nullified)
 
+        Dependency discovery (pruning, and re-derivation when a parent attribute
+        changes) is based on a textual scan for `row.<attr>` / `row.<parent>.<attr>`
+        in the rule's source - including `as_exp`/`as_expression`, AND the source of
+        a `calling` function. If your `calling` function's actual parent access
+        happens inside a helper function it calls (so no literal `row.parent.attr`
+        appears in `calling`'s own source), the scan won't see it - the formula will
+        be wrongly pruned on updates, and won't re-derive when the parent changes.
+        Fix by adding a `# deps:` comment naming the references directly in
+        `calling`'s body (comments ARE scanned):
+
+            def _quantity(row, old_row, logic_row):
+                # deps: row.order_line.quantity row.order_line.date_served
+                return _derive_quantity(row, logic_row)
+
+            Rule.formula(derive=Movement.quantity, calling=_quantity)
+
+        See system/LogicBank-Internal-Dev/dependency-scanning.md and
+        spurious-parent-dependency.md for the full mechanism and its limits.
+
         Args:
             derive: <class.attribute> being derived
             as_exp: string (for very short expressions - price * quantity)
