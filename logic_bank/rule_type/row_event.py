@@ -1,3 +1,5 @@
+import inspect
+import re
 from typing import Callable
 
 # from logic_bank.exec_row_logic.logic_row import LogicRow <== circular import (??)
@@ -6,19 +8,74 @@ import logic_bank.exec_row_logic.logic_row as LogicRow
 from logic_bank.rule_bank.rule_bank import RuleBank
 from logic_bank.rule_type.abstractrule import AbstractRule
 
+# matches a standalone `row.<attr> =` (assignment) - not `row.attr ==`/`<=`/`>=`/`!=`,
+# not `old_row.attr =`, and not `something.row.attr =` (eg new_emp_logic_row.row.name = ...,
+# a mutation of a freshly-constructed row via LogicRow.row - safe, not the event's own `row`)
+_ROW_ATTR_ASSIGNMENT = re.compile(r'(?<![.\w])row\.\w+\s*=(?!=)')
+
+
+def _find_row_mutation(calling: Callable) -> str:
+    """
+    Textual scan (same inspect.getsource() approach as Formula/Constraint's
+    dependency scan - see dependency-scanning.md for its known limitations:
+    won't see mutations hidden in a called helper function, only literal
+    `row.<attr> =` in the scanned source) for a direct write to `row`.
+
+    Returns the offending source line, or "" if none found.
+    """
+    if calling is None:
+        return ""
+    try:
+        source = inspect.getsource(calling)
+    except (OSError, TypeError):
+        return ""  # e.g. built-in/C function, or source unavailable
+    for each_line in source.splitlines():
+        if _ROW_ATTR_ASSIGNMENT.search(each_line):
+            return each_line.strip()
+    return ""
+
 
 class AbstractRowEvent(AbstractRule):
     _function = None
     _allow_event_nesting = False
+    _mutates_row_after_cascade = False
+    """ True for RowEvent/CommitRowEvent - see _check_row_mutation() """
 
     def __init__(self, on_class: object,
                  calling: Callable = None,
-                 allow_event_nesting: bool = False):
+                 allow_event_nesting: bool = False,
+                 allow_row_mutation: bool = False):
         super(AbstractRowEvent, self).__init__(on_class)
         self._function = calling
         self._allow_event_nesting = allow_event_nesting
+        if self._mutates_row_after_cascade and not allow_row_mutation:
+            self._check_row_mutation(calling)
         ll = RuleBank()
         ll.deposit_rule(self)
+
+    def _check_row_mutation(self, calling: Callable):
+        """
+        RowEvent/CommitRowEvent fire AFTER this row's own Formula/Sum/Count/
+        Constraint/CommitConstraint cascade has already run for this flush -
+        there is no second pass. A `row.<attr> = value` here is silently
+        persisted (the flush hasn't happened yet) but never re-derived-from
+        or re-validated - see system/LogicBank-Internal-Dev/commit-event-mutation-gap.md.
+
+        Sets self._load_error (picked up by RuleBank.deposit_rule -> the usual
+        LBActivateException channel) if a direct `row.attr =` write is found.
+        Best-effort/textual - pass allow_row_mutation=True to bypass (e.g., for
+        writes to a plain, non-derived/non-constrained column).
+        """
+        offending_line = _find_row_mutation(calling)
+        if offending_line:
+            fn_name = calling.__name__ if calling else "?"
+            self._load_error = (
+                f"{type(self).__name__} {self.table}.{fn_name}() appears to mutate row "
+                f"(\"{offending_line}\") - this event fires AFTER the row's own rule cascade, "
+                f"so the mutation is persisted WITHOUT being re-derived-from or re-validated. "
+                f"See system/LogicBank-Internal-Dev/commit-event-mutation-gap.md. "
+                f"Pass allow_row_mutation=True if this is intentional."
+            )
 
     def __str__(self):
         return f'RowEvent {self.table}.{self._function.__name__}() '
@@ -47,6 +104,8 @@ class AbstractRowEvent(AbstractRule):
 
 
 class EarlyRowEvent(AbstractRowEvent):
+    """ Fires BEFORE this row's own rule cascade (_early_row_events()) - mutating
+    `row` here is safe and is this event's documented purpose; not scanned. """
     _function = None
 
     def __init__(self, on_class: object,
@@ -56,21 +115,31 @@ class EarlyRowEvent(AbstractRowEvent):
 
 
 class RowEvent(AbstractRowEvent):
+    """ Fires AFTER this row's own rule cascade (_row_events(), end of update()/insert())
+    - see AbstractRowEvent._check_row_mutation(). """
     _function = None
+    _mutates_row_after_cascade = True
 
     def __init__(self, on_class: object,
                  calling: Callable = None,
-                 allow_event_nesting: bool = False):
-        super(RowEvent, self).__init__(on_class=on_class, calling=calling, allow_event_nesting=allow_event_nesting)
+                 allow_event_nesting: bool = False,
+                 allow_row_mutation: bool = False):
+        super(RowEvent, self).__init__(on_class=on_class, calling=calling, allow_event_nesting=allow_event_nesting,
+                                       allow_row_mutation=allow_row_mutation)
 
 
 class CommitRowEvent(AbstractRowEvent):
+    """ Fires AFTER all rows' cascades, still within before_flush (Commit Logic Phase)
+    - see AbstractRowEvent._check_row_mutation(). """
     _function = None
+    _mutates_row_after_cascade = True
 
     def __init__(self, on_class: object,
                  calling: Callable = None,
-                 allow_event_nesting: bool = False):
-        super(CommitRowEvent, self).__init__(on_class=on_class, calling=calling, allow_event_nesting=allow_event_nesting)
+                 allow_event_nesting: bool = False,
+                 allow_row_mutation: bool = False):
+        super(CommitRowEvent, self).__init__(on_class=on_class, calling=calling, allow_event_nesting=allow_event_nesting,
+                                             allow_row_mutation=allow_row_mutation)
 
 
 class AfterFlushRowEvent(AbstractRowEvent):

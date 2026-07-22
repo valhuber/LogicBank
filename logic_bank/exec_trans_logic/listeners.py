@@ -4,6 +4,7 @@ from logic_bank.exec_row_logic.logic_row import LogicRow
 from logic_bank.exec_trans_logic.row_sets import RowSets
 from logic_bank.rule_bank import rule_bank_withdraw
 from logic_bank.rule_type.row_event import CommitRowEvent, AfterFlushRowEvent
+from logic_bank.rule_type.constraint import CommitConstraint
 from logic_bank.util import get_old_row, prt
 
 
@@ -116,6 +117,11 @@ def after_flush(a_session: session, a_flush_context):   #, an_instances):
         for each_row_event in after_flush_row_events:
             each_logic_row.log("AfterFlush Event")
             each_row_event.execute(each_logic_row)
+        if each_logic_row.ins_upd_dlt != "dlt":  # deleted row - nothing left to validate
+            commit_constraints = rule_bank_withdraw.rules_of_class(each_logic_row, CommitConstraint)
+            for each_commit_constraint in commit_constraints:
+                each_logic_row.log("Commit Constraint")
+                each_commit_constraint.execute(each_logic_row)
         if hasattr(each_logic_row.row, '_lb_fired_events'):
             # clear the RowEvent nesting-guard (row_event.py) - it must only suppress
             # re-fire *within* this flush cycle (e.g., an Allocate cascade loop), not
@@ -160,7 +166,7 @@ def after_flush(a_session: session, a_flush_context):   #, an_instances):
 
 def temp_debug(a_session, bug_explore, row_cache):
     """
-    do not delete - see description in nw/tests/upd_order_reuse
+    do not delete - see description in examples/nw/tests/test_upd_order_reuse.py
     """
     for each_instance in a_session.dirty:
         table_name = each_instance.__tablename__

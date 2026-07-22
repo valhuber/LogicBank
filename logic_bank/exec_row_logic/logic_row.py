@@ -1252,6 +1252,12 @@ class LogicRow:
     #
     # Chaining happens within the same flush cycle — aggregate adjustments create
     # synthetic parent updates; changed parent attrs cascade to dependent children.
+    #
+    # after_flush (listeners.py, once per row touched this transaction, after all
+    # of the above has settled): after_flush_row_events → commit_constraints
+    # (CommitConstraint - like Constraint, but checked once post-cascade instead of
+    # on every mid-cascade touch; use for min-cardinality rules a Constraint can't
+    # express, eg "Order must have Items" — see rule_type/constraint.py)
     # -------------------------------------------------------------------------
 
     def update(self, reason: str = None, row: base = None):

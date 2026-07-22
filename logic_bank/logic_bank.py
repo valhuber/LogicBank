@@ -29,7 +29,7 @@ from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.orm import session
 from logic_bank.rule_bank import rule_bank_withdraw  # reduce circular imports
 import logic_bank.rule_bank.rule_bank_setup as rule_bank_setup
-from logic_bank.rule_type.constraint import Constraint
+from logic_bank.rule_type.constraint import Constraint, CommitConstraint
 from logic_bank.rule_type.copy import Copy
 from logic_bank.rule_type.count import Count
 from logic_bank.rule_type.formula import Formula
@@ -255,6 +255,54 @@ class Rule:
                           error_attributes=error_attributes, error_msg=error_msg)
 
     @staticmethod
+    def commit_constraint(validate: object,
+                          calling: Callable = None,
+                          as_condition: any = None,
+                          error_msg: str = "(error_msg not provided)",
+                          error_attributes=None):
+        """
+        Like Rule.constraint, but checked once per row, after this
+        transaction's logic cascade has fully settled (during after_flush),
+        instead of inline on every mid-cascade touch.
+
+        Use this for min-cardinality rules (eg, "Order must have Items")
+        that a normal Constraint cannot express: a Constraint on Order
+        checking row.ItemCount > 0 fails on Order's own insert, before its
+        Items have been added in the same transaction - Order is processed
+        before its not-yet-existent children. CommitConstraint instead
+        checks Order exactly once, after all of this transaction's Item
+        inserts/deletes have chained their count adjustments into it.
+
+        Example
+            # ensure every Order has at least one OrderDetail
+            Rule.count(derive=Order.ItemCount, as_count_of=OrderDetail)
+            Rule.commit_constraint(validate=Order,
+                          as_condition=lambda row: row.ItemCount > 0,
+                          error_msg="Order {row.Id} must have at least one item")
+
+        CommitConstraint failures raise ConstraintException, e.g.:
+            try:
+                session.commit()
+            except ConstraintException as ce:
+                print("Constraint raised: " + str(ce))
+
+        Args:
+            validate: name of mapped <class>
+            calling: function, passed row, old_row, logic_row (complex constraints)
+            as_condition: lambda, passed row (simple constraints)
+            error_msg: string, with {row.attribute} replacements
+            error_attributes: list of attributes
+
+        Note: not run for rows deleted this transaction (nothing left to
+        validate). Runs after the flush has been sent to the DB, so - like
+        Rule.after_flush_row_event - it must not alter the row.
+        """
+        if error_attributes is None:
+            error_attributes = []
+        return CommitConstraint(validate=validate, calling=calling, as_condition=as_condition,
+                                error_attributes=error_attributes, error_msg=error_msg)
+
+    @staticmethod
     def parent_check(validate: object,
                      error_msg: str = "(error_msg not provided)",
                      enable: bool = True):
@@ -367,21 +415,32 @@ class Rule:
             early_row_event_all_classes=early_row_event_all_classes)
 
     @staticmethod
-    def row_event(on_class: object, calling: Callable = None, allow_event_nesting: bool = False):
+    def row_event(on_class: object, calling: Callable = None, allow_event_nesting: bool = False,
+                 allow_row_mutation: bool = False):
         """
         Row Events are Python functions called *during* logic, after formulas/constraints
         Possible multiple calls per transaction
         Use: recursive explosions (e.g, Bill of Materials)
 
+        This event fires AFTER the row's own Formula/Sum/Count/Constraint/CommitConstraint
+        cascade has already run - there is no second pass. Activation FAILS (LBActivateException)
+        if `calling`'s source appears to write `row.<attr> = ...`: that mutation would be
+        persisted without being re-derived-from or re-validated. See
+        system/LogicBank-Internal-Dev/commit-event-mutation-gap.md. Insert a NEW row instead
+        (logic_row.insert(...) / new_logic_row().link().insert()) to get the full cascade.
+
         Args:
             on_class: <class> for event
             calling: function, passed (row, old_row, logic_row)
             allow_event_nesting: if False (default), suppresses re-fire on same row in same flush cycle.
+            allow_row_mutation: if False (default), activation fails if `calling` appears to mutate
+                `row`. Set True only if you understand the mutation bypasses rule checking.
         """
-        return RowEvent(on_class, calling, allow_event_nesting)  # --> load_logic
+        return RowEvent(on_class, calling, allow_event_nesting, allow_row_mutation)  # --> load_logic
 
     @staticmethod
-    def commit_row_event(on_class: object, calling: Callable = None, allow_event_nesting: bool = False):
+    def commit_row_event(on_class: object, calling: Callable = None, allow_event_nesting: bool = False,
+                         allow_row_mutation: bool = False):
         """
         Commit Row Events are Python functions *after* all row logic formulas/constraints
 
@@ -392,12 +451,21 @@ class Rule:
 
         Example use: send mail/message
 
+        This event fires AFTER the row's own Formula/Sum/Count/Constraint/CommitConstraint
+        cascade has already run - there is no second pass. Activation FAILS (LBActivateException)
+        if `calling`'s source appears to write `row.<attr> = ...`: that mutation would be
+        persisted without being re-derived-from or re-validated. See
+        system/LogicBank-Internal-Dev/commit-event-mutation-gap.md. Insert a NEW row instead
+        (logic_row.insert(...) / new_logic_row().link().insert()) to get the full cascade.
+
         Args:
             on_class: <class> for event
             calling: function, passed (row, old_row, logic_row)
             allow_event_nesting: if False (default), suppresses re-fire on same row in same flush cycle.
+            allow_row_mutation: if False (default), activation fails if `calling` appears to mutate
+                `row`. Set True only if you understand the mutation bypasses rule checking.
         """
-        return CommitRowEvent(on_class, calling, allow_event_nesting)  # --> load_logic
+        return CommitRowEvent(on_class, calling, allow_event_nesting, allow_row_mutation)  # --> load_logic
 
     @staticmethod
     def after_flush_row_event(on_class: object, calling: Callable = None,
