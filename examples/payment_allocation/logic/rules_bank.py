@@ -36,17 +36,17 @@ def declare_logic():
     """
 
     """
-    another allocation test is in genai-logic: ~/dev/ApiLogicServer/ApiLogicServer-dev/build_and_test/genai-logic/samples/allocate_dept_account_demo
-    see logic/logic_discovery/charge_distribution.py - it uses an explicit session
-    query (not the relationship proxy) to get from a ChargeDeptAllocation to its
-    Project, because project_id there is set as a raw scalar FK by an
-    early_row_event (AI handler) rather than via relationship assignment - the
-    relationship proxy isn't guaranteed to reflect that FK within the same flush.
+    recipients functions: relationship proxy (provider.row.Customer, as used in
+    unpaid_orders() above) vs. explicit session.query() - when to use which:
 
-    NOT applicable here: unpaid_orders() above uses provider.row.Customer directly
-    (a relationship proxy), which is safe because Payment.Customer is always set via
-    relationship assignment/append (see tests/test_payment_allocation.py -
-    cust_alfki.PaymentList.append(new_payment)), never as a bare CustomerId scalar.
-    The explicit-query workaround is only needed when the FK was just set
-    programmatically as a scalar column, not as the general/safer pattern.
+    - relationship proxy: safe once the FK was set via relationship assignment/append
+      (e.g. cust_alfki.PaymentList.append(new_payment), see
+      tests/test_payment_allocation.py) and only one hop is needed.
+    - explicit query: needed when the FK is a raw scalar column (row.x_id = ...)
+      rather than a relationship assignment, or when more than one hop is needed.
+
+    Counter-example: genai-logic's charge_distribution.py
+    (~/dev/ApiLogicServer/ApiLogicServer-dev/build_and_test/genai-logic/samples/allocate_dept_account_demo)
+    sets Charge.project_id as a scalar FK and needs a second hop
+    (project.project_funding_definition_id), so it uses an explicit query.
     """
