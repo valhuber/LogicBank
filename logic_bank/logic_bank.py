@@ -125,16 +125,6 @@ class LogicBank:
         except Exception as e:
             rule_bank.invalid_rules.append(e)
 
-        if debug_show_attributes := True:
-            rules_bank = RuleBank()
-            rule_count = 0
-            logic_logger.debug(f'\nThe following rules have been loaded')
-            list_rules = rules_bank.__str__()
-            loaded_rules = list(list_rules.split("\n"))
-            for each_rule in loaded_rules:  # rules with bad derive= etc not loaded - no TableRule to own them
-                logic_logger.debug(str(each_rule))
-                rule_count += 1
-
         missing_attributes = rule_bank_setup.compute_formula_execution_order()
         if len(rule_bank.invalid_rules) > 0 or len(missing_attributes) > 0:
             # raise Exception(rule_bank.invalid_rules, missing_attributes)  # compare - this logs the errors
@@ -154,7 +144,7 @@ class LogicBank:
             logic_logger.debug(each_rule)
             rule_count += 1
 
-        logic_logger.info(f'\nLogic Bank {rule_bank_setup.__version__} - {rule_count} rules loaded')
+        logic_logger.info(f'\nLogic Bank Activation Complete {rule_bank_setup.__version__} - {rule_count} rules activated\n')
 
 
 class Rule:
