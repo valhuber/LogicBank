@@ -96,7 +96,7 @@ class Aggregate(Derivation):
         if where and delta != 0.0:  # trigger update by setting parent_adjustor.parent_logic_row
             if parent_adjustor.parent_logic_row is None:
                 parent_adjustor.parent_logic_row = \
-                    parent_adjustor.child_logic_row._get_parent_logic_row(role_name=self._parent_role_name)
+                    parent_adjustor.child_logic_row._get_parent_logic_row(role_name=self._parent_role_name, for_update=True)
             if parent_adjustor.parent_logic_row.row is None:
                 # legitimately-null optional parent FK (e.g. no on_loan assignment) - nothing to adjust.
                 # reset to None so ParentRoleAdjuster.save_altered_parents() correctly treats this as
@@ -124,7 +124,7 @@ class Aggregate(Derivation):
             )
             if parent_adjustor.parent_logic_row is None:
                 parent_adjustor.parent_logic_row = \
-                    parent_adjustor.child_logic_row._get_parent_logic_row(role_name=self._parent_role_name)
+                    parent_adjustor.child_logic_row._get_parent_logic_row(role_name=self._parent_role_name, for_update=True)
             if parent_adjustor.parent_logic_row.row is None:
                 # legitimately-null optional parent FK (e.g. no on_loan assignment) - nothing to adjust.
                 # reset to None so ParentRoleAdjuster.save_altered_parents() correctly treats this as
@@ -175,7 +175,7 @@ class Aggregate(Derivation):
                 if delta is not None and delta != 0.0:  # FIXME
                     if parent_adjustor.parent_logic_row is None:
                         parent_adjustor.parent_logic_row = \
-                            parent_adjustor.child_logic_row._get_parent_logic_row(role_name=self._parent_role_name)
+                            parent_adjustor.child_logic_row._get_parent_logic_row(role_name=self._parent_role_name, for_update=True)
                 if parent_adjustor.parent_logic_row.row is None:
                     # legitimately-null optional parent FK (e.g. no on_loan assignment) - nothing to adjust.
                     # reset to None so save_altered_parents() correctly treats this as "no adjustment needed"
@@ -203,7 +203,7 @@ class Aggregate(Derivation):
             if parent_adjustor.parent_logic_row is None:
                 parent_adjustor.parent_logic_row = \
                     parent_adjustor.child_logic_row._get_parent_logic_row(
-                        role_name=self._parent_role_name)
+                        role_name=self._parent_role_name, for_update=True)
             if parent_adjustor.parent_logic_row.row is None:  # fix reparent count failure
                 if self._fk_is_null(parent_adjustor.child_logic_row.row, self._parent_role_name):
                     # legitimately-null optional new parent FK (e.g. no on_loan assignment) - nothing
@@ -227,7 +227,7 @@ class Aggregate(Derivation):
                 parent_adjustor.previous_parent_logic_row = \
                     parent_adjustor.child_logic_row._get_parent_logic_row(
                         role_name=self._parent_role_name,
-                        from_row=parent_adjustor.child_logic_row.old_row)
+                        from_row=parent_adjustor.child_logic_row.old_row, for_update=True)
             if parent_adjustor.previous_parent_logic_row.row is None:
                 # old FK was legitimately null (no previous parent to decrement) - nothing to adjust.
                 # reset to None so save_altered_parents() correctly treats this as "no adjustment needed"

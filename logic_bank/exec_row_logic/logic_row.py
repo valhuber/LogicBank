@@ -245,15 +245,28 @@ class LogicRow:
                     result[each_attr_name] = getattr(a_row, each_attr_name)
         return result
 
-    def _get_parent_logic_row(self, role_name: str, from_row: base = None) -> 'LogicRow':
+    def _get_parent_logic_row(self, role_name: str, from_row: base = None, for_update: bool = False) -> 'LogicRow':
         """ get parent *and* set parent accessor and apply defaults
+
+        Args:
+            for_update: if True and RuleBank.trans_update_locking == "pessimistic", fetch (or
+                re-fetch) the parent with a locking read (with_for_update + populate_existing),
+                closing the lost-update race on cascaded Rule.sum/Rule.count adjustments. Passed
+                True from all 5 adjust_from_* call sites in aggregate.py (not centralized in one
+                place) - see ParentRoleAdjuster's class docstring below for why: each parent role
+                is fetched once, by whichever aggregate happens to touch it first, so every call
+                site that could be "first" needs its own for_update=True. Rule.copy and
+                referential-integrity parent-existence checks are unaffected (default False). See
+                internal_dev/locking_strategy.md (ApiLogicServer-src) for design rationale.
+                No-op under SQLite (dialect drops the FOR UPDATE clause).
         """
         row = self.row
         if from_row is not None:
             row = from_row
         debug_set_parents_for_inserts = True  # interim, for debug (this failed once, keeping watch)
+        use_locking_read = for_update and RuleBank().trans_update_locking == "pessimistic"
         parent_row = None
-        if hasattr(row, role_name):  # for client updates, old is obj_view, not base
+        if not use_locking_read and hasattr(row, role_name):  # for client updates, old is obj_view, not base
             parent_row = getattr(row, role_name)
         if self.name == "OrderDetail":  # and role_name == "OrderHeader":
             debug_stop = 'nice breakpoint'
@@ -267,7 +280,13 @@ class LogicRow:
                 parent_key[each_parent_col.name] = getattr(row, each_child_col.name)
             parent_class = role_def.entity.class_
             # https://docs.sqlalchemy.org/en/13/orm/query.html#the-query-object
-            parent_row = self.session.query(parent_class).get(parent_key)
+            parent_query = self.session.query(parent_class)
+            if use_locking_read:
+                # populate_existing() ensures a parent already cached from earlier relationship
+                # navigation (e.g. line above's getattr, on a previous call) is refreshed from
+                # the locked DB read, not silently returned from the stale in-memory identity map.
+                parent_query = parent_query.with_for_update().populate_existing()
+            parent_row = parent_query.get(parent_key)
             if self.ins_upd_dlt == "upd" or debug_set_parents_for_inserts:  # eg, add order - don't tell sqlalchemy to add cust
                 setattr(row, role_name, parent_row)
         old_parent = self._make_copy(parent_row)
@@ -1363,6 +1382,18 @@ class ParentRoleAdjuster:
     Instances are passed to <aggregate>.adjust_parent who will set parent row(s) values
     iff adjustment is required (e.g., summed value changes, where changes, fk changes, etc)
     This ensures only 1 update per set of aggregates along a given role
+
+    WHY THIS MATTERS FOR for_update= (TRANS_UPDATE_LOCKING): parent_logic_row is fetched
+    ONCE - by whichever aggregate (Sum, Count...) happens to touch this parent role first
+    in aggregate.py's adjust_from_* methods - then reused/mutated by every subsequent
+    aggregate on the same role. Which aggregate goes first is not fixed (insert vs update
+    vs delete, Sum vs Count). So the locking fetch (_get_parent_logic_row(for_update=True))
+    can't live in one central place inside this class or a single adjust_from_* method -
+    every adjust_from_* call site in aggregate.py that can be "first" has to pass
+    for_update=True itself, or a parent whose first-touching aggregate happens to be a
+    different one would slip through unlocked. See internal_dev/locking_strategy.md
+    (ApiLogicServer-src) for the locking design; this note explains why the fix touches
+    5 call sites instead of 1.
     """
 
     def __init__(self, parent_role_name: str, child_logic_row: LogicRow):

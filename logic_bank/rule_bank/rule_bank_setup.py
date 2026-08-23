@@ -15,7 +15,7 @@ from sqlalchemy.orm import session
 from sqlalchemy.orm import mapper
 import logging
 
-__version__ = "1.32.00"  # add allow_event_nesting to prevent unintended event re-fire on same row in flush cycle, reduced log, multi-reln, event when, commit constraint, after_flush, etc
+__version__ = "1.33.00"  # add trans_update_locking (ignored/pessimistic) to LogicBank.activate() - closes lost-update race on cascaded Rule.sum/Rule.count parent adjustments under concurrent writers; see internal_dev/locking_strategy.md (ApiLogicServer-src)
 
 logic_logger = logging.getLogger("logic_logger")
 

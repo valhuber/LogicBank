@@ -61,6 +61,9 @@ class RuleBank(metaclass=Singleton):  # FIXME design review singleton
         ''' on insert, set sum/counts to 0 '''
         self.all_defaults = False
         ''' on insert, set numerics to 0 '''
+        self.trans_update_locking = "ignored"
+        ''' ignored (default) or pessimistic - locks aggregate-root parent on Rule.sum/count adjustment.
+        See internal_dev/locking_strategy.md (ApiLogicServer-src) for design rationale. '''
         self.invalid_rules : list[str] = []  # rule-load failures during activation
         self.map_name_to_mapper = None  # type: None | Dict[str, mapper]
         """ mappers for each orm_object, key is class name """

@@ -70,7 +70,8 @@ class LogicBank:
 
     @staticmethod
     def activate(session: session, activator: callable, constraint_event: callable = None,
-                 aggregate_defaults: bool = False, all_defaults: bool = False):
+                 aggregate_defaults: bool = False, all_defaults: bool = False,
+                 trans_update_locking: str = "ignored"):
         """
 
         #### Usage (e.g., als - highly recommended)
@@ -114,12 +115,17 @@ class LogicBank:
             activator: user function that declares rules (e.g., Rule.sum... in als `logic/declare_logic.py`)
             constraint_event: optional user function called on constraint exceptions
             aggregate_defaults: on insert, set sum/counts to 0
+            trans_update_locking: "ignored" (default) or "pessimistic" - pessimistic locks the
+                aggregate-root parent (with_for_update) when Rule.sum/Rule.count adjusts it, closing
+                a lost-update race under concurrent writers. No-op under SQLite (dialect drops the
+                clause). See internal_dev/locking_strategy.md (ApiLogicServer-src) for design rationale.
         """
         rule_bank = rule_bank_setup.setup(session)
         if constraint_event is not None:
             rule_bank.constraint_event = constraint_event
         rule_bank.aggregate_defaults = aggregate_defaults
         rule_bank.all_defaults = all_defaults
+        rule_bank.trans_update_locking = trans_update_locking
         try:
             activator()  # in als, called from server_setup - this is logic/declare_logic.py#declare_logic()
         except Exception as e:
