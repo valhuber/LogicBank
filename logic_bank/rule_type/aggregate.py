@@ -98,11 +98,28 @@ class Aggregate(Derivation):
                 parent_adjustor.parent_logic_row = \
                     parent_adjustor.child_logic_row._get_parent_logic_row(role_name=self._parent_role_name, for_update=True)
             if parent_adjustor.parent_logic_row.row is None:
-                # legitimately-null optional parent FK (e.g. no on_loan assignment) - nothing to adjust.
-                # reset to None so ParentRoleAdjuster.save_altered_parents() correctly treats this as
-                # "no adjustment needed" rather than trying to .update() a LogicRow wrapping row=None
-                parent_adjustor.parent_logic_row = None
-                return
+                # No parent found. Normally this is a legitimately-null optional parent FK
+                # (e.g. no on_loan assignment) - nothing to adjust. But if THIS aggregate
+                # declared insert_parent=True, the missing parent must be created here - this
+                # is the actual runtime path exercised for an insert_parent aggregate (the
+                # separate insert_parent handling in LogicRow._load_parents_on_insert/
+                # _is_inserted_parent only fires when the child's FK is already fully non-null
+                # at insert time, which is not yet true for an FK column an early_row_event
+                # sets - see internal_dev/composite_key_issue/composite_key_issue.md).
+                if self.insert_parent:
+                    child_mapper = object_mapper(parent_adjustor.child_logic_row.row)
+                    relationship = child_mapper.relationships.get(self._parent_role_name)
+                    if relationship is not None and \
+                            parent_adjustor.child_logic_row._is_inserted_parent(relationship):
+                        parent_adjustor.parent_logic_row = \
+                            parent_adjustor.child_logic_row._get_parent_logic_row(
+                                role_name=self._parent_role_name, for_update=True)
+                if parent_adjustor.parent_logic_row is None or parent_adjustor.parent_logic_row.row is None:
+                    # reset to None so ParentRoleAdjuster.save_altered_parents() correctly treats
+                    # this as "no adjustment needed" rather than trying to .update() a LogicRow
+                    # wrapping row=None
+                    parent_adjustor.parent_logic_row = None
+                    return
             curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
             if curr_value is None:
                 curr_value = 0

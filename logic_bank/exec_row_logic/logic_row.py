@@ -288,7 +288,21 @@ class LogicRow:
                 parent_query = parent_query.with_for_update().populate_existing()
             parent_row = parent_query.get(parent_key)
             if self.ins_upd_dlt == "upd" or debug_set_parents_for_inserts:  # eg, add order - don't tell sqlalchemy to add cust
-                setattr(row, role_name, parent_row)
+                # For a composite/multi-column FK, setattr(row, role_name, None) below -- taken
+                # when no matching parent exists yet -- makes SQLAlchemy's relationship setter
+                # null out row's own FK columns as a side effect (single-column FKs are
+                # unaffected: there's no separate "relationship key" distinct from the FK
+                # itself). That silently destroys the child's real FK values before
+                # insert_parent (_is_inserted_parent) or the caller ever gets a chance to use
+                # them. Restore them immediately after, when we nulled the relationship
+                # ourselves (parent_row is None) -- see
+                # internal_dev/composite_key_issue/composite_key_issue.md.
+                if parent_row is None and len(role_def.local_remote_pairs) > 1:
+                    setattr(row, role_name, parent_row)
+                    for each_child_col, each_parent_col in role_def.local_remote_pairs:
+                        setattr(row, each_child_col.name, parent_key[each_parent_col.name])
+                else:
+                    setattr(row, role_name, parent_row)
         old_parent = self._make_copy(parent_row)
         parent_logic_row = LogicRow(row=parent_row, old_row=old_parent, ins_upd_dlt="*", nest_level=1 + self.nest_level,
                                     a_session=self.session, row_sets=self.row_sets)
@@ -849,12 +863,22 @@ class LogicRow:
                                                    nest_level=self.nest_level + 1,
                                                    a_session=self.session,
                                                    row_sets=self.row_sets)
+                    # Capture child FK values BEFORE the parent-setter below can null them out.
+                    # For a composite/multi-column FK, SQLAlchemy's relationship setter (the
+                    # setattr() below) syncs the child's FK columns to the new parent's key
+                    # columns -- which are still empty at that point -- as a side effect, wiping
+                    # self.row's real FK values to None. Reading them here, first, and restoring
+                    # them after the setattr() avoids that data loss.
+                    # See internal_dev/composite_key_issue/composite_key_issue.md.
+                    child_fk_values = [(each_child_column, each_parent_column,
+                                        getattr(self.row, each_child_column.name))
+                                       for each_child_column, each_parent_column in local_remote_pairs]
+                    for each_child_column, each_parent_column, val in child_fk_values:
+                        setattr(inserted_parent_row.row, each_parent_column.name, val)
                     setattr(self.row, each_aggregate._parent_role_name, inserted_parent_row.row)  # parent setter
                     # self.link(to_parent=inserted_parent_row.row, is_copy=True)
-                    for each_child_column, each_parent_column in local_remote_pairs:
-                        val = getattr(self.row, each_child_column.name)
-                        setattr(inserted_parent_row.row, each_parent_column.name, val)
-                        pass
+                    for each_child_column, each_parent_column, val in child_fk_values:
+                        setattr(self.row, each_child_column.name, val)
                     inserted_parent_row.insert(reason=f'Insert Parent from {self.name}')
                     break
         return has_inserted_parent
@@ -1109,7 +1133,7 @@ class LogicRow:
             if each_relationship.direction == sqlalchemy.orm.interfaces.MANYTOONE:  # cust, emp
                 parent_role_name = each_relationship.key  # eg, OrderList
                 if self._is_foreign_key_null(each_relationship):
-                    pass  # 
+                    pass  #
                 else:
                     # continue - foreign key not null - parent *should* exist
                     self._get_parent_logic_row(parent_role_name)  # sets the accessor

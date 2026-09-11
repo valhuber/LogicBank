@@ -1,15 +1,15 @@
 ================================================================================
 LOGICBANK TEST SUMMARY REPORT
 ================================================================================
-Generated: 2026-07-22 16:32:10
+Generated: 2026-09-10 17:49:17
 SQLAlchemy Version: 2.0.39
 LogicBank Version: 1.20.26
 
 OVERALL RESULTS:
 ----------------------------------------
-Total Test Suites: 14
-Total Test Files: 37
-Passed Suites: 14
+Total Test Suites: 16
+Total Test Files: 40
+Passed Suites: 16
 Failed Suites: 0
 Success Rate: 100.0%
 
@@ -27,6 +27,11 @@ examples/commit_event_mutation_scan/tests PASSED
   Unittest files:
     - test_row_event_mutation_scan.py
 
+examples/concurrent_adjust/tests         PASSED
+  Unittest files:
+    - test_for_update_sql.py
+    - test_interleaved_race.py
+
 examples/copy_children/tests             PASSED
   Standalone scripts:
     - test_clone_project.py
@@ -38,6 +43,10 @@ examples/custom_exceptions/tests         PASSED
 examples/insert_parent/tests             PASSED
   Standalone scripts:
     - test_insert_parent.py
+
+examples/insert_parent_late_key/tests    PASSED
+  Standalone scripts:
+    - test_insert_parent_late_key.py
 
 examples/min_cardinality/tests           PASSED
   Unittest files:
