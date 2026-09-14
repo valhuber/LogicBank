@@ -13,7 +13,7 @@ using standard tools and techniques
 > You may find it helpful to begin with [this Tutorial, using a basic example](../../wiki/Tutorial).
 >
 >
-> **Update - Jan 26, 2021:** You can use LogicBank for your own _existing_ projects.  For _new_ projects, the recommended approach is [**ApiLogicServer**](https://github.com/valhuber/ApiLogicServer#readme) - create a complete logic-enabled JSON:API for your database, and a admin app, with 1 command.
+> **Update:** You can use LogicBank for your own _existing_ projects.  For _new_ projects, the recommended approach is [**GenAI-Logic**](https://genai-logic.com) (formerly ApiLogicServer; the git repo is still named [ApiLogicServer-src](https://github.com/ApiLogicServer/ApiLogicServer-src)) - create a complete logic-enabled JSON:API for your database, and an admin app, with 1 command (or a natural-language prompt).
 
 This readme contains:
 
