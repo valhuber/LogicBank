@@ -57,7 +57,8 @@ class Copy(Derivation):
 
     def execute(self, child_logic_row: LogicRow, parent_logic_row: LogicRow):
         AbstractRule.execute(self, child_logic_row)
-        each_column_value = getattr(parent_logic_row.row, self._from_column)
+        parent_row = parent_logic_row.row if parent_logic_row is not None else None
+        each_column_value = getattr(parent_row, self._from_column) if parent_row is not None else None
         setattr(child_logic_row.row, self._column, each_column_value)
 
     def __str__(self):

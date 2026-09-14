@@ -112,7 +112,7 @@ examples/copy_children/tests             PASSED
 - `examples/payment_allocation/tests` - Payment allocation logic
 - `examples/referential_integrity/tests` - Referential integrity examples
 - `examples/tutorial/tests` - Tutorial examples
-- `examples/multi_relns/tests` - Multi-relationship-to-same-parent regression suite (see `system/LogicBank-Internal-Dev/multi-relationship-bug.md`)
+- `examples/multi_relns/tests` - Multi-relationship-to-same-parent regression suite (see `system/LogicBank-Internal-Dev/multi-relationship-bug-issue-20.md`)
 
 ### Test Architecture
 

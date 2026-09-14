@@ -20,7 +20,7 @@ else:
     from logic_bank.rule_bank.rule_bank import RuleBank
     from logic_bank.exec_row_logic.logic_row import LogicRow
     from logic_bank.exceptions import LBActivateException
-    from examples.spurious_parent_dependency.db.models import Customer, Item, Base
+    from examples.spurious_parent_dependency.db.models import Customer, Item, Label, Base
 
     print("\n" + sys_env_info + "\n\n")
 
@@ -59,8 +59,17 @@ class Test(unittest.TestCase):
 
     def test_case_2a_str_method_on_column_not_registered_as_dependency(self):
         """ row.code.zfill(8): 'code' is a plain column, not a relationship - must
-        NOT be registered as a dependency, and must NOT crash on UPDATE
+        NOT be registered as a parent-role dependency, and must NOT crash on UPDATE
         (previously: _get_parent_role_def raised "FIXME invalid role name code").
+
+        GitHub issue #31 (follow-up to #21): the #21 fix over-corrected by dropping
+        the 'code' token entirely instead of registering it as an own-column
+        dependency. That silently broke pruning - updating 'code' left padded_code
+        stale, with no error - and, when 'code' was itself a formula, execution
+        ordering, since the engine didn't know padded_code depended on it. Fixed via
+        AbstractRule._is_column_node(): 'code' IS now registered (as a plain
+        dependency, not a parent-role dependency), so the formula is correctly
+        recomputed when 'code' changes and correctly ordered after it.
         """
         def declare_logic():
             Rule.formula(derive=Item.padded_code, as_exp="row.code.zfill(8)")
@@ -68,8 +77,8 @@ class Test(unittest.TestCase):
         session = self._activate(declare_logic)  # must NOT raise
 
         formula = RuleBank().orm_objects["Item"].rules[0]
-        assert formula._dependencies == [], \
-            f"Expected no dependencies registered for a non-relationship chain, got {formula._dependencies}"
+        assert formula._dependencies == ["code"], \
+            f"Expected the chain on a plain column to register that column, got {formula._dependencies}"
 
         item = Item(id_item=1, code="42", price=Decimal("1.00"))
         session.add(item)
@@ -79,7 +88,36 @@ class Test(unittest.TestCase):
         session.commit()  # update - THIS previously raised "FIXME invalid role name code"
         assert item.padded_code == "00000042", f"Expected zero-padded code, got {item.padded_code}"
 
+        item.code = "7"
+        session.commit()  # update of the column the method is called on - must recompute, not be pruned
+        assert item.padded_code == "00000007", f"Expected recomputed padded code, got {item.padded_code}"
+
         print("\n...test_case_2a_str_method_on_column_not_registered_as_dependency ran to completion\n\n")
+
+    def test_case_2c_method_on_column_that_is_itself_a_formula_orders_correctly(self):
+        """ GitHub issue #31: Label.padded_code (row.code.zfill(8)) is declared
+        BEFORE Label.code (row.raw + ''), and code is itself a formula. Without
+        registering 'code' as a dependency, compute_formula_execution_order has
+        no way to know padded_code must run after code - on insert, the method
+        would be called against code's un-derived (None) value and crash with
+        AttributeError: 'NoneType' object has no attribute 'zfill'. Registering
+        'code' as an own-column dependency (test_case_2a) also fixes this: the
+        engine now knows padded_code depends on code, regardless of declaration
+        order.
+        """
+        def declare_logic():
+            Rule.formula(derive=Label.padded_code, as_exp="row.code.zfill(8)")  # declared before code
+            Rule.formula(derive=Label.code, as_exp="row.raw + ''")
+
+        session = self._activate(declare_logic)  # must NOT raise
+
+        label = Label(id_label=1, raw="42")
+        session.add(label)
+        session.commit()  # insert - previously crashed: code not yet derived when padded_code ran
+        assert label.code == "42", f"Expected code derived from raw, got {label.code}"
+        assert label.padded_code == "00000042", f"Expected zero-padded code, got {label.padded_code}"
+
+        print("\n...test_case_2c_method_on_column_that_is_itself_a_formula_orders_correctly ran to completion\n\n")
 
     def test_case_2b_subquery_fragment_does_not_kill_activation(self):
         """ A sub-query inside a Constraint's calling= function - the trailing

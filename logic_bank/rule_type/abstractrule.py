@@ -98,8 +98,11 @@ class AbstractRule(object):
                         self._dependencies.append(dependencies[1] +
                                                   "." + dependencies[2])
                         self.update_referenced_parent_attributes(dependencies)
-                    # else: not a real relationship (eg row.code.zfill(8), or a
-                    # sub-query fragment like row.id_customer).scalar()) - drop it
+                    elif self._is_column_node(dependencies[1]):
+                        # method call on an own column (eg row.code.zfill(8)) - depends on code
+                        self._dependencies.append(dependencies[1])
+                    # else: not a column nor a relationship (eg a sub-query fragment
+                    # like row.id_customer).scalar()) - drop it
 
     def _is_relationship_node(self, node_name: str) -> bool:
         """
@@ -117,6 +120,20 @@ class AbstractRule(object):
         except sqlalchemy.exc.SQLAlchemyError:
             return False
         return node_name in mapper.relationships
+
+    def _is_column_node(self, node_name: str) -> bool:
+        """
+        True iff node_name is a mapped column of this rule's class - ie, row.<node_name>.<method>
+        is a method call on an own column (row.code.zfill(8)), which depends on that column.
+        """
+        decl_meta = getattr(self, '_decl_meta', None)
+        if decl_meta is None:
+            return False
+        try:
+            mapper = sqlalchemy.orm.class_mapper(decl_meta)
+        except sqlalchemy.exc.SQLAlchemyError:
+            return False
+        return node_name in mapper.column_attrs
 
     def update_referenced_parent_attributes(self, dependencies: list):
         """

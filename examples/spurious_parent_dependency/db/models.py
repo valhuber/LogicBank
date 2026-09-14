@@ -41,3 +41,19 @@ class Item(Base):
     price = Column(DECIMAL(10, 2), server_default="0")
 
     customer: Mapped["Customer"] = relationship("Customer", back_populates="item_list")
+
+
+class Label(Base):
+    """
+    GitHub issue #31 (follow-up to #21): code is itself a formula (derived from
+    raw), so padded_code (row.code.zfill(8)) must be ordered to run AFTER code -
+    not just recomputed when code changes. Separate table from Item so the #21
+    pruning-only regression tests (test_case_2a/2b) are unaffected by this schema
+    addition.
+    """
+    __tablename__ = 'label'
+
+    id_label = Column(Integer, primary_key=True)
+    raw = Column(String(20))
+    code = Column(String(20))
+    padded_code = Column(String(20))

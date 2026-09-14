@@ -264,7 +264,21 @@ class LogicRow:
         if from_row is not None:
             row = from_row
         debug_set_parents_for_inserts = True  # interim, for debug (this failed once, keeping watch)
-        use_locking_read = for_update and RuleBank().trans_update_locking == "pessimistic"
+        # A parent that insert_parent just created earlier in THIS transaction is set on the
+        # relationship but not yet flushed to the database - it has no identity key yet. A locking
+        # read (parent_query.get(), below) would go straight to the database, miss it, and return
+        # None: the adjustment gets silently skipped, and - because parent_row is then None -
+        # setattr(row, role_name, None) nulls the child's own FK columns as a side effect (see the
+        # composite-FK comment a few lines down). vars(row) reads the relationship without
+        # triggering a lazy load; inspect(..., raiseerr=False) returns None for an unset attribute
+        # or a non-mapped value, and an InstanceState with key=None for a pending (unflushed)
+        # object - both cases must fall through to the normal getattr(row, role_name) path below,
+        # not attempt a locking read. Only a genuinely persistent (already-in-the-database) parent
+        # needs - and can safely use - a locking read. See GitHub issue #30
+        # (https://github.com/valhuber/LogicBank/issues/30) and
+        # system/LogicBank-Internal-Dev/pessimistic-locking-insert-parent.md.
+        use_locking_read = for_update and RuleBank().trans_update_locking == "pessimistic" \
+            and getattr(inspect(vars(row).get(role_name), raiseerr=False), "key", True) is not None
         parent_row = None
         if not use_locking_read and hasattr(row, role_name):  # for client updates, old is obj_view, not base
             parent_row = getattr(row, role_name)
@@ -278,6 +292,14 @@ class LogicRow:
             parent_key = {}
             for each_child_col, each_parent_col in role_def.local_remote_pairs:
                 parent_key[each_parent_col.name] = getattr(row, each_child_col.name)
+            if len(role_def.local_remote_pairs) > 1 and None in parent_key.values():
+                # partially null composite FK (eg a free-text sales line with
+                # product_id null but store_id set) - there is no parent to load,
+                # link or insert; querying with a None key component would either
+                # error or silently match nothing, so short-circuit here instead.
+                old_parent = self._make_copy(None)
+                return LogicRow(row=None, old_row=old_parent, ins_upd_dlt="*", nest_level=1 + self.nest_level,
+                                a_session=self.session, row_sets=self.row_sets)
             parent_class = role_def.entity.class_
             # https://docs.sqlalchemy.org/en/13/orm/query.html#the-query-object
             parent_query = self.session.query(parent_class)

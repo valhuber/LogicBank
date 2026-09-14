@@ -1,15 +1,15 @@
 ================================================================================
 LOGICBANK TEST SUMMARY REPORT
 ================================================================================
-Generated: 2026-09-14 08:29:45
+Generated: 2026-09-14 09:01:03
 SQLAlchemy Version: 2.0.39
 LogicBank Version: 1.20.26
 
 OVERALL RESULTS:
 ----------------------------------------
-Total Test Suites: 16
-Total Test Files: 40
-Passed Suites: 16
+Total Test Suites: 20
+Total Test Files: 44
+Passed Suites: 20
 Failed Suites: 0
 Success Rate: 100.0%
 
@@ -36,6 +36,10 @@ examples/copy_children/tests             PASSED
   Standalone scripts:
     - test_clone_project.py
 
+examples/copy_null_parent/tests          PASSED
+  Unittest files:
+    - test_copy_null_parent.py
+
 examples/custom_exceptions/tests         PASSED
   Standalone scripts:
     - test_custom_constraints.py
@@ -47,6 +51,10 @@ examples/insert_parent/tests             PASSED
 examples/insert_parent_late_key/tests    PASSED
   Standalone scripts:
     - test_insert_parent_late_key.py
+
+examples/insert_parent_partial_null_fk/tests PASSED
+  Unittest files:
+    - test_insert_parent_partial_null_fk.py
 
 examples/min_cardinality/tests           PASSED
   Unittest files:
@@ -91,6 +99,10 @@ examples/payment_allocation/tests        PASSED
   Standalone scripts:
     - test_payment_allocation.py
 
+examples/pessimistic_insert_parent/tests PASSED
+  Unittest files:
+    - test_pessimistic_insert_parent.py
+
 examples/referential_integrity/tests     PASSED
   Standalone scripts:
     - test_referential_integrity.py
@@ -98,6 +110,10 @@ examples/referential_integrity/tests     PASSED
 examples/spurious_parent_dependency/tests PASSED
   Unittest files:
     - test_spurious_parent_dependency.py
+
+examples/sum_dequalify/tests             PASSED
+  Unittest files:
+    - test_sum_dequalify.py
 
 examples/tutorial/tests                  PASSED
   Standalone scripts:

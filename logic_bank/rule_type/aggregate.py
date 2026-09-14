@@ -110,6 +110,7 @@ class Aggregate(Derivation):
                     child_mapper = object_mapper(parent_adjustor.child_logic_row.row)
                     relationship = child_mapper.relationships.get(self._parent_role_name)
                     if relationship is not None and \
+                            not parent_adjustor.child_logic_row._is_foreign_key_null(relationship) and \
                             parent_adjustor.child_logic_row._is_inserted_parent(relationship):
                         parent_adjustor.parent_logic_row = \
                             parent_adjustor.child_logic_row._get_parent_logic_row(
@@ -185,8 +186,8 @@ class Aggregate(Derivation):
                 delta = 0.0
             elif where:
                 delta = summed_field
-            else:  # no longer meets where - decrement
-                delta = - summed_field
+            else:  # no longer meets where - decrement by the value the parent still holds (old), not new
+                delta = - old_summed_field
 
             if delta != 0.0:  # trigger update by setting parent_adjustor.parent_logic_row
                 if delta is not None and delta != 0.0:  # FIXME
