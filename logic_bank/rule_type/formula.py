@@ -72,14 +72,15 @@ class Formula(Derivation):
         if value != old_value:
             setattr(logic_row.row, self._column, value)
             logic_row.log(f'Formula {self._column}')
-        else:                                                           # In loading test data, 
-            inspector = sqlalchemy.inspect(logic_row.row)               # the loaded data might be wrongly float,    
-            mapper = inspector.mapper                                   # which can fail in constraints.
-            old_value_type = str(type(old_value))                       # So, if the old value is Float,
-            col_type = mapper.columns[self._column].type.python_type    # and the column is Numeric...
-            if 'float' in old_value_type and 'Float()' not in str(col_type):
-                setattr(logic_row.row, self._column, value)
-                logic_row.log(f'Formula reset type {self._column}')     # reset the type to be Numeric, not Float
+        else:                                                           # In loading test data,
+            old_value_type = str(type(old_value))                       # the loaded data might be wrongly float,
+            if 'float' in old_value_type:                               # which can fail in constraints.
+                inspector = sqlalchemy.inspect(logic_row.row)           # So, if the old value is Float,
+                mapper = inspector.mapper
+                col_type = mapper.columns[self._column].type.python_type    # and the column is Numeric...
+                if 'Float()' not in str(col_type):
+                    setattr(logic_row.row, self._column, value)
+                    logic_row.log(f'Formula reset type {self._column}')     # reset the type to be Numeric, not Float
 
 
     def get_referenced_attributes(self) -> list[str]:

@@ -4,7 +4,7 @@ import sqlalchemy
 from sqlalchemy.orm import object_mapper
 
 from logic_bank.exec_row_logic.logic_row import LogicRow
-from logic_bank.rule_bank.rule_bank import RuleBank
+from logic_bank.rule_bank.rule_bank import RuleBank, TableRules
 from logic_bank.rule_type.constraint import Constraint
 from logic_bank.rule_type.derivation import Derivation
 from logic_bank.rule_type.copy import Copy
@@ -178,46 +178,47 @@ def get_referring_children(parent_logic_row: LogicRow) -> dict:
     """
     rule_bank = RuleBank()
     if parent_logic_row.name not in rule_bank.orm_objects:
-       return {}
-    else:
-        # sigh, best to have built this in rule_bank_setup, but unable to get mapper
-        # FIXME verify threadsafe
-        parent_rules = rule_bank.orm_objects[parent_logic_row.name]
-        result = parent_rules.referring_children
-        parent_rules.referring_children = {}  # clear...?
-        parent_rules.referring_children[parent_logic_row.name] = []  # accumulates across ALL relationships below -
-        # must be initialized once here, NOT inside the loop (previously reset per-relationship, so a parent class
-        # with 2+ ONETOMANY relationships - e.g. Department.EmployeeWorksForList + EmployeeOnLoanList - only kept
-        # the LAST relationship's referring children, silently dropping cascade for the others)
-        parent_mapper = object_mapper(parent_logic_row.row)
-        parent_relationships = parent_mapper.relationships
-        if parent_logic_row.name == "Order":
-            debug = 'good breakpoint'
-        for each_parent_relationship in parent_relationships:  # eg, order has parents cust & emp, child orderdetail
-            if each_parent_relationship.direction == sqlalchemy.orm.interfaces.ONETOMANY:  # cust, emp
-                parent_role_name = each_parent_relationship.back_populates  # eg, OrderList
-                child_role_name = each_parent_relationship.key
-                child_class_name = get_child_class_name(each_parent_relationship)  # eg, OrderDetail
-                if child_class_name not in rule_bank.orm_objects:
-                    pass  # eg, banking - ALERT is child of customer, has no rules, that's ok
-                else:
-                    child_table_rules = rule_bank.orm_objects[child_class_name].rules
-                    if parent_role_name is None:
-                        raise Exception("Relationship is missing 'back populates' for parent: " +
-                                        parent_logic_row.__str__())
-                    search_for_rew_parent = "row." + parent_role_name
-                    for each_rule in child_table_rules:
-                        if isinstance(each_rule, (Formula, Constraint)):  # eg, OrderDetail.ShippedDate
-                            rule_text = each_rule.get_rule_text()  #        eg, row.OrderHeader.ShippedDate
-                            if rule_text == 'row.Order.ShippedDate':
-                                debug = 'good breakpoint'
-                            rule_words = rule_text.split()
-                            for each_word in rule_words:
-                                if each_word.startswith(search_for_rew_parent):
-                                    rule_terms = each_word.split(".")
-                                    if len(rule_terms) == 3:               # eg, row.OrderHeader.ShippedDate
-                                        # if parent_role_name not in parent_rules.referring_children:
-                                        #    parent_rules.referring_children[parent_role_name] = ()
-                                        parent_rules.referring_children[parent_logic_row.name].append(
-                                            (child_class_name, child_role_name, rule_terms[2], parent_role_name))  # eg, OrderDetail, OrderDetailList ShippedDate
-        return parent_rules.referring_children
+        # parent has no rules of its own - still register it, so the loop below can find
+        # the dependency on the CHILD's rules (issue #33 - cascade was silently skipped)
+        rule_bank.orm_objects[parent_logic_row.name] = TableRules()
+    # sigh, best to have built this in rule_bank_setup, but unable to get mapper
+    # FIXME verify threadsafe
+    parent_rules = rule_bank.orm_objects[parent_logic_row.name]
+    result = parent_rules.referring_children
+    parent_rules.referring_children = {}  # clear...?
+    parent_rules.referring_children[parent_logic_row.name] = []  # accumulates across ALL relationships below -
+    # must be initialized once here, NOT inside the loop (previously reset per-relationship, so a parent class
+    # with 2+ ONETOMANY relationships - e.g. Department.EmployeeWorksForList + EmployeeOnLoanList - only kept
+    # the LAST relationship's referring children, silently dropping cascade for the others)
+    parent_mapper = object_mapper(parent_logic_row.row)
+    parent_relationships = parent_mapper.relationships
+    if parent_logic_row.name == "Order":
+        debug = 'good breakpoint'
+    for each_parent_relationship in parent_relationships:  # eg, order has parents cust & emp, child orderdetail
+        if each_parent_relationship.direction == sqlalchemy.orm.interfaces.ONETOMANY:  # cust, emp
+            parent_role_name = each_parent_relationship.back_populates  # eg, OrderList
+            child_role_name = each_parent_relationship.key
+            child_class_name = get_child_class_name(each_parent_relationship)  # eg, OrderDetail
+            if child_class_name not in rule_bank.orm_objects:
+                pass  # eg, banking - ALERT is child of customer, has no rules, that's ok
+            else:
+                child_table_rules = rule_bank.orm_objects[child_class_name].rules
+                if parent_role_name is None:
+                    raise Exception("Relationship is missing 'back populates' for parent: " +
+                                    parent_logic_row.__str__())
+                search_for_rew_parent = "row." + parent_role_name
+                for each_rule in child_table_rules:
+                    if isinstance(each_rule, (Formula, Constraint)):  # eg, OrderDetail.ShippedDate
+                        rule_text = each_rule.get_rule_text()  #        eg, row.OrderHeader.ShippedDate
+                        if rule_text == 'row.Order.ShippedDate':
+                            debug = 'good breakpoint'
+                        rule_words = rule_text.split()
+                        for each_word in rule_words:
+                            if each_word.startswith(search_for_rew_parent):
+                                rule_terms = each_word.split(".")
+                                if len(rule_terms) == 3:               # eg, row.OrderHeader.ShippedDate
+                                    # if parent_role_name not in parent_rules.referring_children:
+                                    #    parent_rules.referring_children[parent_role_name] = ()
+                                    parent_rules.referring_children[parent_logic_row.name].append(
+                                        (child_class_name, child_role_name, rule_terms[2], parent_role_name))  # eg, OrderDetail, OrderDetailList ShippedDate
+    return parent_rules.referring_children

@@ -257,18 +257,21 @@ class Aggregate(Derivation):
 
     @staticmethod
     def _fk_is_null(child_row, role_name: str) -> bool:
-        """ True iff the FK column(s) backing role_name are null on child_row -
+        """ True iff ANY FK column backing role_name is null on child_row -
         distinguishes "no parent expected" (nullable FK, not an error) from
         "FK references a parent that can't be found" (data integrity error).
+        Matches _is_foreign_key_null / _get_parent_logic_row, which use the same
+        any-null test for a composite key (issue #34 - requiring ALL columns null
+        misread a partially-null composite FK as "parent not found").
         """
         my_mapper = object_mapper(child_row)
         role_def = my_mapper.relationships.get(role_name)
         if role_def is None:
             return False
         for each_child_col, each_parent_col in role_def.local_remote_pairs:
-            if getattr(child_row, each_child_col.name) is not None:
-                return False
-        return True
+            if getattr(child_row, each_child_col.name) is None:
+                return True
+        return False
 
     def get_child_role_name(self, child_attrs):
         """ return parent.<attr-name> that returns list of children """

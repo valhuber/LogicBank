@@ -25,7 +25,7 @@ class RowSets():
         self.processed_rows = set()     # type: Dict[base, 'LogicRow']
         self.submitted_row = set()
         self.rules_fired = set()
-        self.client_inserts = set()
+        self.client_inserts = {}  # dict, not set: keeps insertion order (issue #35) - set() iterates in hash order
 
     def add_processed_logic(self, logic_row: 'LogicRow'):
         """
@@ -48,7 +48,7 @@ class RowSets():
             self.submitted_row.remove(logic_row.row)
 
     def add_client_inserts(self, row: base):
-        self.client_inserts.add(row)
+        self.client_inserts[row] = None
 
     def is_client_insert(self, row: base) -> bool:
         result = row in self.client_inserts
