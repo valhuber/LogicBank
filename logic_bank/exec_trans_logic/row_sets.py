@@ -26,6 +26,7 @@ class RowSets():
         self.submitted_row = set()
         self.rules_fired = set()
         self.client_inserts = {}  # dict, not set: keeps insertion order (issue #35) - set() iterates in hash order
+        self.locked_parents = set()  # identity keys of parents already read with a lock in this flush (issue #36)
 
     def add_processed_logic(self, logic_row: 'LogicRow'):
         """

@@ -15,8 +15,9 @@ from sqlalchemy.orm import session
 from sqlalchemy.orm import mapper
 import logging
 
-__version__ = "1.34.02"  # add trans_update_locking (ignored/pessimistic) to LogicBank.activate() - closes lost-update race on cascaded Rule.sum/Rule.count parent adjustments under concurrent writers; see internal_dev/locking_strategy.md (ApiLogicServer-src)
+__version__ = "1.34.03"  # add trans_update_locking (ignored/pessimistic) to LogicBank.activate() - closes lost-update race on cascaded Rule.sum/Rule.count parent adjustments under concurrent writers; see internal_dev/locking_strategy.md (ApiLogicServer-src)
 ''' notes
+1.34.03 - addressed issues 36-39
 1.34.02 - addressed issues 32-35
 1.34.01 - addressed issues 27-31
 1.34.00 - fixed bug in auto_ins for composite keys (new test)

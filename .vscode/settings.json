@@ -14,5 +14,6 @@
     // "window.zoomLevel": 1.0,
     "python.testing.pytestArgs": [
         "examples/nw/tests"
-    ]
+    ],
+    "codeQL.githubDatabase.download": "never"
 }

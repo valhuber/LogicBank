@@ -135,6 +135,8 @@ class Aggregate(Derivation):
                                   do_not_adjust_list = None):
         where = self._where_cond(parent_adjustor.child_logic_row.row)
         delta = get_summed_field()
+        if delta is None:
+            delta = 0
         if where and delta != 0.0:  # trigger update by setting parent_adjustor.parent_logic_row
             parent_role_name = self.get_parent_role_from_child_role_name(
                 child_logic_row=parent_adjustor.child_logic_row,
@@ -150,6 +152,8 @@ class Aggregate(Derivation):
                 parent_adjustor.parent_logic_row = None
                 return
             curr_value = getattr(parent_adjustor.parent_logic_row.row, self._column)
+            if curr_value is None:
+                curr_value = 0
             is_do_not_adjust = parent_adjustor.parent_logic_row._is_in_list(do_not_adjust_list)
             if is_do_not_adjust:
                 parent_adjustor.child_logic_row.log_engine("do not adjust deleted rows")
@@ -166,6 +170,8 @@ class Aggregate(Derivation):
         parent_role_name = parent_adjustor.parent_role_name
         is_different_parent = parent_adjustor.child_logic_row._is_different_parent(parent_role_name)
         summed_field = get_summed_field()
+        if summed_field is None:
+            summed_field = 0
         old_summed_field = get_old_summed_field()
         if old_summed_field is None:
             old_summed_field = 0
@@ -240,6 +246,8 @@ class Aggregate(Derivation):
 
         where = self._where_cond(parent_adjustor.child_logic_row.old_row)
         delta = get_old_summed_field()
+        if delta is None:
+            delta = 0
         if where and delta != 0:
             if parent_adjustor.previous_parent_logic_row is None:
                 parent_adjustor.previous_parent_logic_row = \
@@ -252,6 +260,8 @@ class Aggregate(Derivation):
                 parent_adjustor.previous_parent_logic_row = None
             else:
                 curr_value = getattr(parent_adjustor.previous_parent_logic_row.row, self._column)
+                if curr_value is None:
+                    curr_value = 0
                 setattr(parent_adjustor.previous_parent_logic_row.row, self._column, curr_value - delta)
                 parent_adjustor.append_adjusting_attributes(self._column)
 

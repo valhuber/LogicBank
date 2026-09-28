@@ -1,15 +1,15 @@
 ================================================================================
 LOGICBANK TEST SUMMARY REPORT
 ================================================================================
-Generated: 2026-09-14 09:01:03
+Generated: 2026-09-28 06:58:46
 SQLAlchemy Version: 2.0.39
 LogicBank Version: 1.20.26
 
 OVERALL RESULTS:
 ----------------------------------------
-Total Test Suites: 20
-Total Test Files: 44
-Passed Suites: 20
+Total Test Suites: 28
+Total Test Files: 52
+Passed Suites: 28
 Failed Suites: 0
 Success Rate: 100.0%
 
@@ -22,6 +22,14 @@ examples/after_flush_row_event/tests     PASSED
 examples/banking/tests                   PASSED
   Standalone scripts:
     - test_transfer_funds.py
+
+examples/cascade_delete_multi_parent/tests PASSED
+  Unittest files:
+    - test_cascade_delete_multi_parent.py
+
+examples/cascade_parent_without_rules/tests PASSED
+  Unittest files:
+    - test_cascade_parent_without_rules.py
 
 examples/commit_event_mutation_scan/tests PASSED
   Unittest files:
@@ -43,6 +51,14 @@ examples/copy_null_parent/tests          PASSED
 examples/custom_exceptions/tests         PASSED
   Standalone scripts:
     - test_custom_constraints.py
+
+examples/formula_no_python_type/tests    PASSED
+  Unittest files:
+    - test_formula_no_python_type.py
+
+examples/insert_order_same_flush/tests   PASSED
+  Unittest files:
+    - test_insert_order_same_flush.py
 
 examples/insert_parent/tests             PASSED
   Standalone scripts:
@@ -91,6 +107,10 @@ examples/nw/tests                        PASSED
     - test_dlt_shipped_order.py
     - test_missing_attrs.py
 
+examples/partial_composite_fk_unparent/tests PASSED
+  Unittest files:
+    - test_partial_composite_fk_unparent.py
+
 examples/passive_delete_cascade/tests    PASSED
   Unittest files:
     - test_passive_delete_cascade.py
@@ -103,6 +123,14 @@ examples/pessimistic_insert_parent/tests PASSED
   Unittest files:
     - test_pessimistic_insert_parent.py
 
+examples/pessimistic_multi_child_adjust/tests PASSED
+  Unittest files:
+    - test_pessimistic_multi_child_adjust.py
+
+examples/pessimistic_relationship_parent/tests PASSED
+  Unittest files:
+    - test_pessimistic_relationship_parent.py
+
 examples/referential_integrity/tests     PASSED
   Standalone scripts:
     - test_referential_integrity.py
@@ -114,6 +142,10 @@ examples/spurious_parent_dependency/tests PASSED
 examples/sum_dequalify/tests             PASSED
   Unittest files:
     - test_sum_dequalify.py
+
+examples/sum_null_values/tests           PASSED
+  Unittest files:
+    - test_sum_null_values.py
 
 examples/tutorial/tests                  PASSED
   Standalone scripts:

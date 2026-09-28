@@ -245,6 +245,42 @@ class LogicRow:
                     result[each_attr_name] = getattr(a_row, each_attr_name)
         return result
 
+    def _refresh_locked_parent(self, parent_class, parent_key) -> bool:
+        """ First locking read of this parent in the flush: refresh it, keeping pending changes.
+
+        See GitHub issue #36 (https://github.com/valhuber/LogicBank/issues/36) -
+        every Rule.sum/Rule.count adjustment re-reads its parent with
+        with_for_update().populate_existing(). For a second child of the same
+        parent in the same flush, the parent is already in the session carrying
+        the first child's (unflushed) adjustment; populate_existing()
+        unconditionally overwrote it with the database value, silently losing
+        that adjustment. Now: refresh (with the lock) only on the parent's
+        FIRST locking read this flush, and only the columns that have no
+        pending change - preserving whatever LogicBank has already adjusted.
+
+        Returns True if the caller should still call populate_existing() itself
+        (first read of a parent with no pending changes - safe, and needed so a
+        stale identity-mapped copy from earlier relationship navigation is
+        replaced by the locked read); False if this method already refreshed
+        (or intentionally skipped refreshing) the parent.
+        """
+        mapper = inspect(parent_class)
+        try:
+            identity = mapper.identity_key_from_primary_key(
+                tuple(parent_key[col.name] for col in mapper.primary_key))
+        except KeyError:  # the FK points to a key that is not the primary key
+            return True
+        if identity in self.row_sets.locked_parents:
+            return False
+        self.row_sets.locked_parents.add(identity)
+        parent = self.session.identity_map.get(identity)
+        if parent is None or not self.session.is_modified(parent, include_collections=False):
+            return True
+        unchanged = [attr.key for attr in inspect(parent).attrs
+                     if attr.key in mapper.column_attrs and not attr.history.has_changes()]
+        self.session.refresh(parent, attribute_names=unchanged, with_for_update=True)
+        return False
+
     def _get_parent_logic_row(self, role_name: str, from_row: base = None, for_update: bool = False) -> 'LogicRow':
         """ get parent *and* set parent accessor and apply defaults
 
@@ -292,6 +328,11 @@ class LogicRow:
             parent_key = {}
             for each_child_col, each_parent_col in role_def.local_remote_pairs:
                 parent_key[each_parent_col.name] = getattr(row, each_child_col.name)
+            related = vars(row).get(role_name)  # parent assigned through the relationship: FK not set until flush (issue #37)
+            if related is not None and None in parent_key.values():
+                for each_child_col, each_parent_col in role_def.local_remote_pairs:
+                    parent_key[each_parent_col.name] = getattr(
+                        related, role_def.mapper.get_property_by_column(each_parent_col).key)
             if len(role_def.local_remote_pairs) > 1 and None in parent_key.values():
                 # partially null composite FK (eg a free-text sales line with
                 # product_id null but store_id set) - there is no parent to load,
@@ -307,7 +348,12 @@ class LogicRow:
                 # populate_existing() ensures a parent already cached from earlier relationship
                 # navigation (e.g. line above's getattr, on a previous call) is refreshed from
                 # the locked DB read, not silently returned from the stale in-memory identity map.
-                parent_query = parent_query.with_for_update().populate_existing()
+                # But only on the parent's FIRST locking read this flush (issue #36) - otherwise
+                # it would overwrite a pending adjustment from an earlier child of the same
+                # parent, already in the session but not yet flushed, with the stale DB value.
+                parent_query = parent_query.with_for_update()
+                if self._refresh_locked_parent(parent_class, parent_key):
+                    parent_query = parent_query.populate_existing()
             parent_row = parent_query.get(parent_key)
             if self.ins_upd_dlt == "upd" or debug_set_parents_for_inserts:  # eg, add order - don't tell sqlalchemy to add cust
                 # For a composite/multi-column FK, setattr(row, role_name, None) below -- taken
@@ -1232,6 +1278,8 @@ class LogicRow:
             meta = self.table_meta
             pkey_cols = meta.primary_key.columns
             for each_logic_row in logic_rows:
+                if each_logic_row.table_meta is not meta:  # issue #38 - only rows of the same table can be the same row
+                    continue
                 same_row = True
                 for each_column in meta.primary_key.columns:
                     col_name = each_column.name
