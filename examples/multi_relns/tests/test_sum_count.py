@@ -147,3 +147,36 @@ class Test(unittest.TestCase):
         assert dept_sales.on_loan_salary_total == 1500, f'Expected on_loan_salary_total=1500, got {dept_sales.on_loan_salary_total}'
 
         print("\n...test_same_department_both_roles ran to completion\n\n")
+
+    def test_reparent_and_salary_change_same_update(self):
+        """ Confirms NOT broken (post-investigation of GitHub issues #27-#39): reparenting
+        works_for_id AND changing the summed attribute (salary) in the SAME update, on a
+        role disambiguated via child_role_name. This is the multi-relationship analogue of
+        issue #27 (Aggregate.adjust_from_updated_reparented_child decrementing the OLD
+        parent by the child's stale vs. current value) - #27's own regression suite
+        (examples/sum_dequalify) covers dequalify-by-where on a single-parent-class model;
+        this confirms the reparent (FK-change) path is equally correct when child_role_name
+        disambiguation is involved. Bob: works_for=Eng(2000) -> reparented to Sales, salary
+        also raised to 2200, in one commit.
+        """
+        session = self.session
+        bob = session.query(models.Employee).filter(models.Employee.id == 2).one()
+        bob.works_for_id = 1  # Engineering -> Sales
+        bob.salary = 2200     # 2000 -> 2200, same update
+        session.commit()
+
+        dept_sales = session.query(models.Department).filter(models.Department.id == 1).one()  # gains Bob
+        dept_eng = session.query(models.Department).filter(models.Department.id == 2).one()     # loses Bob
+
+        assert dept_sales.works_for_count == 3, f'Expected Sales works_for_count=3 (Alice, Carol, Bob), got {dept_sales.works_for_count}'
+        assert dept_sales.works_for_salary_total == 4700, \
+            f'Expected Sales works_for_salary_total=4700 (2500 + Bob NEW 2200), got {dept_sales.works_for_salary_total}'
+        assert dept_eng.works_for_count == 0, f'Expected Engineering works_for_count=0 (Bob moved out), got {dept_eng.works_for_count}'
+        assert dept_eng.works_for_salary_total == 0, \
+            f'Expected Engineering works_for_salary_total=0 (decremented by Bob OLD 2000, not left over), got {dept_eng.works_for_salary_total}'
+        # on_loan side (untouched FK: Bob's on_loan_id is still Engineering) must reflect his
+        # NEW salary too - same commit, different role, not cross-contaminated by the reparent
+        assert dept_eng.on_loan_salary_total == 3200, \
+            f'Expected Engineering on_loan_salary_total=3200 (Bob NEW 2200 + Alice 1000, on_loan_id unchanged), got {dept_eng.on_loan_salary_total}'
+
+        print("\n...test_reparent_and_salary_change_same_update ran to completion\n\n")
