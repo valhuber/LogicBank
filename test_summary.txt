@@ -1,14 +1,14 @@
 ================================================================================
 LOGICBANK TEST SUMMARY REPORT
 ================================================================================
-Generated: 2026-09-28 07:26:16
+Generated: 2026-11-03 15:21:51
 SQLAlchemy Version: 2.0.39
 LogicBank Version: 1.20.26
 
 OVERALL RESULTS:
 ----------------------------------------
 Total Test Suites: 28
-Total Test Files: 52
+Total Test Files: 53
 Passed Suites: 28
 Failed Suites: 0
 Success Rate: 100.0%
@@ -105,6 +105,7 @@ examples/nw/tests                        PASSED
     - test_upd_employee_audit.py
     - test_parser_edge_cases.py
     - test_dlt_shipped_order.py
+    - test_no_sa_deprecation_warnings.py
     - test_missing_attrs.py
 
 examples/partial_composite_fk_unparent/tests PASSED
@@ -209,7 +210,10 @@ All tests passed successfully, confirming SQLAlchemy 2.0 compatibility.
 17. test_dlt_shipped_order.py
     Description: Business logic test
 
-18. test_missing_attrs.py
+18. test_no_sa_deprecation_warnings.py
+    Description: Business logic test
+
+19. test_missing_attrs.py
     Description: Business logic test
 
 KEY ACCOMPLISHMENTS:

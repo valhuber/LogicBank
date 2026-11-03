@@ -1,6 +1,5 @@
 from __future__ import annotations
 import sqlalchemy
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import object_mapper
 
 from logic_bank import engine_logger

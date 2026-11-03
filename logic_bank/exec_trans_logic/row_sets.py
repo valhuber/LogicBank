@@ -2,7 +2,6 @@ from __future__ import annotations
 from typing import List, TypeVar, Dict
 
 from sqlalchemy.engine import base
-from sqlalchemy.ext.declarative import declarative_base
 
 from logic_bank import logic_bank
 from logic_bank.exec_row_logic.logic_row import LogicRow

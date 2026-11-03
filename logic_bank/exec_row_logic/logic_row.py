@@ -16,7 +16,6 @@ from decimal import Decimal
 
 import logic_bank
 from logic_bank.rule_bank.rule_bank import RuleBank
-from sqlalchemy.ext.declarative import declarative_base
 
 # from logic_bank.exec_row_logic.parent_role_adjuster import ParentRoleAdjuster
 from logic_bank.rule_bank import rule_bank_withdraw
@@ -76,7 +75,6 @@ class LogicRow:
         rb = RuleBank()
         self.rb = rb
         self.session = a_session
-        self.some_base = declarative_base()
         self.name = ""
         """ class name """
         self.table_meta = None
@@ -302,7 +300,7 @@ class LogicRow:
         debug_set_parents_for_inserts = True  # interim, for debug (this failed once, keeping watch)
         # A parent that insert_parent just created earlier in THIS transaction is set on the
         # relationship but not yet flushed to the database - it has no identity key yet. A locking
-        # read (parent_query.get(), below) would go straight to the database, miss it, and return
+        # read (session.get(), below) would go straight to the database, miss it, and return
         # None: the adjustment gets silently skipped, and - because parent_row is then None -
         # setattr(row, role_name, None) nulls the child's own FK columns as a side effect (see the
         # composite-FK comment a few lines down). vars(row) reads the relationship without
@@ -342,19 +340,23 @@ class LogicRow:
                 return LogicRow(row=None, old_row=old_parent, ins_upd_dlt="*", nest_level=1 + self.nest_level,
                                 a_session=self.session, row_sets=self.row_sets)
             parent_class = role_def.entity.class_
-            # https://docs.sqlalchemy.org/en/13/orm/query.html#the-query-object
-            parent_query = self.session.query(parent_class)
+            # Session.get(), not the legacy Query.get() (deprecated since SQLAlchemy 1.4; it warned on every
+            # parent read). Same semantics: identity map first, else a primary-key SELECT.
+            get_args = {}
             if use_locking_read:
-                # populate_existing() ensures a parent already cached from earlier relationship
+                # populate_existing ensures a parent already cached from earlier relationship
                 # navigation (e.g. line above's getattr, on a previous call) is refreshed from
                 # the locked DB read, not silently returned from the stale in-memory identity map.
                 # But only on the parent's FIRST locking read this flush (issue #36) - otherwise
                 # it would overwrite a pending adjustment from an earlier child of the same
                 # parent, already in the session but not yet flushed, with the stale DB value.
-                parent_query = parent_query.with_for_update()
+                get_args["with_for_update"] = True
                 if self._refresh_locked_parent(parent_class, parent_key):
-                    parent_query = parent_query.populate_existing()
-            parent_row = parent_query.get(parent_key)
+                    get_args["populate_existing"] = True
+            if all(each is None for each in parent_key.values()):
+                parent_row = None  # a null FK has no parent; session.get() would warn "fully NULL primary key identity"
+            else:
+                parent_row = self.session.get(parent_class, parent_key, **get_args)
             if self.ins_upd_dlt == "upd" or debug_set_parents_for_inserts:  # eg, add order - don't tell sqlalchemy to add cust
                 # For a composite/multi-column FK, setattr(row, role_name, None) below -- taken
                 # when no matching parent exists yet -- makes SQLAlchemy's relationship setter
