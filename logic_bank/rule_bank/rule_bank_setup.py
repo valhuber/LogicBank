@@ -15,9 +15,10 @@ from sqlalchemy.orm import session
 from sqlalchemy.orm import mapper
 import logging
 
-__version__ = "1.34.04" \
-""  # add trans_update_locking (ignored/pessimistic) to LogicBank.activate() - closes lost-update race on cascaded Rule.sum/Rule.count parent adjustments under concurrent writers; see internal_dev/locking_strategy.md (ApiLogicServer-src)
+__version__ = "1.34.05" \
+""  # insert_parent fixes - see system/LogicBank-Internal-Dev/insert-parent-same-flush-and-reparent.md
 ''' notes
+1.34.05 - insert_parent: reuse a parent inserted earlier in the same transaction (was: UNIQUE constraint failed); create a missing parent on reparent without a parent_check rule (was: Missing Adopting Parent)
 1.34.04 - SQLAlchemy compatibility updates
 1.34.03 - addressed issues 36-39
 1.34.02 - addressed issues 32-35

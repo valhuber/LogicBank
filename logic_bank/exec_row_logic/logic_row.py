@@ -928,6 +928,21 @@ class LogicRow:
                         raise Exception("Malformed relationship has no foreign key: " +
                                         str(relationship))
                     copy_to_class = relationship.entity.class_
+                    # Several new children of the same NEW parent in one transaction (e.g. the first
+                    # order and the first message of a day, each counted into that day's totals row):
+                    # the parent is created by the first child, and is still pending (not yet flushed,
+                    # so a query does not find it).  Reuse it - creating another raised
+                    # "UNIQUE constraint failed" on the parent key.
+                    pending_parent = self._pending_inserted_parent(copy_to_class, local_remote_pairs)
+                    if pending_parent is not None:
+                        self.log(f'Insert Parent: {each_aggregate._parent_role_name} - '
+                                 f'reusing the parent inserted earlier in this transaction')
+                        child_fk_values = [(each_child_column, getattr(self.row, each_child_column.name))
+                                           for each_child_column, each_parent_column in local_remote_pairs]
+                        setattr(self.row, each_aggregate._parent_role_name, pending_parent)  # parent setter
+                        for each_child_column, val in child_fk_values:
+                            setattr(self.row, each_child_column.name, val)
+                        break
                     inserted_parent_row = LogicRow(row=copy_to_class(), old_row=copy_to_class(),
                                                    ins_upd_dlt="ins",
                                                    nest_level=self.nest_level + 1,
@@ -952,6 +967,20 @@ class LogicRow:
                     inserted_parent_row.insert(reason=f'Insert Parent from {self.name}')
                     break
         return has_inserted_parent
+
+    def _pending_inserted_parent(self, parent_class, local_remote_pairs) -> object:
+        """A parent row of parent_class with this child's FK values, inserted earlier in this transaction (pending in
+        session.new, so not yet found by a query) - else None.  See _is_inserted_parent."""
+        key_values = [(each_parent_column.name, getattr(self.row, each_child_column.name))
+                      for each_child_column, each_parent_column in local_remote_pairs]
+        candidates = list(self.session.new)   # added by the client
+        if self.row_sets is not None:         # inserted by logic in this flush (e.g. insert_parent) - not yet in session.new
+            candidates += [each.row for each in self.row_sets.processed_logic_rows.values() if each.ins_upd_dlt == "ins"]
+        for each_new in candidates:
+            if isinstance(each_new, parent_class) and \
+                    all(getattr(each_new, name) == value for name, value in key_values):
+                return each_new
+        return None
 
     def _is_foreign_key_null(self, relationship: sqlalchemy.orm.relationships) -> bool:
         """

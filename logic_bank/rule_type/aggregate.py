@@ -228,6 +228,18 @@ class Aggregate(Derivation):
                 parent_adjustor.parent_logic_row = \
                     parent_adjustor.child_logic_row._get_parent_logic_row(
                         role_name=self._parent_role_name, for_update=True)
+            if parent_adjustor.parent_logic_row.row is None and self.insert_parent and \
+                    not self._fk_is_null(parent_adjustor.child_logic_row.row, self._parent_role_name):
+                # The new parent is missing and THIS aggregate declared insert_parent=True: create it, as
+                # adjust_from_inserted_child does.  (The update path otherwise created a missing parent only
+                # inside a parent_check rule; without one, reparenting raised "Missing Adopting Parent".)
+                child_mapper = object_mapper(parent_adjustor.child_logic_row.row)
+                relationship = child_mapper.relationships.get(self._parent_role_name)
+                if relationship is not None and \
+                        parent_adjustor.child_logic_row._is_inserted_parent(relationship):
+                    parent_adjustor.parent_logic_row = \
+                        parent_adjustor.child_logic_row._get_parent_logic_row(
+                            role_name=self._parent_role_name, for_update=True)
             if parent_adjustor.parent_logic_row.row is None:  # fix reparent count failure
                 if self._fk_is_null(parent_adjustor.child_logic_row.row, self._parent_role_name):
                     # legitimately-null optional new parent FK (e.g. no on_loan assignment) - nothing

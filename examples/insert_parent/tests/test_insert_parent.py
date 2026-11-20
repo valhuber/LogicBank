@@ -182,3 +182,61 @@ if test9:
     print("\n" + prt("Test 2 - Insert Parent From Adopted Child -- passes"))
 else:
     print("\nSKIPPED Test 2 - Insert Parent From Adopted Child")
+
+
+"""
+    Test 3 - Insert Parent once for two new children of the same new parent, in one transaction
+    (insert_parent used to create the parent once PER child: UNIQUE constraint failed on the parent key)
+"""
+print("\nTest 3 - Insert Parent once for two children inserted in one transaction")
+did_succeed_as_expected = True
+session.add_all([models.Child(parent_1="same_flush", parent_2="parent", summed=3, child_key="same flush child 1"),
+                 models.Child(parent_1="same_flush", parent_2="parent", summed=4, child_key="same flush child 2")])
+try:
+    session.commit()
+except Exception as e:
+    traceback.print_exception(*sys.exc_info())
+    session.rollback()
+    did_succeed_as_expected = False
+    print("\nUNEXPECTED exception: " + str(e))
+assert did_succeed_as_expected, "Test 3 - Insert Parent once for two children in one transaction -- FAILS"
+
+same_flush_parents = session.query(models.Parent).filter(models.Parent.parent_attr_1 == "same_flush",
+                                                         models.Parent.parent_attr_2 == "parent").all()
+assert len(same_flush_parents) == 1, f"Expected 1 parent, got {len(same_flush_parents)}"
+assert same_flush_parents[0].child_count == 2, f"Unexpected child_count: {same_flush_parents[0].child_count}"
+assert same_flush_parents[0].child_sum == 7, f"Unexpected child_sum: {same_flush_parents[0].child_sum}"
+print("\n" + prt("Test 3 - Insert Parent once for two children in one transaction -- passes"))
+
+
+"""
+    Test 4 - Insert Parent for an adopted child when no parent_check rule is declared
+    (the update path created a missing parent only inside parent_check; without it, reparenting a child to a
+    missing parent raised "Unable to Adjust Missing Adopting Parent")
+"""
+print("\nTest 4 - Insert Parent From Adopted Child, without parent_check")
+ref_integ_rule._enable = False
+did_succeed_as_expected = True
+child = session.query(models.Child).filter(models.Child.child_key == "same flush child 1").one()
+child.parent_1 = "adopted_no_check"
+try:
+    session.commit()
+except Exception as e:
+    traceback.print_exception(*sys.exc_info())
+    session.rollback()
+    did_succeed_as_expected = False
+    print("\nUNEXPECTED exception: " + str(e))
+finally:
+    ref_integ_rule._enable = True
+assert did_succeed_as_expected, "Test 4 - Insert Parent From Adopted Child, without parent_check -- FAILS"
+
+adopted = session.query(models.Parent).filter(models.Parent.parent_attr_1 == "adopted_no_check",
+                                              models.Parent.parent_attr_2 == "parent").all()
+assert len(adopted) == 1, f"Expected 1 adopting parent, got {len(adopted)}"
+assert adopted[0].child_count == 1 and adopted[0].child_sum == 3, \
+    f"Unexpected adopting parent: count {adopted[0].child_count}, sum {adopted[0].child_sum}"
+previous = session.query(models.Parent).filter(models.Parent.parent_attr_1 == "same_flush",
+                                               models.Parent.parent_attr_2 == "parent").one()
+assert previous.child_count == 1 and previous.child_sum == 4, \
+    f"Unexpected previous parent: count {previous.child_count}, sum {previous.child_sum}"
+print("\n" + prt("Test 4 - Insert Parent From Adopted Child, without parent_check -- passes"))
