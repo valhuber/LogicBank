@@ -88,6 +88,13 @@ class RuleBank(metaclass=Singleton):  # FIXME design review singleton
                             each_class_name = each_mapper.class_.__name__
                             if each_class_name not in self.map_name_to_mapper:
                                 self.map_name_to_mapper[each_class_name] = each_mapper
+            if getattr(a_rule, "_explicit_name", False):  # a declared name (name=) must be unique on its table
+                for each_rule in table_rules.rules:
+                    if getattr(each_rule, "name", None) == a_rule.name:
+                        self.invalid_rules.append(
+                            f"Duplicate rule name: {a_rule.table}.{a_rule.name} is already the name of "
+                            f"{type(each_rule).__name__} {str(each_rule)}")
+                        break
             table_rules.rules.append(a_rule)
             engine_logger.debug(prt(str(a_rule)))
         else:

@@ -31,6 +31,7 @@ class Derivation(AbstractRule):
         else:
             self._column = derive.key
             self._derive = derive
+            self.name = self._column  # a derivation is named by the column it derives: <Table>.<column>
 
             rb = RuleBank()  # issue[16]: check for duplicate derivation rules
             if self.table in rb.orm_objects:

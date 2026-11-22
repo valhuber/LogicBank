@@ -217,7 +217,8 @@ class Rule:
                    calling: Callable = None,
                    as_condition: any = None,
                    error_msg: str = "(error_msg not provided)",
-                   error_attributes=None):
+                   error_attributes=None,
+                   name: str = None):
         """
         Constraints declare condition that must be true for all commits
 
@@ -243,19 +244,22 @@ class Rule:
             as_condition: lambda, passed row (simple constraints)
             error_msg: string, with {row.attribute} replacements
             error_attributes: list of attributes
+            name: optional rule name, unique on the class (eg, "credit_limit_check"); the rule's qualified name is
+                <Class>.<name>, so requirements can refer to it.  Default: the calling function's name (none for a lambda)
 
         """
         if error_attributes is None:
             error_attributes = []
         return Constraint(validate=validate, calling=calling, as_condition=as_condition,
-                          error_attributes=error_attributes, error_msg=error_msg)
+                          error_attributes=error_attributes, error_msg=error_msg, name=name)
 
     @staticmethod
     def commit_constraint(validate: object,
                           calling: Callable = None,
                           as_condition: any = None,
                           error_msg: str = "(error_msg not provided)",
-                          error_attributes=None):
+                          error_attributes=None,
+                          name: str = None):
         """
         Like Rule.constraint, but checked once per row, after this
         transaction's logic cascade has fully settled (during after_flush),
@@ -296,7 +300,7 @@ class Rule:
         if error_attributes is None:
             error_attributes = []
         return CommitConstraint(validate=validate, calling=calling, as_condition=as_condition,
-                                error_attributes=error_attributes, error_msg=error_msg)
+                                error_attributes=error_attributes, error_msg=error_msg, name=name)
 
     @staticmethod
     def parent_check(validate: object,
@@ -394,7 +398,8 @@ class Rule:
         return Copy(derive=derive, from_parent=from_parent, child_role_name=child_role_name)
 
     @staticmethod
-    def early_row_event(on_class: object, calling: Callable = None, allow_event_nesting: bool = False):
+    def early_row_event(on_class: object, calling: Callable = None, allow_event_nesting: bool = False,
+                        name: str = None):
         """
         Row Events are Python functions called *before* logic
         Possible multiple calls per transaction
@@ -406,8 +411,10 @@ class Rule:
             allow_event_nesting: if False (default), suppresses re-fire of this event
                 on the same row within the same flush cycle (prevents Allocate cascade loops).
                 Set True only if intentional re-firing is required.
+            name: optional rule name, unique on the class; qualified name <Class>.<name>, so requirements can
+                refer to it.  Default: the calling function's name.  (Same name= on all row events and constraints.)
         """
-        return EarlyRowEvent(on_class, calling, allow_event_nesting)  # --> load_logic
+        return EarlyRowEvent(on_class, calling, allow_event_nesting, name=name)  # --> load_logic
 
     @staticmethod
     def early_row_event_all_classes(early_row_event_all_classes: Callable = None):
@@ -431,7 +438,7 @@ class Rule:
 
     @staticmethod
     def row_event(on_class: object, calling: Callable = None, allow_event_nesting: bool = False,
-                 allow_row_mutation: bool = False):
+                 allow_row_mutation: bool = False, name: str = None):
         """
         Row Events are Python functions called *during* logic, after formulas/constraints
         Possible multiple calls per transaction
@@ -451,11 +458,11 @@ class Rule:
             allow_row_mutation: if False (default), activation fails if `calling` appears to mutate
                 `row`. Set True only if you understand the mutation bypasses rule checking.
         """
-        return RowEvent(on_class, calling, allow_event_nesting, allow_row_mutation)  # --> load_logic
+        return RowEvent(on_class, calling, allow_event_nesting, allow_row_mutation, name=name)  # --> load_logic
 
     @staticmethod
     def commit_row_event(on_class: object, calling: Callable = None, allow_event_nesting: bool = False,
-                         allow_row_mutation: bool = False):
+                         allow_row_mutation: bool = False, name: str = None):
         """
         Commit Row Events are Python functions *after* all row logic formulas/constraints
 
@@ -480,13 +487,14 @@ class Rule:
             allow_row_mutation: if False (default), activation fails if `calling` appears to mutate
                 `row`. Set True only if you understand the mutation bypasses rule checking.
         """
-        return CommitRowEvent(on_class, calling, allow_event_nesting, allow_row_mutation)  # --> load_logic
+        return CommitRowEvent(on_class, calling, allow_event_nesting, allow_row_mutation, name=name)  # --> load_logic
 
     @staticmethod
     def after_flush_row_event(on_class: object, calling: Callable = None,
                               if_condition: any = None,
                               when_condition: any = None,
-                              with_args: dict = None):
+                              with_args: dict = None,
+                              name: str = None):
         """
         After Flush Row Events are Python functions executed *after* all row logic formulas/constraints,
         and after rows are flushed to disk.
@@ -517,7 +525,8 @@ class Rule:
                                   calling=calling,
                                   if_condition=if_condition,
                                   when_condition=when_condition,
-                                  with_args=with_args)  # --> load_logic
+                                  with_args=with_args,
+                                  name=name)  # --> load_logic
 
     '''
     disabled, per ORM support (retained in case of misunderstandings)

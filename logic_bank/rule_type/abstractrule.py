@@ -43,6 +43,30 @@ class AbstractRule(object):
         """
         list of attributes this rule refers to, including parent.attribute
         """
+        self.name = None
+        """ rule name, unqualified (eg, credit_limit_check); see get_name() """
+        self._explicit_name = False
+        """ True if the name was declared (name=), False if defaulted - only declared names must be unique """
+
+    def get_name(self) -> str:
+        """
+        Qualified rule name, <Table>.<name> (eg, Customer.credit_limit_check), or None if the rule has no name.
+
+        Derivations are named by the column they derive (Order.amount_total).  Constraints and events take
+        name= when declared, else default to their calling function's name (none for lambdas).
+        Requirements refer to rules by this name.
+        """
+        if self.name is None:
+            return None
+        return f"{self.table}.{self.name}"
+
+    def _set_name(self, name: str, calling: object = None):
+        """ name= if declared, else the calling function's name (None for lambdas / no function) """
+        if name is not None:
+            self.name = name
+            self._explicit_name = True
+        elif calling is not None and getattr(calling, "__name__", "<lambda>") != "<lambda>":
+            self.name = calling.__name__
 
     def get_referenced_attributes(self) -> list[str]:
         referenced_attributes = []

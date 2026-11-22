@@ -44,9 +44,11 @@ class AbstractRowEvent(AbstractRule):
     def __init__(self, on_class: object,
                  calling: Callable = None,
                  allow_event_nesting: bool = False,
-                 allow_row_mutation: bool = False):
+                 allow_row_mutation: bool = False,
+                 name: str = None):
         super(AbstractRowEvent, self).__init__(on_class)
         self._function = calling
+        self._set_name(name, calling)
         self._allow_event_nesting = allow_event_nesting
         if self._mutates_row_after_cascade and not allow_row_mutation:
             self._check_row_mutation(calling)
@@ -78,7 +80,10 @@ class AbstractRowEvent(AbstractRule):
             )
 
     def __str__(self):
-        return f'RowEvent {self.table}.{self._function.__name__}() '
+        text = f'RowEvent {self.table}.{self._function.__name__}() '
+        if self._explicit_name and self.name != self._function.__name__:  # a declared name, when it adds something
+            text += f'name: {self.name} '
+        return text
 
     def _check_and_mark_fired(self, logic_row) -> bool:
         """
@@ -110,8 +115,10 @@ class EarlyRowEvent(AbstractRowEvent):
 
     def __init__(self, on_class: object,
                  calling: Callable = None,
-                 allow_event_nesting: bool = False):
-        super(EarlyRowEvent, self).__init__(on_class=on_class, calling=calling, allow_event_nesting=allow_event_nesting)
+                 allow_event_nesting: bool = False,
+                 name: str = None):
+        super(EarlyRowEvent, self).__init__(on_class=on_class, calling=calling, allow_event_nesting=allow_event_nesting,
+                                            name=name)
 
 
 class RowEvent(AbstractRowEvent):
@@ -123,9 +130,10 @@ class RowEvent(AbstractRowEvent):
     def __init__(self, on_class: object,
                  calling: Callable = None,
                  allow_event_nesting: bool = False,
-                 allow_row_mutation: bool = False):
+                 allow_row_mutation: bool = False,
+                 name: str = None):
         super(RowEvent, self).__init__(on_class=on_class, calling=calling, allow_event_nesting=allow_event_nesting,
-                                       allow_row_mutation=allow_row_mutation)
+                                       allow_row_mutation=allow_row_mutation, name=name)
 
 
 class CommitRowEvent(AbstractRowEvent):
@@ -137,9 +145,10 @@ class CommitRowEvent(AbstractRowEvent):
     def __init__(self, on_class: object,
                  calling: Callable = None,
                  allow_event_nesting: bool = False,
-                 allow_row_mutation: bool = False):
+                 allow_row_mutation: bool = False,
+                 name: str = None):
         super(CommitRowEvent, self).__init__(on_class=on_class, calling=calling, allow_event_nesting=allow_event_nesting,
-                                             allow_row_mutation=allow_row_mutation)
+                                             allow_row_mutation=allow_row_mutation, name=name)
 
 
 class AfterFlushRowEvent(AbstractRowEvent):
@@ -150,8 +159,10 @@ class AfterFlushRowEvent(AbstractRowEvent):
                  if_condition: Callable = None,
                  when_condition: Callable = None,
                  with_args: dict = None,
-                 allow_event_nesting: bool = False):
-        super(AfterFlushRowEvent, self).__init__(on_class=on_class, calling=calling, allow_event_nesting=allow_event_nesting)
+                 allow_event_nesting: bool = False,
+                 name: str = None):
+        super(AfterFlushRowEvent, self).__init__(on_class=on_class, calling=calling, allow_event_nesting=allow_event_nesting,
+                                                 name=name)
         self.if_condition = if_condition
         self.when_condition = when_condition
         self.with_args = with_args

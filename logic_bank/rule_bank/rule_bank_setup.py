@@ -15,9 +15,10 @@ from sqlalchemy.orm import session
 from sqlalchemy.orm import mapper
 import logging
 
-__version__ = "1.34.05" \
-""  # insert_parent fixes - see system/LogicBank-Internal-Dev/insert-parent-same-flush-and-reparent.md
+__version__ = "1.34.06" \
+""  # rule names (name= on constraints and events)
 ''' notes
+1.34.06 - rule names: optional name= on Rule.constraint, commit_constraint and the four row events (default: the calling function's name; none for a lambda); derivations are named by their column. rule.get_name() returns <Table>.<name>. A duplicate declared name on one table fails activation. The name shows in the logic log: "Constraint Customer.credit_limit_check" in Rules Used, "Constraint Failure (Customer.credit_limit_check): ...", and a declared event name after "RowEvent Order.fn()". Test: examples/rule_names.
 1.34.05 - insert_parent: reuse a parent inserted earlier in the same transaction (was: UNIQUE constraint failed); create a missing parent on reparent without a parent_check rule (was: Missing Adopting Parent)
 1.34.04 - SQLAlchemy compatibility updates
 1.34.03 - addressed issues 36-39

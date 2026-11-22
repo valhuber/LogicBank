@@ -28,8 +28,10 @@ class AbstractConstraint(AbstractRule):
                  error_msg: str,
                  calling: Callable = None,
                  as_condition: object = None,  # str or lambda boolean expression
-                 error_attributes: Sequence[InstrumentedAttribute] = None):
+                 error_attributes: Sequence[InstrumentedAttribute] = None,
+                 name: str = None):
         super(AbstractConstraint, self).__init__(validate)
+        self._set_name(name, calling)
         # self.table = validate  # setter finds object
         self._error_msg = error_msg
         self._as_condition = as_condition
@@ -55,6 +57,9 @@ class AbstractConstraint(AbstractRule):
         ll.deposit_rule(self)
 
     def __str__(self):
+        if self.get_name() is not None:  # eg, "Constraint Customer.credit_limit_check" - the name, in logs and reports
+            function = f"Function: {self._function.__name__} " if self._function is not None else ""
+            return f'{type(self).__name__} {self.get_name()} {function}'
         return f'{type(self).__name__} Function: {str(self._function)} '
 
     def get_referenced_attributes(self) -> list[str]:
@@ -90,7 +95,8 @@ class AbstractConstraint(AbstractRule):
             msg = eval(f'f"""{self._error_msg}"""')
             from sqlalchemy import exc
             # exception = exc.DBAPIError(msg, None, None)  # 'statement', 'params', and 'orig'
-            logic_row.log(f'{type(self).__name__} Failure: {msg}')
+            named = f" ({self.get_name()})" if self.get_name() is not None else ""
+            logic_row.log(f'{type(self).__name__} Failure{named}: {msg}')
             logic_row.row_sets.print_used()
             ll = RuleBank()
             if ll.constraint_event:
